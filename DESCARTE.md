@@ -7,8 +7,15 @@ y sus recursos empaquetados), **migración del esquema** (Flyway `V1`–`V22`),
 **preparación de base y datos** (`scripts/setup-postgres.*`, `scripts/run-colibri.ps1`,
 `scripts/anexo_l/`, `scripts/db/`) y la **documentación** citada en el `README.md`.
 
-Validación realizada sobre este contenido: `./mvnw clean test` con JDK 25 → `BUILD SUCCESS`
-en los 5 módulos; las 22 migraciones Flyway se aplican sin error sobre PostgreSQL 18.
+Validación realizada sobre este contenido (clon limpio, JDK 25):
+
+- `./mvnw clean test` sin base de prueba → `BUILD SUCCESS` en los 5 módulos (57 pruebas; las 7
+  de integración se omiten por no haber PostgreSQL).
+- Con PostgreSQL 18 en el puerto 5434 (`colibri_test`) las 22 migraciones Flyway se aplican sin
+  error. En `PartidaServiceIntegrationTest` fallan 2 pruebas que no corresponden al código
+  vigente: `usuariosPersonalesPersistenBloqueoYPermitenDesactivacion` crea usuarios con la sesión
+  del contador (hoy reservado a soporte técnico) y
+  `librosPresentanCuentasTHojaDeTrabajoYEstadosBalanceados` (aserción en la línea 185).
 
 Lo siguiente existía en el directorio de trabajo original y **no** se versiona:
 
