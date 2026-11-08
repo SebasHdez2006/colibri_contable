@@ -1,0 +1,190 @@
+ANÁLISIS ACTUAL DEL SISTEMA INFORMÁTICO COLIBRÍ
+Soluciones Empresariales Colibrí, S.A. de C.V. — SIC 115
+Estado de referencia: 8 de noviembre de 2026
+
+0. IDENTIFICACIÓN Y FRONTERA DEL SISTEMA
+
+Nombre ................. COLIBRÍ — Sistema Contable
+Tipo ................... Prototipo académico de escritorio
+Propósito .............. Registrar operaciones contables, aplicar reglas de
+                         partida doble, apoyar el costeo y producir libros,
+                         estados y archivos de respaldo locales.
+Actores ................ Contador y Soporte Técnico
+Arquitectura ........... JavaFX de escritorio con PostgreSQL local
+Restricción ............ Una instancia de aplicación por equipo; no es un
+                         sistema web ni un servicio multiusuario de red.
+
+La frontera incluye la aplicación Java, la base local, los scripts de instalación,
+los reportes exportados y los archivos de configuración/recuperación del usuario.
+Quedan fuera Hacienda y la emisión oficial de DTE, bancos, servicios cloud,
+infraestructura de distribución de software y los procedimientos manuales de
+restauración, revisión fiscal y conciliación documental.
+
+Tecnologías según pom.xml: Java 25, JavaFX 25, PostgreSQL JDBC 42.7.12,
+HikariCP 6.3.0, Flyway 11.10.0, JasperReports 7.0.7, Apache POI 5.4.1,
+Jackson 2.22.3, SLF4J 2.0.17, JUnit 5.13.4, AssertJ 3.27.7,
+Testcontainers 1.21.3 y TestFX 4.0.18. El proyecto usa Maven Wrapper y cinco
+módulos: colibri-domain, colibri-persistence, colibri-application,
+colibri-reports y colibri-desktop.
+
+1. ELEMENTOS DEL SISTEMA
+
+1.1 ENTRADAS
+
+Entradas de Contador por las vistas JavaFX:
+- Datos de empresa, ejercicios, períodos y responsables.
+- Catálogo de cuentas y parámetros de operación, perfiles de contabilización,
+  centros de costo, planes y parámetros fiscales configurables.
+- Terceros, documentos internos, partidas y líneas contables con fechas,
+  cuentas, descripciones, dimensiones, Debe y Haber.
+- Datos de inventario: versiones y lotes de licencias, costos, órdenes,
+  consumos, CIF, planes SaaS y usuarios-mes.
+- Acciones de ajuste, depreciación lineal de activos fijos, liquidación de IVA y cierre
+  de período, dentro de las operaciones habilitadas.
+- Solicitudes de libros, estados y exportaciones para el período o rango elegido.
+
+Entradas técnicas y de entorno:
+- Propiedades de conexión en `%USERPROFILE%\.colibri\application.local.properties`.
+- Migraciones SQL Flyway `V1`–`V19` y recursos de interfaz/marca empaquetados.
+- Base PostgreSQL local. `setup-postgres.ps1` crea el rol y las bases `colibri`
+  y `colibri_test`; el puerto del entorno documentado es 5434, configurable.
+- CSV de líneas de partidas para la creación de borradores. No se importan ni
+  validan DTE oficiales.
+- Opcionalmente, semilla de demostración cuando la propiedad o variable de
+  entorno correspondiente se activa explícitamente.
+
+Entradas de Soporte Técnico: altas/ediciones/desactivaciones de usuarios y
+ajustes permitidos del entorno, solicitudes de respaldo y recuperación de acceso.
+
+1.2 PROCESOS
+
+Acceso y autorización:
+- Autenticación, verificación de hash, roles y permisos, bloqueo por intentos
+  fallidos, vencimiento de sesión por inactividad, recuperación y bitácora.
+- El dominio autoriza las tareas del Contador y Soporte Técnico por separado;
+  el rol técnico no tiene acceso a las operaciones contables protegidas.
+
+Configuración y contabilidad:
+- Inicialización conservadora de los datos mínimos y migración del esquema.
+- Administración de empresa, catálogo, períodos, perfiles y parámetros.
+- Captura de partidas en borrador, validación de cuentas y equilibrio de Debe
+  y Haber, contabilización y generación de operaciones por plantillas.
+- Las partidas contabilizadas son inmutables y se corrigen por medio de ajustes.
+- Registro de documentos y terceros, y generación de asientos para las
+  operaciones soportadas.
+
+Impuestos, inventario y costos:
+- Cálculo de IVA neto o incluido con tasa parametrizada y liquidación mensual.
+- Licencias descargables: liberación de lote, reserva/entrega y costo de venta
+  por PEPS sobre la licencia disponible del lote más antiguo.
+- Promedio y UEPS son comparativos gerenciales; no afectan salidas ni asientos.
+- Software a la medida: acumulación por orden de mano de obra directa, recursos
+  directos y CIF ingresados.
+- SaaS: costos de alojamiento, soporte e infraestructura distribuidos por
+  usuarios-mes y plan. Otros servicios se acumulan por plan facturado.
+- Estimación/precio unitario y vistas comparativas de costos directo, estándar
+  y ABC conforme a los datos que el usuario registra.
+- Las estimaciones aplican ecuaciones reales y parametrizables: promedio
+  ponderado de expertos, analogía ajustada por tamaño, puntos de función,
+  COSMIC, COCOMO II simplificado, corrección por desgaste/retrabajo, LOC,
+  PERT y Putnam/SLIM. La interfaz cambia sus campos según la técnica y envía
+  los insumos capturados al servicio de aplicación, incluyendo los factores de
+  calibración requeridos por cada modelo.
+- Los ajustes por deterioro registran una referencia y un importe contable; no
+  inspeccionan ni actualizan unidades del auxiliar de licencias.
+
+Libros, cierre, reportes y soporte:
+- Construcción de Diario, Mayor, Cuenta T, Balanza y Hoja de trabajo.
+- Generación de Situación financiera y Resultados en el selector principal, y de
+  Cambios en el patrimonio y Flujos de efectivo dentro del ZIP. El flujo usa el
+  método directo, se limita al grupo 1101 y requiere conciliación documental.
+- Exportación PDF, XLSX y ZIP para un único rango seleccionado.
+- Respaldo local manual por `pg_dump`; registro de accesos y eventos técnicos;
+  prevención de múltiples instancias en el mismo equipo.
+
+1.3 SALIDAS
+
+- Vistas de operación y administración según rol, mensajes de validación y
+  estado de conexión/localización de respaldos.
+- Partidas contabilizadas y auxiliares persistidos en PostgreSQL.
+- Libros, reportes fiscales disponibles, hoja de trabajo y cuatro estados
+  financieros, sujetos al alcance de las cuentas y datos registrados.
+- Archivos PDF y XLSX. El ZIP contiene Diario, Mayor, Balanza, Hoja de trabajo
+  y los cuatro estados para el rango seleccionado.
+- Respaldo `.dump` de PostgreSQL en `~/.colibri/backups` y bitácoras.
+- Código de recuperación local de un solo uso según el proceso de bootstrap.
+
+2. ACTORES Y RESPONSABILIDADES
+
+Contador:
+- Mantiene información contable/operativa, procesa documentos y partidas,
+  ejecuta los flujos de inventario/costos y consulta libros/reportes.
+- Revisa los parámetros contables y fiscales y concilia los reportes que tienen
+  cobertura parcial.
+
+Soporte Técnico:
+- Administra cuentas de usuario, entorno, bitácoras y respaldo manual.
+- No registra ni consulta saldos, partidas o estados financieros en los módulos
+  contables protegidos.
+
+PostgreSQL local:
+- Provee almacenamiento relacional; Flyway aplica el esquema y JDBC accede a
+  los datos mediante repositorios.
+
+3. ARQUITECTURA Y COMPONENTES
+
+colibri-domain: modelos, reglas de negocio, estados, cálculo de IVA y hash.
+colibri-persistence: configuración JDBC, HikariCP, repositorios y Flyway.
+colibri-application: AppContext y servicios de autenticación, catálogos,
+períodos, operaciones, inventario, costos, libros, cierre, parametrización,
+respaldo y soporte.
+colibri-reports: composición PDF/XLSX/ZIP.
+colibri-desktop: ColibriApp, bloqueo de instancia, logging, shell y vistas.
+
+El sentido de dependencias mantiene las reglas de dominio independientes de la
+interfaz y la base de datos. AppContext compone los servicios. Las operaciones
+que escriben datos usan transacciones JDBC.
+
+4. CONTROL Y RETROALIMENTACIÓN
+
+- Autorización por rol y bitácoras de acceso y eventos técnicos.
+- Validaciones de estado de período, cuentas afectables, dimensiones y partida
+  doble antes de contabilizar.
+- Transacciones para aplicar operaciones relacionadas de forma atómica y
+  restricciones referenciales en PostgreSQL.
+- Migraciones Flyway versionadas de V1 a V19.
+- Hash de contraseñas PBKDF2-HMAC-SHA256 con sal; la configuración de conexión
+  se conserva fuera del código fuente.
+- El bootstrap no debe sustituir información administrada; la semilla demo se
+  habilita de forma expresa.
+- Maven Wrapper y pruebas automatizadas forman parte del control de desarrollo.
+  Este documento no representa una nueva ejecución de pruebas.
+
+5. LÍMITES Y RIESGOS FUNCIONALES CONOCIDOS
+
+- DTE: se registran documentos internos y datos simulados; no se firma, valida
+  ni transmite documentación ante Hacienda.
+- Despliegue: escritorio local, una instancia por equipo; sin web, red
+  multiusuario, nube, bancos ni multimoneda.
+- Fiscal: tasas y perfiles son configurables. No hay prorrata automática de IVA
+  mixto, cálculo legal integral de nómina, cálculo anual completo de ISR,
+  impuesto diferido ni notas dentro del prototipo.
+- Licencias: el control comprende lotes y estados operativos básicos, pero no
+  administra claves, activación, expiración, revocación técnica o devoluciones.
+- Respaldo: manual con pg_dump; la aplicación no programa, cifra, retiene ni
+  restaura respaldos.
+- Flujo de efectivo: limitado a cuentas del grupo 1101 y clasificación por
+  contrapartida; requiere conciliación y revisión antes de uso definitivo.
+- Deterioro: el asiento no modifica existencias ni valida evidencia del lote.
+- Datos iniciales: las credenciales de demostración configuradas por el
+  bootstrap deben cambiarse antes de introducir información real.
+
+Por estos límites, el prototipo requiere revisión contable, fiscal, técnica y
+de seguridad antes de utilizarse para operaciones reales.
+
+6. DOCUMENTOS DE REFERENCIA DEL REPOSITORIO
+
+README.md: instalación, ejecución, módulos, dependencias y funciones.
+CasosDeUso.md: operaciones del Contador.
+CasosDeUso_SoporteTecnico.md: administración y continuidad.
+rubrica_de_evaluacion_del_proyecto.md: criterios académicos y objetivos del curso.

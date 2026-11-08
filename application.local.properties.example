@@ -1,0 +1,7 @@
+# Copiar a %USERPROFILE%\.colibri\application.local.properties
+# En esta máquina PostgreSQL 18 escucha en el puerto 5434
+db.url=jdbc:postgresql://127.0.0.1:5434/colibri
+db.user=colibri
+db.password=colibri
+db.migrate.user=colibri
+db.migrate.password=colibri
