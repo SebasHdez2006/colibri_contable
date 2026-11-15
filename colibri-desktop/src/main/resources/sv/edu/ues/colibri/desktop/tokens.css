@@ -176,3 +176,107 @@
    "reducir movimiento" se aplica en Motion.java (Java) y las
    transiciones CSS se limitan a fast/base (140/220 ms).
    ============================================================ */
+
+/* ============================================================
+   Temas manuales (switch Claro/Oscuro del shell).
+   Se aplican como clases .tema-claro / .tema-oscuro en la raíz
+   de la escena (o en el DialogPane de los diálogos). Al estar
+   declaradas después del @media y con la misma especificidad,
+   siempre ganan a la preferencia del sistema operativo.
+   ============================================================ */
+.tema-claro {
+    -color-bg-canvas:  #F8FAFC;
+    -color-bg-sunken:  #F1F5F9;
+    -color-bg-surface: #FFFFFF;
+    -color-bg-raised:  #F8FAFC;
+    -color-bg-overlay: #FFFFFF;
+    -color-bg-subtle:  #F1F5F9;
+    -color-bg-glass:   rgba(255,255,255,0.82);
+    -color-scrim:      rgba(15,23,42,0.45);
+
+    -color-fg:             #0F172A;
+    -color-fg-muted:       #475569;
+    -color-fg-subtle:      #64748B;
+    -color-on-primary:     #0B1C2C;
+    -color-border-subtle:  rgba(15,23,42,0.08);
+    -color-border:         rgba(15,23,42,0.14);
+    -color-border-control: #64748B;
+    -color-border-glass:   rgba(15,23,42,0.10);
+
+    -color-primary-subtle:    rgba(168,224,16,0.22);
+    -color-success-subtle:    rgba(21,122,78,0.12);
+    -color-interactive:       #0077A3;
+    -color-interactive-pressed: #005F80;
+    -color-interactive-subtle:  rgba(0,119,163,0.12);
+    -color-interactive-subtle-soft: rgba(0,119,163,0.06);
+    -color-focus-ring:        #0077A3;
+    -color-focus-faint:       rgba(0,119,163,0.20);
+
+    -color-warning:        #865900;
+    -color-warning-subtle: rgba(255,214,138,0.45);
+    -color-danger:         #D1435B;
+    -color-danger-subtle:  rgba(225,29,72,0.08);
+    -color-note:           #5B4FC4;
+    -color-note-subtle:    rgba(91,79,196,0.10);
+
+    -color-success: #157A4E;
+
+    -paint-brand: linear-gradient(to right, #0077A3, #86B500);
+
+    -color-shadow:       rgba(15,23,42,0.18);
+    -color-shadow-soft:  rgba(15,23,42,0.10);
+    -color-shadow-strong: rgba(15,23,42,0.28);
+
+    -color-scroll-thumb:       rgba(15,23,42,0.18);
+    -color-scroll-thumb-hover: rgba(15,23,42,0.30);
+}
+
+/* Tema oscuro manual: restablece los valores por defecto de :root
+   cuando el sistema operativo está en claro pero el usuario eligió
+   oscuro. Solo redeclara lo que el bloque claro modifica. */
+.tema-oscuro {
+    -color-bg-canvas:  -clb-navy-950;
+    -color-bg-sunken:  -clb-navy-900;
+    -color-bg-surface: -clb-navy-800;
+    -color-bg-raised:  -clb-navy-700;
+    -color-bg-overlay: -clb-navy-600;
+    -color-bg-subtle:  rgba(255,255,255,0.03);
+    -color-bg-glass:   rgba(16,42,68,0.78);
+    -color-scrim:      rgba(5,12,20,0.60);
+
+    -color-fg:             -clb-slate-100;
+    -color-fg-muted:       -clb-slate-200;
+    -color-fg-subtle:      -clb-slate-300;
+    -color-on-primary:     -clb-navy-800;
+    -color-border-subtle:  rgba(143,167,190,0.12);
+    -color-border:         rgba(143,167,190,0.22);
+    -color-border-control: -clb-slate-400;
+    -color-border-glass:   rgba(255,255,255,0.10);
+
+    -color-primary-subtle:    rgba(168,224,16,0.14);
+    -color-success-subtle:    rgba(168,224,16,0.14);
+    -color-interactive:            -clb-cyan-400;
+    -color-interactive-pressed:    -clb-cyan-500;
+    -color-interactive-subtle:     rgba(0,194,255,0.14);
+    -color-interactive-subtle-soft: rgba(0,194,255,0.08);
+    -color-focus-ring:             -clb-cyan-400;
+    -color-focus-faint:            rgba(0,194,255,0.25);
+
+    -color-warning:        -clb-amber-400;
+    -color-warning-subtle: rgba(255,184,77,0.14);
+    -color-danger:         -clb-coral-400;
+    -color-danger-subtle:  rgba(255,122,140,0.14);
+    -color-note:           -clb-violet-400;
+    -color-note-subtle:    rgba(165,148,255,0.14);
+
+    -color-success: -clb-lime-400;
+
+    -paint-brand: linear-gradient(to right, -clb-cyan-400, -clb-lime-500);
+
+    -color-shadow:       rgba(0,0,0,0.45);
+    -color-shadow-soft:  rgba(0,0,0,0.30);
+    -color-shadow-strong: rgba(0,0,0,0.60);
+
+    -color-scroll-thumb:       rgba(143,167,190,0.28);
+    -color-scroll-thumb-hover: rgba(143,167,190,0.45);
+}

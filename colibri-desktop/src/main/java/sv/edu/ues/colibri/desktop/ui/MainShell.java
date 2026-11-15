@@ -232,7 +232,7 @@ public class MainShell extends BorderPane implements Navegador {
             zoom.getStyleClass().add("footer-zoom");
             Button salir = botonZoom(BrandIcon.Symbol.LOGOUT, "Cerrar sesión", this::cerrarSesion);
             zoomIndicator = null;
-            pie.getChildren().addAll(zoom, salir);
+            pie.getChildren().addAll(zoom, new TemaSwitch(), salir);
             return pie;
         }
         VBox datos = new VBox(1,
@@ -351,7 +351,7 @@ public class MainShell extends BorderPane implements Navegador {
         Button zoomReset = botonZoom(BrandIcon.Symbol.REFRESH, "Restablecer zoom", this::zoomReset);
         Button zoomIn = botonZoom(BrandIcon.Symbol.PLUS, "Aumentar zoom", this::zoomIn);
 
-        HBox controles = new HBox(zoomOut, zoomIndicator, zoomReset, zoomIn);
+        HBox controles = new HBox(zoomOut, zoomIndicator, zoomReset, zoomIn, new TemaSwitch());
         controles.getStyleClass().add("zoom-controls");
         controles.setAlignment(Pos.CENTER);
         return controles;

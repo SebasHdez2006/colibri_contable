@@ -74,6 +74,19 @@ public final class NavFlyout {
                 if (!escena.getStylesheets().contains(css)) {
                     escena.getStylesheets().add(css);
                 }
+                // El popup vive en su propia escena: hereda la clase de tema
+                // (claro/oscuro) de la raíz de la escena que lo invocó.
+                Node raizPopup = escena.getRoot();
+                Node raizDuena = ancla.getScene() == null ? null : ancla.getScene().getRoot();
+                if (raizPopup != null && raizDuena != null) {
+                    raizPopup.getStyleClass().removeAll("tema-claro", "tema-oscuro");
+                    for (String clase : raizDuena.getStyleClass()) {
+                        if (("tema-claro".equals(clase) || "tema-oscuro".equals(clase))
+                                && !raizPopup.getStyleClass().contains(clase)) {
+                            raizPopup.getStyleClass().add(clase);
+                        }
+                    }
+                }
                 contenido.applyCss();
             }
         });

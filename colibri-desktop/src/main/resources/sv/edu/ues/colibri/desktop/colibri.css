@@ -350,6 +350,34 @@
     -fx-min-height: 2.43em;
     -fx-padding: 0.43em;
 }
+.tema-switch {
+    -fx-pref-width: 2.71em;
+    -fx-pref-height: 1.5em;
+    -fx-min-width: 2.71em;
+    -fx-min-height: 1.5em;
+    -fx-max-width: 2.71em;
+    -fx-max-height: 1.5em;
+    -fx-background-color: -color-border-control;
+    -fx-background-radius: 0.75em;
+    -fx-cursor: hand;
+}
+.tema-switch--claro {
+    -fx-background-color: -color-interactive;
+}
+.tema-switch:focused {
+    -fx-border-color: -color-focus-ring;
+    -fx-border-width: 0.07em;
+    -fx-border-radius: 0.82em;
+}
+.tema-switch-knob {
+    -fx-pref-width: 1.07em;
+    -fx-pref-height: 1.07em;
+    -fx-min-width: 1.07em;
+    -fx-min-height: 1.07em;
+    -fx-background-color: -color-bg-raised;
+    -fx-background-radius: 0.54em;
+    -fx-effect: dropshadow(gaussian, -color-shadow, 4, 0.2, 0, 0.5);
+}
 .zoom-pill {
     -fx-background-color: -colibri-cyan-tint-strong;
     -fx-background-radius: 82.97em;

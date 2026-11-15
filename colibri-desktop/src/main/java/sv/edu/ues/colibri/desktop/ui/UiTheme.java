@@ -10,6 +10,7 @@ import javafx.scene.control.DialogPane;
 import java.net.URL;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.prefs.Preferences;
 
 /**
  * Aplica la hoja de estilo institucional y asigna iconografía semántica a controles.
@@ -18,6 +19,10 @@ public final class UiTheme {
 
     private static final String STYLESHEET = "/sv/edu/ues/colibri/desktop/colibri.css";
     private static final String PROP_VARIANTE = "colibri-variante";
+    private static final String CLASE_TEMA_CLARO = "tema-claro";
+    private static final String CLASE_TEMA_OSCURO = "tema-oscuro";
+    private static final Preferences PREFERENCIAS = Preferences.userNodeForPackage(UiTheme.class);
+    private static final String CLAVE_TEMA = "tema";
 
     /** Variante visual explícita de botón; sustituye a la inferencia por texto. */
     public enum Variante { PRIMARIA, SECUNDARIA, EXITO, PELIGRO }
@@ -35,6 +40,7 @@ public final class UiTheme {
         if (!scene.getStylesheets().contains(css)) {
             scene.getStylesheets().add(css);
         }
+        aplicarTema(scene.getRoot());
     }
 
     /**
@@ -49,7 +55,41 @@ public final class UiTheme {
             pane.getStylesheets().add(css);
         }
         pane.getStyleClass().add("colibri-dialog");
+        aplicarTema(pane);
         decorate(pane);
+    }
+
+    /**
+     * Tema elegido por el usuario: oscuro por defecto, claro si se activó
+     * el switch. La preferencia se guarda por usuario del sistema.
+     *
+     * @return {@code true} si el tema activo es oscuro
+     */
+    public static boolean temaOscuro() {
+        return !"claro".equals(PREFERENCIAS.get(CLAVE_TEMA, "oscuro"));
+    }
+
+    /**
+     * Fija el tema y lo recuerda para las próximas ejecuciones.
+     *
+     * @param oscuro {@code true} para tema oscuro, {@code false} para claro
+     */
+    public static void fijarTema(boolean oscuro) {
+        PREFERENCIAS.put(CLAVE_TEMA, oscuro ? "oscuro" : "claro");
+    }
+
+    /**
+     * Aplica la clase de tema guardada a un nodo raíz (escena o diálogo)
+     * para que todos sus descendientes hereden los tokens semánticos.
+     *
+     * @param root nodo que recibirá la clase de tema
+     */
+    public static void aplicarTema(Node root) {
+        if (root == null) {
+            return;
+        }
+        root.getStyleClass().removeAll(CLASE_TEMA_CLARO, CLASE_TEMA_OSCURO);
+        root.getStyleClass().add(temaOscuro() ? CLASE_TEMA_OSCURO : CLASE_TEMA_CLARO);
     }
 
     /**

@@ -83,8 +83,10 @@ public class InicioView extends VBox {
         cabecera.setAlignment(Pos.TOP_LEFT);
         cabecera.getStyleClass().add("dashboard-header");
 
-        // Bento: gráfica hero a la izquierda ocupando dos filas; KPIs y
-        // período a la derecha; franja inferior con pendientes, clientes y costos.
+        // Bento: la gráfica abarca una sola fila a todo lo ancho; debajo
+        // van los tres KPI y la tarjeta de período; al pie, «Por hacer» y
+        // clientes a media anchura y «Costos y suscripciones» a ventana
+        // completa.
         GridPane bento = new GridPane();
         bento.getStyleClass().add("bento-grid");
         bento.setHgap(16);
@@ -94,27 +96,27 @@ public class InicioView extends VBox {
         ColumnConstraints angosta = new ColumnConstraints();
         angosta.setPercentWidth(27);
         bento.getColumnConstraints().addAll(ancha, angosta, angosta);
-        // La gráfica ocupa dos filas: se fija una altura mínima por fila para
-        // que su tarjeta no desborde sobre el tile «Por hacer».
+        // Los KPI respiran dentro de su tarjeta; el resto crece con el contenido.
         RowConstraints filaKpi = new RowConstraints();
-        filaKpi.setMinHeight(165);
-        bento.getRowConstraints().addAll(filaKpi, filaKpi, new RowConstraints());
+        filaKpi.setMinHeight(130);
+        bento.getRowConstraints().addAll(new RowConstraints(), filaKpi,
+                new RowConstraints(), new RowConstraints());
 
-        bento.add(graficaBarras(resumen.serieMensual()), 0, 0, 1, 2);
+        bento.add(graficaBarras(resumen.serieMensual()), 0, 0, 3, 1);
         bento.add(cifraFinanciera("Ingresos", dinero(resumen.ingresosMes()),
                 variacionTexto(resumen.variacionIngresos(), resumen.ingresosMesAnterior()),
-                resumen.variacionIngresos().signum() < 0 ? "negative" : "positive"), 1, 0);
+                resumen.variacionIngresos().signum() < 0 ? "negative" : "positive"), 0, 1);
         bento.add(cifraFinanciera("Utilidad", dinero(resumen.utilidadPeriodo()),
                 "Resultado de las cuentas 4–7",
-                resumen.utilidadPeriodo().signum() < 0 ? "negative" : "positive"), 2, 0);
+                resumen.utilidadPeriodo().signum() < 0 ? "negative" : "positive"), 1, 1);
         bento.add(cifraFinanciera("Cartera", dinero(resumen.carteraClientes()),
                 resumen.documentosPendientesCobro() + " DTE(s) por "
                         + dinero(resumen.dtesPendientes()),
-                resumen.documentosPendientesCobro() > 0 ? "attention" : "neutral"), 1, 1);
-        bento.add(periodoActual(periodo), 2, 1);
+                resumen.documentosPendientesCobro() > 0 ? "attention" : "neutral"), 2, 1);
         bento.add(porHacer(cuentas, borradores, estadoCatalogo, acciones, resumen), 0, 2);
         bento.add(graficaClientes(resumen), 1, 2);
-        bento.add(costos(resumen), 2, 2);
+        bento.add(periodoActual(periodo), 2, 2);
+        bento.add(costos(resumen), 0, 3, 3, 1);
 
         getChildren().addAll(cabecera, bento);
     }
