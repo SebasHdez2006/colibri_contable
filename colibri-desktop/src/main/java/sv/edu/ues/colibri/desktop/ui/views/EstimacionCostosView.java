@@ -11,6 +11,8 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
 import sv.edu.ues.colibri.application.AppContext;
 import sv.edu.ues.colibri.application.costos.CosteoGerencialService;
 import sv.edu.ues.colibri.application.costos.EstimacionCostosService;
@@ -98,38 +100,39 @@ public final class EstimacionCostosView extends VBox {
                 UiDialogs.error(ex.getMessage());
             }
         });
-        Label politicas = new Label("""
-                INVENTARIO Y VALORIZACIÓN. Las licencias y productos digitales se liberan en lotes y se \
-                valoran con PEPS (primero en entrar, primero en salir), que es la política contable \
-                oficial de Colibrí. El costo unitario se fija al liberar el lote y cada salida toma \
-                automáticamente la licencia disponible más antigua; promedio y UEPS (último en \
-                entrar, primero en salir) se conservan únicamente como análisis comparativo y no \
-                generan asientos.
-
-                MANO DE OBRA Y COSTOS INDIRECTOS. La mano de obra directa (MOD) se registra por horas \
-                y tarifa en la orden de trabajo o en el plan facturado. Los costos indirectos de \
-                fabricación (CIF) se presupuestan por centro de costo, se aplican a las órdenes según \
-                la base real consumida y la variación entre lo real y lo aplicado se cierra contra \
-                costo de proyectos.
-
-                ACUMULACIÓN POR TIPO DE SERVICIO. Las órdenes de trabajo (software a la medida) \
-                acumulan MOD, recursos directos y CIF hasta su reconocimiento como costo. Los planes \
-                SaaS acumulan costos por proceso y por usuario-mes. Los productos de licencia usan \
-                el costo fijo del lote. Los costos estándar y ABC quedan reservados al análisis \
-                gerencial y nunca reemplazan al costo real contabilizado.
-
-                DOCUMENTACIÓN Y TRIBUTOS. Toda venta debe documentar canal, plan, precio neto, IVA y \
-                costo reconocido; los documentos electrónicos (CCF, consumidor final y notas de \
-                débito/crédito) se emiten desde el módulo de registros y alimentan los libros de IVA. \
-                Las retenciones de renta e IVA aplican según la parametrización fiscal vigente.
-
-                TRAZABILIDAD. Cada estimación, cédula, aplicación de CIF y ajuste de cierre queda \
-                asociada a un período contable abierto, un centro de costo y un folio de partida, \
-                de modo que cualquier cifra pueda reconstruirse hasta su documento soporte.
-                """);
-        politicas.setWrapText(true);
-        politicas.setMaxWidth(Double.MAX_VALUE);
-        politicas.getStyleClass().addAll("section-note", "result-panel");
+        TextFlow politicas = new TextFlow();
+        politicas.setLineSpacing(6);
+        politicas.getStyleClass().add("polizas-texto");
+        agregarPolitica(politicas, "INVENTARIO Y VALORIZACIÓN",
+                "Las licencias y productos digitales se liberan en lotes y se valoran con PEPS "
+                + "(primero en entrar, primero en salir), que es la política contable oficial de "
+                + "Colibrí. El costo unitario se fija al liberar el lote y cada salida toma "
+                + "automáticamente la licencia disponible más antigua; promedio y UEPS (último en "
+                + "entrar, primero en salir) se conservan únicamente como análisis comparativo y no "
+                + "generan asientos.");
+        agregarPolitica(politicas, "MANO DE OBRA Y COSTOS INDIRECTOS",
+                "La mano de obra directa (MOD) se registra por horas y tarifa en la orden de "
+                + "trabajo o en el plan facturado. Los costos indirectos de fabricación (CIF) se "
+                + "presupuestan por centro de costo, se aplican a las órdenes según la base real "
+                + "consumida y la variación entre lo real y lo aplicado se cierra contra costo de "
+                + "proyectos.");
+        agregarPolitica(politicas, "ACUMULACIÓN POR TIPO DE SERVICIO",
+                "Las órdenes de trabajo (software a la medida) acumulan MOD, recursos directos y "
+                + "CIF hasta su reconocimiento como costo. Los planes SaaS acumulan costos por "
+                + "proceso y por usuario-mes. Los productos de licencia usan el costo fijo del "
+                + "lote. Los costos estándar y ABC quedan reservados al análisis gerencial y nunca "
+                + "reemplazan al costo real contabilizado.");
+        agregarPolitica(politicas, "DOCUMENTACIÓN Y TRIBUTOS",
+                "Toda venta debe documentar canal, plan, precio neto, IVA y costo reconocido; los "
+                + "documentos electrónicos (CCF, consumidor final y notas de débito/crédito) se "
+                + "emiten desde el módulo de registros y alimentan los libros de IVA. Las "
+                + "retenciones de renta e IVA aplican según la parametrización fiscal vigente.");
+        agregarPolitica(politicas, "TRAZABILIDAD",
+                "Cada estimación, cédula, aplicación de CIF y ajuste de cierre queda asociada a un "
+                + "período contable abierto, un centro de costo y un folio de partida, de modo que "
+                + "cualquier cifra pueda reconstruirse hasta su documento soporte.");
+        VBox politicasCard = ResponsiveLayouts.sectionCard(
+                "Políticas de costos y ventas", politicas);
         Label titulo = new Label("Estimación y políticas");
         titulo.getStyleClass().add("view-title");
         Label subtitulo = new Label("Técnicas de estimación de esfuerzo, costo total y precio unitario.");
@@ -143,7 +146,7 @@ public final class EstimacionCostosView extends VBox {
                 parametros, calcular, resultado);
         getChildren().addAll(titulo, subtitulo, estimacion, comparacionPromedioHistoricos(motor),
                 calculadoraGerencial(), comparacionEstimadoReal(),
-                ResponsiveLayouts.sectionCard("Políticas de costos y ventas", politicas),
+                politicasCard,
                 catalogoInstitucional());
     }
 
@@ -166,7 +169,7 @@ public final class EstimacionCostosView extends VBox {
         resumen.setWrapText(true);
 
         TextField buscar = new TextField();
-        buscar.setPromptText("Filtrar por nombre, tipo o sección");
+        buscar.setPromptText("Filtrar por nombre, tipo o descripción");
         buscar.setMaxWidth(Double.MAX_VALUE);
 
         ObservableList<InstrumentosInstitucionales.Instrumento> visibles =
@@ -224,21 +227,21 @@ public final class EstimacionCostosView extends VBox {
         cTip.setMinWidth(100);
         cTip.setSortable(false);
 
-        TableColumn<InstrumentosInstitucionales.Instrumento, String> cSec =
-                new TableColumn<>("Sección del informe");
-        cSec.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().seccion()));
-        cSec.setPrefWidth(210);
-        cSec.setMinWidth(150);
-        cSec.setSortable(false);
+        TableColumn<InstrumentosInstitucionales.Instrumento, String> cDesc =
+                new TableColumn<>("Breve descripción");
+        cDesc.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().descripcion()));
+        cDesc.setMinWidth(320);
+        cDesc.setSortable(false);
 
-        tabla.getColumns().addAll(cNum, cNom, cTip, cSec);
+        tabla.getColumns().addAll(cNum, cNom, cTip, cDesc);
         tabla.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
 
         buscar.textProperty().addListener((obs, anterior, nuevo) -> {
             String consulta = normalizar(nuevo);
             visibles.setAll(instrumentos.stream()
                     .filter(i -> consulta.isEmpty()
-                            || normalizar(i.nombre() + " " + i.tipo() + " " + i.seccion())
+                            || normalizar(i.nombre() + " " + i.tipo() + " " + i.seccion()
+                                    + " " + i.descripcion())
                                     .contains(consulta))
                     .toList());
         });
@@ -248,6 +251,18 @@ public final class EstimacionCostosView extends VBox {
                 "Catálogo de referencia del marco institucional: lineamientos internos "
                         + "de la empresa, no movimientos contables.",
                 resumen, buscar, tabla);
+    }
+
+    /**
+     * Añade un bloque "TÍTULO + párrafo" al flujo de políticas; el salto de
+     * línea dentro del texto mantiene cada tema separado y legible.
+     */
+    private static void agregarPolitica(TextFlow flujo, String titulo, String cuerpo) {
+        Text encabezado = new Text(titulo + "\n");
+        encabezado.getStyleClass().add("poliza-heading");
+        Text parrafo = new Text(cuerpo + "\n\n");
+        parrafo.getStyleClass().add("poliza-body");
+        flujo.getChildren().addAll(encabezado, parrafo);
     }
 
     private static String normalizar(String texto) {

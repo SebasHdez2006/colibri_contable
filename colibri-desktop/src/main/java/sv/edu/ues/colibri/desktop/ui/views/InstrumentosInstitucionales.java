@@ -10,133 +10,134 @@ import java.util.List;
  */
 public final class InstrumentosInstitucionales {
 
-    /** Un instrumento del Anexo M: número, tipo, nombre y sección del informe. */
-    public record Instrumento(int numero, String tipo, String nombre, String seccion) {
+    /** Un instrumento del Anexo M: número, tipo, nombre, descripción breve y sección del informe. */
+    public record Instrumento(int numero, String tipo, String nombre, String descripcion,
+                              String seccion) {
     }
 
     private static final String DATOS = """
-            1|Política|Política de reconocimiento y medición (devengo, partida doble, moneda funcional, consistencia y materialidad)|IX.A.1
-            2|Política|Política de ingresos y anticipos de clientes|IX.A.2; Anexo L.C (tabla LXXVIII)
-            3|Política|Política de cuentas por cobrar y por pagar (incluye deterioro de cartera)|IX.A.3
-            4|Política|Política de propiedad, equipo y software de uso interno (depreciación y amortización)|IX.A.4; IX.Q
-            5|Política|Política de costos del servicio y gastos del período|IX.A.5
-            6|Política|Política de beneficios a empleados e impuesto a las ganancias|IX.A.6
-            7|Política|Política de inventario digital (sistema perpetuo y PEPS por lote de versión liberada)|VI.F.2; X.G; X.J; Anexo I.F; Anexo L.C
-            8|Política|Política de crédito y cobranza (plazo normal de 15 a 30 días)|Anexo L.C (tabla LXXVIII)
-            9|Política|Política de planilla (separación de salarios, descuentos, aportes patronales y prestaciones)|Anexo L.C; VII.D.4
-            10|Política|Política de IVA e ISR|Anexo L.C; Anexo H.3
-            11|Política|Política de cierre y conciliación mensual|Anexo L.C; IX.I
-            12|Política|Políticas ampliadas para presentación y control de estados financieros|IX.O
-            13|Política|Política de parametrización y secuencia de registro (comprobantes IN, EG, DI, AJ, AP y CI)|IX.P; Anexo H.2 (H02.01, H02.06)
-            14|Política|Política de parámetros de ajustes y liquidación (vidas útiles, liquidación de IVA)|IX.Q; Anexo H.4
-            15|Política|Política de cierre y apertura de ejercicio|IX.R; Anexo H.11
-            16|Política|Política de autorización de compras y compromisos (umbrales de $2,000.00 y $5,000.00)|VI.K; Anexo L.B
-            17|Política|Política de pagos al gerente, al administrador y a partes relacionadas|VI.K; Anexo A
-            18|Política|Política de delegación y límites de aprobación (Gerencia y Administrador Único)|VI.H.2; VI.H.3; VI.K
-            19|Política|Política de segregación de funciones y control interno|VII.A.4; Anexo A (tabla XXXIII)
-            20|Política|Política de independencia de auditoría y asesorías externas|VI.H.4; VII.D.3
-            21|Política|Política de conservación de documentos (mínimo de diez años para el expediente tributario)|VII.D.2
-            22|Política|Política de liquidez (reserva de dos meses de egresos y flujo móvil de trece semanas)|Anexo C; VI.L; XIII
-            23|Política|Política de capacidad operativa (trabajo simultáneo limitado a la capacidad aprobada)|VI.L
-            24|Política|Política de margen mínimo y metas internas anuales (margen bruto de 35 %, 90 % de hitos, cobro pactado, restauración trimestral)|VI.E; X.C; Anexo H.6 (H06.08)
-            25|Política|Política de costeo por órdenes (tarifa estándar de mano de obra y tasa de CIF)|X.A; X.B; X.D
-            26|Política|Política de costeo por línea de venta (órdenes, PEPS, procesos, ABC y plan facturado)|X.J; Anexo I.E
-            27|Política|Política de estimación de costos y precio unitario|X.I; Anexo I.G; Anexo I.H
-            28|Política|Política de recursos humanos y control de horas (contrato, jornada, aprobación y segregación)|Anexo I.C; X.A; X.G
-            29|Política|Política de costos indirectos de fabricación tecnológicos|Anexo I.D; Anexo H.5 (H05.05)
-            30|Política|Política de distribución comercial y reconocimiento de ingresos|X.J; Anexo I.I
-            31|Política|Política de control de cambios de alcance (nueva orden antes de ejecutar)|VI.F.3; VI.I.2; X.C
-            32|Política|Política de clasificación de compras (activo, pago anticipado, costo de orden o gasto)|VI.I.4
-            33|Política|Política de control de activos fijos (ficha, serie, responsable y depreciación)|Anexo L.B (tabla LXXVII); VI.I.4
-            34|Política|Política de adquisición de equipo solicitado por clientes (compra contra orden aprobada, sin stock de hardware)|Anexo L.B (tabla LXXVII)
-            35|Política|Política de control de accesos del cliente (por función y retiro al terminar la necesidad)|VI.I.2
-            36|Política|Política de calidad y paso a producción (dictamen QA previo y sin autoaprobación del programador)|VI.I.1
-            37|Política|Política de protección de datos personales y confidencialidad|VII.D.5; VII.B.4; Anexo I.C
-            38|Política|Política de contratación de tecnología y licencias de terceros|VII.D.5
-            39|Política|Política de cumplimiento normativo (calendario con fundamento, responsable, revisor y constancia)|VII.D.6; Anexo B (tabla XXXIV)
-            40|Política|Política de cumplimiento laboral y de seguridad ocupacional (reglamento interno, comité de seguridad y modalidad híbrida)|VII.D.4; Anexo B
-            41|Política|Política de seguridad y continuidad (respaldos y metas de recuperación)|IX.G; Anexo H.8 (H08.09); XIII
-            42|Política|Política de autenticación y control de acceso al sistema (roles, bloqueo e inactividad)|Anexo H.8 (H08.01, H08.02); IX.G
-            43|Política|Política de bitácora y trazabilidad|Anexo H.8 (H08.07); IX.B
-            44|Política|Política de no eliminación de registros (desactivar, anular o revertir)|Anexo H.8 (H08.08)
-            45|Política|Política de corrección por reversión o ajuste (sin editar asientos contabilizados)|IX.B; Anexo H.2 (H02.05); Anexo L.C
-            46|Política|Política de administración del catálogo de cuentas|IX.D; Anexo H.1 (H01.08, H01.10)
-            47|Política|Política de prevención de duplicidad de documentos y terceros|Anexo H.8 (H08.06); Anexo H.2 (H02.07)
-            48|Política|Política de documentos tributarios electrónicos (DTE)|IX.F; Anexo H.3 (H03.09)
-            49|Política|Política de tratamiento de IVA (tasa, crédito, débito, notas y retenciones)|Anexo H.3
-            50|Política|Política de ajustes contables al cierre|Anexo H.4
-            51|Política|Política de inventarios digitales y tratamientos especiales|Anexo H.5
-            52|Política|Política de criterios de aceptación del prototipo y errores críticos|XI.D; Anexo H.10 (H10.04, H10.05)
-            53|Proceso|Venta y contratación|VI.J (tabla VI)
-            54|Proceso|Construcción y pruebas|VI.J (tabla VI)
-            55|Proceso|Implementación|VI.J (tabla VI)
-            56|Proceso|Soporte y renovación|VI.J (tabla VI)
-            57|Proceso|Facturación y cobranza|VI.J (tabla VI)
-            58|Proceso|Compra y pago|VI.J (tabla VI)
-            59|Proceso|Planilla y personal|VI.J (tabla VI)
-            60|Proceso|Registro y cierre|VI.J (tabla VI)
-            61|Proceso|Ciclo de una orden de servicio (oportunidad, contrato, ejecución, QA, aceptación, facturación y reconocimiento)|VI.J
-            62|Proceso|Embudo comercial y contratación B2B|VI.F.1
-            63|Proceso|Gestión de inventario digital (liberación de versiones, lotes y control de unidades licenciables)|VI.F.2; X.G
-            64|Proceso|Comercialización y entrega de licencias descargables|VI.F.3
-            65|Proceso|Prestación del servicio SaaS|VI.F.3
-            66|Proceso|Desarrollo y entrega de proyectos a medida|VI.F.3
-            67|Proceso|Atención de incidentes y soporte técnico|VI.I.2
-            68|Proceso|Gestión de cartera de clientes y renovaciones|VI.G
-            69|Proceso|Autorización, registro y custodia de operaciones|VI.K; Anexo A
-            70|Proceso|Gobierno societario (Junta General, Administrador Único y Gerencia)|VI.H
-            71|Proceso|Planificación de capacidad y liquidez|VI.L; Anexo C
-            72|Proceso|Gestión del cumplimiento normativo|VII.D.6; Anexo B
-            73|Proceso|Proceso documental y control contable|VIII.D
-            74|Proceso|Flujo de información: documento fuente, diario, mayor, balanza, ajustes, hoja de trabajo, estados y cierre|IX.B
-            75|Proceso|Acumulación de costos por orden|X.D; Anexo L.J
-            76|Proceso|Registro y venta de una licencia (CU-INV-01 y CU-REG-01)|XI.A.4
-            77|Proceso|Contabilización transaccional y estados de la partida|XI.B.3; Anexo H.2 (H02.09)
-            78|Proceso|Cierre mensual|IX.I; Anexo H.11
-            79|Proceso|Cierre anual y apertura del ejercicio|IX.I; IX.R; Anexo H.11 (H11.07, H11.08)
-            80|Proceso|Reapertura de períodos cerrados|IX.R; Anexo H.11 (H11.06)
-            81|Proceso|Pruebas y aceptación del prototipo|XI.D; Anexo G
-            82|Procedimiento|Procedimiento de cálculo y validación de operaciones (captura, base, IVA, partida, auxiliares, estados)|IX.C
-            83|Procedimiento|Procedimiento de cálculo de IVA (precio neto o con IVA incluido)|IX.C; Anexo H.3 (H03.04)
-            84|Procedimiento|Procedimiento de liquidación mensual de IVA|IX.Q; Anexo H.3 (H03.07); Anexo H.11 (H11.11)
-            85|Procedimiento|Procedimiento de registro de anticipos y liquidación de proyectos|IX.C.2
-            86|Procedimiento|Procedimiento de aplicación de retenciones (IVA e ISR)|IX.C.3
-            87|Procedimiento|Procedimiento de cálculo de planilla y cargas patronales (ISSS, previsional e INCAF)|IX.C.4
-            88|Procedimiento|Procedimiento de anticipo de renta y liquidación anual de ISR|IX.C.5; Anexo H.11 (H11.14)
-            89|Procedimiento|Procedimiento de depreciación y amortización|IX.Q; Anexo H.4 (H04.03)
-            90|Procedimiento|Procedimiento de registro de deterioro de inventario digital|Anexo H.4 (H04.06)
-            91|Procedimiento|Procedimiento de salida de inventario por PEPS|VI.F.2; XI.A.4; Anexo L.D
-            92|Procedimiento|Procedimiento de conteo y conciliación mensual de derechos digitales|X.G; IX.I
-            93|Procedimiento|Procedimiento de devoluciones, revocaciones y bajas de licencias|IX.A.5; Anexo H.5 (H05.09)
-            94|Procedimiento|Procedimiento de cálculo del costo de una orden y su margen|IX.C; X.C
-            95|Procedimiento|Procedimiento de aplicación y liquidación de CIF|X.D; Anexo H.5 (H05.05)
-            96|Procedimiento|Procedimiento de estimación de costos (desglose del trabajo y tres puntos PERT)|X.I; Anexo I.G
-            97|Procedimiento|Procedimiento de aprobación de horas directas|X.A; Anexo I.C
-            98|Procedimiento|Procedimiento de autorización de ventas bajo el margen mínimo|X.C; Anexo H.6 (H06.08)
-            99|Procedimiento|Procedimiento de compras (requisición, cotizaciones, recepción y pago)|VI.G; VI.I.4; VI.K
-            100|Procedimiento|Procedimiento de elevación de compromisos fuera de presupuesto al Administrador Único|VI.H.4; VI.K
-            101|Procedimiento|Procedimiento de entrega de licencia descargable (pedido, DTE, enlace temporal y bitácora)|VI.F.3
-            102|Procedimiento|Procedimiento de aprobación y pago de planilla|VII.D.4; Anexo A
-            103|Procedimiento|Procedimiento de cobro y aplicación a documentos concretos|VI.J; Anexo A; Anexo L.B
-            104|Procedimiento|Procedimiento de conciliaciones al cierre (bancos, cartera, órdenes, inventario, impuestos, planilla y activos)|IX.E; IX.I; Anexo L.I
-            105|Procedimiento|Procedimiento de preparación, revisión y autorización del expediente de cierre|Anexo L.I
-            106|Procedimiento|Procedimiento de validaciones previas al cierre|Anexo H.11 (H11.04)
-            107|Procedimiento|Procedimiento de cancelación de cuentas temporales y traslado del resultado|IX.R; Anexo H.11 (H11.07, H11.08)
-            108|Procedimiento|Procedimiento de reapertura de un período (autorización, motivo, respaldo y nuevo cierre)|IX.R; Anexo H.11 (H11.06)
-            109|Procedimiento|Procedimiento de corrección por reversión|IX.B; Anexo H.2 (H02.05)
-            110|Procedimiento|Procedimiento de alta, edición, desactivación y bloqueo de cuentas|IX.D; Anexo H.1 (H01.08)
-            111|Procedimiento|Procedimiento de aprobación del catálogo inicial|Anexo H.1 (H01.10)
-            112|Procedimiento|Procedimiento de actualización de la tasa fiscal|Anexo H.1 (H01.07); tabla XXXII (XI.D)
-            113|Procedimiento|Procedimiento de importación de asientos desde CSV a borrador|IX.H; Anexo H.9 (H09.06)
-            114|Procedimiento|Procedimiento de recuperación de contraseña|Anexo H.8 (H08.02)
-            115|Procedimiento|Procedimiento de respaldo de la base de datos (pg_dump)|IX.G; Anexo H.8 (H08.09)
-            116|Procedimiento|Procedimiento de restauración de respaldos en entorno aislado (externo al prototipo)|IX.G; Anexo H.8 (H08.09); XIII
-            117|Procedimiento|Procedimiento de exportación de reportes (PDF, Excel y ZIP)|IX.H; Anexo H.7 (H07.07); Anexo J.G
-            118|Procedimiento|Procedimiento de control de duplicidad de DTE, facturas, partidas y terceros|Anexo H.8 (H08.06)
-            119|Procedimiento|Procedimiento de conservación e invalidación de DTE|IX.F; Anexo H.3 (H03.09)
-            120|Procedimiento|Procedimiento de evaluación anual de la obligación de auditor fiscal|VII.D.3; Anexo B
-            121|Procedimiento|Procedimiento de entrega del encargo al cambiar el profesional responsable|VI.K
-            122|Procedimiento|Procedimiento de documentación de pruebas y evidencia|XI.D; Anexo G
+            1|Política|Política de reconocimiento y medición (devengo, partida doble, moneda funcional, consistencia y materialidad)|Contabilidad por devengo: los efectos económicos se reconocen al ocurrir. Partida doble con ecuación activo = pasivo + patrimonio; un asiento cuadrado puede tener cuentas o períodos incorrectos. Moneda funcional USD con decimales; políticas consistentes y cambio de estimación distinguido de error.|IX.A.1
+            2|Política|Política de ingresos y anticipos de clientes|Cada contrato distingue licencia genérica, desarrollo a medida, implementación, soporte y SaaS. Servicios por grado de realización; licencia al transferir el derecho con evidencia de activación; anticipos son pasivo hasta entregar el bien o prestar el servicio.|IX.A.2; Anexo L.C (tabla LXXVIII)
+            3|Política|Política de cuentas por cobrar y por pagar (incluye deterioro de cartera)|Auxiliares por cliente, documento, vencimiento, orden y moneda. Deterioro solo con evidencia objetiva (mora relevante, insolvencia). Modelo de la sección 11 NIIF para PYMES. Pagos anticipados no son gasto hasta recibir el beneficio.|IX.A.3
+            4|Política|Política de propiedad, equipo y software de uso interno (depreciación y amortización)|Depreciación línea recta por vida útil y valor residual (laptop $1,200.00/3 años = $33.33 mensuales). Software propio como intangible si cumple condiciones; acceso SaaS se reconoce como gasto por cobertura recibida.|IX.A.4; IX.Q
+            5|Política|Política de costos del servicio y gastos del período|MOD directa por horas y tarifa; CIF por centro de costo aplicado a órdenes. Versiones propias acumulan por producto; al conceder licencia descarga a costo de ventas. Cancelaciones y devoluciones requieren evidencia contractual y nota fiscal cuando aplique.|IX.A.5
+            6|Política|Política de beneficios a empleados e impuesto a las ganancias|Costo laboral = salario + aportes patronales + prestaciones devengadas. Porción técnica a órdenes por horas aprobadas; administrativa a gastos. ISR corriente sobre base fiscal conciliada; diferencias temporarias evaluadas para impuesto diferido.|IX.A.6
+            7|Política|Política de inventario digital (sistema perpetuo y PEPS por lote de versión liberada)|Sistema perpetuo con PEPS por lote: costo unitario fijo al liberar la versión y cada salida toma la licencia disponible más antigua. Controla producto, versión, lote, unidades licenciables, reservadas y concedidas.|VI.F.2; X.G; X.J; Anexo I.F; Anexo L.C
+            8|Política|Política de crédito y cobranza (plazo normal de 15 a 30 días)|Plazo normal de 15 a 30 días. El auxiliar de clientes conserva DTE, contrato, responsable, fecha de vencimiento, cobro aplicado y antigüedad de cada partida.|Anexo L.C (tabla LXXVIII)
+            9|Política|Política de planilla (separación de salarios, descuentos, aportes patronales y prestaciones)|Separa salarios, descuentos laborales, aportes patronales, retenciones y prestaciones devengadas. Porcentajes y topes se validan contra la normativa vigente antes de cada pago; ISSS, previsional e INCAF controlados por cuota.|Anexo L.C; VII.D.4
+            10|Política|Política de IVA e ISR|IVA separado de ingresos y costos; el crédito fiscal requiere documento elegible y su remanente se conserva por período de origen. ISR se provisiona sobre conciliación fiscal anual; pagos a cuenta y retenciones como activos tributarios.|Anexo L.C; Anexo H.3
+            11|Política|Política de cierre y conciliación mensual|Al cierre se concilian bancos, cartera, órdenes, inventario, impuestos, planilla y activos. Los errores se corrigen por reversión o ajuste, nunca editando el asiento ya contabilizado.|Anexo L.C; IX.I
+            12|Política|Políticas ampliadas para presentación y control de estados financieros|Define presentación de estados: rubros por subcuenta, naturaleza deudora/acreedora, corrientes vs no corrientes, saldos comparativos (mes anterior, acumulado anual, período comparable) y formato de exportación PDF/Excel.|IX.O
+            13|Política|Política de parametrización y secuencia de registro (comprobantes IN, EG, DI, AJ, AP y CI)|Tipos de comprobante: ingreso IN, egreso EG, diario DI, ajuste AJ, apertura AP y cierre CI. Folio correlativo por tipo y año (DI-2026-000001) con identificador interno único.|IX.P; Anexo H.2 (H02.01, H02.06)
+            14|Política|Política de parámetros de ajustes y liquidación (vidas útiles, liquidación de IVA)|Parametriza vidas útiles por tipo de activo (línea recta), cuentas de depreciación acumulada por clase y reglas de liquidación mensual de IVA débito contra crédito con remanente.|IX.Q; Anexo H.4
+            15|Política|Política de cierre y apertura de ejercicio|Cierre anual que cancela clases 4 a 7 contra la cuenta de determinación 310401 Resultado del ejercicio, y apertura del nuevo ejercicio con saldos iniciales. El corte fiscal coincide con el año calendario (31 de diciembre).|IX.R; Anexo H.11
+            16|Política|Política de autorización de compras y compromisos (umbrales de $2,000.00 y $5,000.00)|Compras y compromisos se autorizan por nivel: Gerencia hasta $2,000.00 y Administrador Único por encima de $5,000.00; la elevación fuera de presupuesto requiere constancia del Administrador.|VI.K; Anexo L.B
+            17|Política|Política de pagos al gerente, al administrador y a partes relacionadas|Los pagos a Gerencia, Administrador Único y partes relacionadas requieren soporte contractual, conciliación y constancia de autorización; se documentan como operaciones sensibles en la bitácora.|VI.K; Anexo A
+            18|Política|Política de delegación y límites de aprobación (Gerencia y Administrador Único)|Fija qué operaciones aprueba Gerencia dentro de su delegación y cuáles escalan al Administrador Único según monto, tipo y riesgo; los límites se revisan con la operación.|VI.H.2; VI.H.3; VI.K
+            19|Política|Política de segregación de funciones y control interno|Matriz de preparación, autorización, registro, custodia y revisión por operación (contrato, entrega, compra, cobro, pago, planilla, cierre): nadie ejecuta y revisa la misma etapa sin control cruzado.|VII.A.4; Anexo A (tabla XXXIII)
+            20|Política|Política de independencia de auditoría y asesorías externas|El auditor externo es independiente del Administrador y la Junta; las asesorías legales y técnicas se contratan por alcance y se documenta su dictamen cuando una operación lo exige.|VI.H.4; VII.D.3
+            21|Política|Política de conservación de documentos (mínimo de diez años para el expediente tributario)|Los documentos fuente y libros se conservan mínimo diez años: contratos, DTE, libros de IVA, declaraciones y constancias de recepción; soportes digitales con respaldo.|VII.D.2
+            22|Política|Política de liquidez (reserva de dos meses de egresos y flujo móvil de trece semanas)|Mantiene reserva de dos meses de egresos operativos y proyecta flujo móvil de trece semanas para detectar faltantes antes de comprometer pagos.|Anexo C; VI.L; XIII
+            23|Política|Política de capacidad operativa (trabajo simultáneo limitado a la capacidad aprobada)|El trabajo simultáneo se limita a la capacidad aprobada: 120 horas productivas mensuales por desarrollador y 16,680 horas anuales de capacidad directa presupuestada; el excedente se agenda o subcontrata.|VI.L
+            24|Política|Política de margen mínimo y metas internas anuales (margen bruto de 35 %, 90 % de hitos, cobro pactado, restauración trimestral)|Metas internas: margen bruto mínimo de 35 %, 90 % de hitos cumplidos a tiempo, cobro según lo pactado y restauración de capacidad trimestral. Una venta bajo el margen genera alerta y requiere autorización.|VI.E; X.C; Anexo H.6 (H06.08)
+            25|Política|Política de costeo por órdenes (tarifa estándar de mano de obra y tasa de CIF)|Costeo por órdenes de trabajo: tarifa laboral = salarios + aportes patronales + prestaciones entre horas productivas; CIF aplicado por horas de MOD; horas directas aprobadas alimentan la acumulación.|X.A; X.B; X.D
+            26|Política|Política de costeo por línea de venta (órdenes, PEPS, procesos, ABC y plan facturado)|Define el costeo por línea: órdenes para proyectos a medida, PEPS para licencias, procesos para SaaS, ABC y plan facturado como análisis gerencial; el costo real prevalece sobre el estándar.|X.J; Anexo I.E
+            27|Política|Política de estimación de costos y precio unitario|Estima esfuerzo con técnicas de desglose y tres puntos PERT, calcula costo total con tarifa, CIF y margen, y sugiere precio unitario comparable con promedios históricos.|X.I; Anexo I.G; Anexo I.H
+            28|Política|Política de recursos humanos y control de horas (contrato, jornada, aprobación y segregación)|Horas directas requieren contrato, jornada aprobada y registro validado; quien ejecuta no aprueba sus propias horas. La tarifa laboral incorpora aportes y prestaciones una sola vez.|Anexo I.C; X.A; X.G
+            29|Política|Política de costos indirectos de fabricación tecnológicos|CIF tecnológicos = herramientas compartidas, conectividad técnica, QA común y depreciación productiva; se aplican a órdenes por horas de MOD y la variación real vs aplicado cierra contra costo de proyectos.|Anexo I.D; Anexo H.5 (H05.05)
+            30|Política|Política de distribución comercial y reconocimiento de ingresos|La distribución define canales de venta por línea (licencias descargables, SaaS, proyectos) y amarra el reconocimiento de ingresos al cumplimiento de cada condición contractual.|X.J; Anexo I.I
+            31|Política|Política de control de cambios de alcance (nueva orden antes de ejecutar)|Un cambio de alcance no se ejecuta dentro de la orden vigente: se crea una nueva orden o cambio autorizado antes de trabajar, para que el costo y el margen queden trazables.|VI.F.3; VI.I.2; X.C
+            32|Política|Política de clasificación de compras (activo, pago anticipado, costo de orden o gasto)|Toda compra se clasifica como activo fijo, pago anticipado, costo de orden de trabajo o gasto del período según el beneficio que genera; la clasificación no depende del nombre del proveedor.|VI.I.4
+            33|Política|Política de control de activos fijos (ficha, serie, responsable y depreciación)|Cada activo conserva ficha con serie, responsable, fecha de alta y cuotas de depreciación; se revisa al cierre y se da de baja con evidencia de disposición.|Anexo L.B (tabla LXXVII); VI.I.4
+            34|Política|Política de adquisición de equipo solicitado por clientes (compra contra orden aprobada, sin stock de hardware)|El hardware pedido por clientes se compra contra orden aprobada y se entrega directo: Colibrí no mantiene stock de equipo de terceros.|Anexo L.B (tabla LXXVII)
+            35|Política|Política de control de accesos del cliente (por función y retiro al terminar la necesidad)|Los accesos de clientes se otorgan por función y se retiran al terminar la necesidad; las claves y activaciones quedan en bitácora.|VI.I.2
+            36|Política|Política de calidad y paso a producción (dictamen QA previo y sin autoaprobación del programador)|Ninguna versión pasa a producción sin dictamen favorable de QA; el programador no autoaprueba su propio trabajo y la aceptación del cliente cierra el ciclo.|VI.I.1
+            37|Política|Política de protección de datos personales y confidencialidad|Los datos personales de clientes, trabajadores y proveedores se tratan con confidencialidad: acceso por función, minimización y prohibición de uso distinto al servicio.|VII.D.5; VII.B.4; Anexo I.C
+            38|Política|Política de contratación de tecnología y licencias de terceros|Las licencias de terceros (nube, herramientas, componentes) se contratan por necesidad documentada, se registran como gasto o activo según cobertura y se revisan al renovar o terminar.|VII.D.5
+            39|Política|Política de cumplimiento normativo (calendario con fundamento, responsable, revisor y constancia)|Calendario de obligaciones por ámbito (societario, tributario, municipal, laboral, tecnológico) con fundamento legal, responsable, revisor y constancia de cumplimiento en cada período.|VII.D.6; Anexo B (tabla XXXIV)
+            40|Política|Política de cumplimiento laboral y de seguridad ocupacional (reglamento interno, comité de seguridad y modalidad híbrida)|Reglamento interno obligatorio con plantilla permanente ≥10 trabajadores; comité de seguridad y salud por 31 trabajadores; modalidad híbrida con controles de acceso y equipamiento.|VII.D.4; Anexo B
+            41|Política|Política de seguridad y continuidad (respaldos y metas de recuperación)|Respaldos manuales de PostgreSQL con pg_dump desde la aplicación y restauración probada en entorno aislado; metas de recuperación documentadas para continuidad del servicio.|IX.G; Anexo H.8 (H08.09); XIII
+            42|Política|Política de autenticación y control de acceso al sistema (roles, bloqueo e inactividad)|Dos roles: CONTADOR (datos contables) y SOPORTE_TECNICO (operación). Contraseña con hash y sal, bloqueo por intentos fallidos e inactividad.|Anexo H.8 (H08.01, H08.02); IX.G
+            43|Política|Política de bitácora y trazabilidad|Bitácora inmutable con usuario, fecha y hora, acción, entidad, identificador y valores anterior/nuevo en cada cambio relevante del sistema.|Anexo H.8 (H08.07); IX.B
+            44|Política|Política de no eliminación de registros (desactivar, anular o revertir)|Prohibido eliminar: los maestros se desactivan, las partidas se anulan o revierten según su estado, conservando siempre la trazabilidad del hecho original.|Anexo H.8 (H08.08)
+            45|Política|Política de corrección por reversión o ajuste (sin editar asientos contabilizados)|La partida contabilizada es inmutable: la corrección se hace con AJ reversora o de ajuste en el período abierto; períodos cerrados se bloquean y reabrir es excepcional con autorización.|IX.B; Anexo H.2 (H02.05); Anexo L.C
+            46|Política|Política de administración del catálogo de cuentas|El contador crea, edita denominación, desactiva y bloquea subcuentas; una cuenta con movimientos conserva código, naturaleza y vínculo histórico. Catálogo inicial = tabla XX del anexo E, aprobado por Gerencia.|IX.D; Anexo H.1 (H01.08, H01.10)
+            47|Política|Política de prevención de duplicidad de documentos y terceros|Claves únicas por emisor y código de generación para DTE, por emisor y tipo para facturas, y deduplicación de partidas y terceros antes de contabilizar.|Anexo H.8 (H08.06); Anexo H.2 (H02.07)
+            48|Política|Política de documentos tributarios electrónicos (DTE)|Los DTE se emiten con NIT, NRC, código de generación, cliente/proveedor y fecha de conservación; su ciclo (emisión, invalidación, duplicidad) sigue la normativa tributaria vigente.|IX.F; Anexo H.3 (H03.09)
+            49|Política|Política de tratamiento de IVA (tasa, crédito, débito, notas y retenciones)|Tasa del 13 % en compras y servicios locales gravados. Con precio neto: IVA = base × 0.13; con precio incluido: base = total / 1.13. Notas de crédito/débito ajustan la base; retención solo al cobro cuando el operador la marca.|Anexo H.3
+            50|Política|Política de ajustes contables al cierre|El cierre exige revisar depreciación, amortización, provisiones, deterioro, devengos, anticipos, diferidos y conciliaciones; cada ajuste queda con su partida y soporte antes de bloquear el período.|Anexo H.4
+            51|Política|Política de inventarios digitales y tratamientos especiales|Controla licencias reservadas, concedidas, canceladas, revocadas, deterioradas o descontinuadas; la cancelación de reserva libera cupo sin asiento y la devolución exige comprobar que el derecho volvió al inventario.|Anexo H.5
+            52|Política|Política de criterios de aceptación del prototipo y errores críticos|El prototipo se acepta cuando las pruebas demuestran partida balanceada, IVA correcto, mayor actualizado y estados generados. Errores críticos (partida desigual contabilizada, duplicados, costo/inventario incorrecto) bloquean la congelación.|XI.D; Anexo H.10 (H10.04, H10.05)
+            53|Proceso|Venta y contratación|Ciclo comercial: oportunidad → cotización → contrato → orden de servicio → autorización de alcance → facturación inicial o anticipo. Responsable Comercial con aprobación de Gerencia según monto.|VI.J (tabla VI)
+            54|Proceso|Construcción y pruebas|Desarrollo por orden con horas aprobadas, QA con dictamen previo a producción y pruebas de aceptación; el programador no autoaprueba. Costos se acumulan en la orden.|VI.J (tabla VI)
+            55|Proceso|Implementación|Entrega y despliegue con hojas de horas, acta de aceptación del cliente y costos documentados; el Contador incorpora la evidencia al costo de la orden.|VI.J (tabla VI)
+            56|Proceso|Soporte y renovación|Atención de incidentes y renovaciones de contrato; las renovaciones SaaS amplían cobertura sin reponer inventario y las licencias se renuevan con evidencia de activación.|VI.J (tabla VI)
+            57|Proceso|Facturación y cobranza|Emisión de DTE/CCF según el tipo de operación, aplicación de anticipos a documentos concretos y seguimiento de vencimientos con el plazo de 15 a 30 días.|VI.J (tabla VI)
+            58|Proceso|Compra y pago|Requisición → cotizaciones → recepción → clasificación (activo, anticipo, costo u gasto) → autorización por nivel → pago con conciliación bancaria.|VI.J (tabla VI)
+            59|Proceso|Planilla y personal|Novedades de RRHH → cálculo con aportes, retenciones y prestaciones → aprobación de Gerencia → pago → cuotas patronales controladas contra normativa.|VI.J (tabla VI)
+            60|Proceso|Registro y cierre|Captura de documentos fuente → validación → revisión del Contador → contabilización → mayor/auxiliares → cierre mensual con conciliaciones.|VI.J (tabla VI)
+            61|Proceso|Ciclo de una orden de servicio (oportunidad, contrato, ejecución, QA, aceptación, facturación y reconocimiento)|Recorre oportunidad, contrato, ejecución con horas aprobadas, dictamen QA, aceptación del cliente, facturación y reconocimiento de ingreso por grado de realización; cada etapa deja evidencia.|VI.J
+            62|Proceso|Embudo comercial y contratación B2B|Gestión de oportunidades B2B desde el primer contacto hasta el contrato firmado: calificación, propuesta, negociación y cierre con margen mínimo.|VI.F.1
+            63|Proceso|Gestión de inventario digital (liberación de versiones, lotes y control de unidades licenciables)|Liberación de versiones en lotes con costo unitario PEPS, control de unidades licenciables (disponible, reservada, concedida, revocada) y trazabilidad por producto y versión.|VI.F.2; X.G
+            64|Proceso|Comercialización y entrega de licencias descargables|Pedido → DTE → enlace temporal de descarga → bitácora de activación → reconocimiento del ingreso al transferir el derecho; devoluciones con nota fiscal.|VI.F.3
+            65|Proceso|Prestación del servicio SaaS|Cobertura mensual por usuario-mes y plan: facturación anticipada o devengada según contrato, control de accesos por función y reconocimiento por mes servido.|VI.F.3
+            66|Proceso|Desarrollo y entrega de proyectos a medida|Orden de trabajo con alcance, horas directas aprobadas, CIF aplicado, QA previo a producción y aceptación; el costo se reconoce por hito o grado de realización.|VI.F.3
+            67|Proceso|Atención de incidentes y soporte técnico|Recepción, clasificación y resolución de incidentes con tiempos pactados; el soporte genera renovaciones y evidencias para facturación.|VI.I.2
+            68|Proceso|Gestión de cartera de clientes y renovaciones|Seguimiento de vencimientos, antigüedad de saldos y renovaciones contractuales; la cobranza aplica pagos a documentos concretos del auxiliar.|VI.G
+            69|Proceso|Autorización, registro y custodia de operaciones|Matriz de autorización por operación: quién prepara, autoriza, registra, custodia y revisa; los montos escalan de Gerencia a Administrador Único según delegación.|VI.K; Anexo A
+            70|Proceso|Gobierno societario (Junta General, Administrador Único y Gerencia)|Junta General aprueba estados y acuerdos; el Administrador Único decide operaciones fuera de delegación; Gerencia dirige la operación diaria dentro de límites.|VI.H
+            71|Proceso|Planificación de capacidad y liquidez|Presupuesto anual por área y puesto, capacidad de horas productivas por rol, reserva de liquidez de dos meses y flujo móvil de trece semanas.|VI.L; Anexo C
+            72|Proceso|Gestión del cumplimiento normativo|Calendario de obligaciones por ámbito con fundamento, responsable, revisor y evidencia; revisión en cada período y constancia de cumplimiento.|VII.D.6; Anexo B
+            73|Proceso|Proceso documental y control contable|Del documento fuente al estado financiero: captura, validación de duplicidad, revisión contable, contabilización y actualización de mayor, auxiliares, impuestos y costos con referencia común.|VIII.D
+            74|Proceso|Flujo de información: documento fuente, diario, mayor, balanza, ajustes, hoja de trabajo, estados y cierre|Cadena completa: documento fuente → libro diario cronológico → mayor → balanza → ajustes de cierre → hoja de trabajo → estados financieros → cierre del período.|IX.B
+            75|Proceso|Acumulación de costos por orden|La orden acumula MOD por horas aprobadas, recursos directos y CIF aplicado; al reconocerse el ingreso, el costo acumulado traslada a costo de ventas o queda en proceso.|X.D; Anexo L.J
+            76|Proceso|Registro y venta de una licencia (CU-INV-01 y CU-REG-01)|Casos de uso de venta y registro de licencia: pedido, DTE, entrega por enlace temporal, activación en bitácora y asiento de ingreso con su costo PEPS.|XI.A.4
+            77|Proceso|Contabilización transaccional y estados de la partida|La partida transita borrador → aprobada → contabilizada → anulada/revertida; el borrador admite guardado incompleto con advertencia y la contabilizada es inmutable.|XI.B.3; Anexo H.2 (H02.09)
+            78|Proceso|Cierre mensual|Cierre operativo del mes: ajustes (depreciación, provisiones, deterioro), liquidación de IVA, conciliaciones de bancos/cartera/órdenes/inventario/impuestos/planilla/activos y bloqueo del período.|IX.I; Anexo H.11
+            79|Proceso|Cierre anual y apertura del ejercicio|Al 31 de diciembre: cancelación de clases 4 a 7 contra 310401 Resultado del ejercicio, provisión de ISR anual y apertura del nuevo ejercicio con saldos iniciales.|IX.I; IX.R; Anexo H.11 (H11.07, H11.08)
+            80|Proceso|Reapertura de períodos cerrados|Reapertura excepcional solo por el Contador con autorización externa adjunta, motivo documentado, respaldo previo y nuevo cierre posterior; queda en bitácora.|IX.R; Anexo H.11 (H11.06)
+            81|Proceso|Pruebas y aceptación del prototipo|Batería de casos de prueba contables (IVA, inventario, planilla, cierres) con evidencia; aceptación cuando partidas balancean, IVA es correcto y los estados se generan.|XI.D; Anexo G
+            82|Procedimiento|Procedimiento de cálculo y validación de operaciones (captura, base, IVA, partida, auxiliares, estados)|Captura del documento con base, cálculo de IVA (neto o incluido), generación de partida cuadrada, actualización de auxiliares y estados; validaciones de campos, fecha, período abierto y duplicidad.|IX.C
+            83|Procedimiento|Procedimiento de cálculo de IVA (precio neto o con IVA incluido)|Con precio neto: base gravada × 0.13 = IVA y total = base + IVA. Con precio incluido: base = total / 1.13 e IVA = total − base; descuentos previos reducen la base.|IX.C; Anexo H.3 (H03.04)
+            84|Procedimiento|Procedimiento de liquidación mensual de IVA|Al cierre: débito fiscal del mes menos crédito elegible y remanente aplicable; resultado = IVA por pagar en 210201 o crédito remanente en 110301 desglosado por período de origen.|IX.Q; Anexo H.3 (H03.07); Anexo H.11 (H11.11)
+            85|Procedimiento|Procedimiento de registro de anticipos y liquidación de proyectos|El anticipo recibido es pasivo (210201/210702) hasta entregar el bien o servicio; al reconocer el ingreso se traslada contra la cuenta de ingreso, y la liquidación cuadra por hito o grado de realización.|IX.C.2
+            86|Procedimiento|Procedimiento de aplicación de retenciones (IVA e ISR)|La retención se aplica solo al cobro cuando el operador la marca y cuenta con constancia del porcentaje; el valor retenido se registra como pasivo tributario y se entera en su declaración.|IX.C.3
+            87|Procedimiento|Procedimiento de cálculo de planilla y cargas patronales (ISSS, previsional e INCAF)|Salario + descuentos + aportes patronales + retenciones + prestaciones por trabajador; cuotas ISSS, AFP/previsional e INCAF validadas contra topes vigentes antes de cada pago.|IX.C.4
+            88|Procedimiento|Procedimiento de anticipo de renta y liquidación anual de ISR|Pagos a cuenta mensuales/trimestrales como activo tributario; al cierre anual se liquida ISR corriente sobre conciliación fiscal, compensando anticipos y retenciones por pagar.|IX.C.5; Anexo H.11 (H11.14)
+            89|Procedimiento|Procedimiento de depreciación y amortización|Línea recta mensual: (costo − valor residual) ÷ vida útil ÷ 12 por clase de activo (120101-120103 → acumulada 120201-120203); último mes ajusta centavos; software intangible amortiza por vida útil fiscal.|IX.Q; Anexo H.4 (H04.03)
+            90|Procedimiento|Procedimiento de registro de deterioro de inventario digital|Compara importe recuperable por versión contra su costo en libros; si el recuperable es menor, registra la diferencia como gasto por deterioro con reversión si el valor se recupera.|Anexo H.4 (H04.06)
+            91|Procedimiento|Procedimiento de salida de inventario por PEPS|Cada licencia vendida descarga la unidad disponible más antigua del lote liberado; el costo unitario del lote se fija al liberar la versión y el asiento lleva 510301-510303 contra 110701/110702.|VI.F.2; XI.A.4; Anexo L.D
+            92|Procedimiento|Procedimiento de conteo y conciliación mensual de derechos digitales|Al cierre se cuenta el inventario digital por producto, versión y lote y se concilia contra el auxiliar de licencias: reservadas, concedidas, revocadas y diferencias se investigan antes de cerrar.|X.G; IX.I
+            93|Procedimiento|Procedimiento de devoluciones, revocaciones y bajas de licencias|Devolución/revocación exige evidencia contractual y nota fiscal cuando aplica; antes de reingresar la unidad se comprueba que el derecho volvió; cancelaciones liberan cupo sin asiento si no hubo entrega.|IX.A.5; Anexo H.5 (H05.09)
+            94|Procedimiento|Procedimiento de cálculo del costo de una orden y su margen|Costo de orden = MOD (horas × tarifa) + recursos directos + CIF aplicado; margen = ingreso reconocido − costo acumulado; se compara contra presupuesto y alerta bajo el mínimo.|IX.C; X.C
+            95|Procedimiento|Procedimiento de aplicación y liquidación de CIF|CIF se aplica a órdenes por horas de MOD consumidas; al cierre se compara CIF real vs aplicado y la variación cierra contra costo de proyectos (cuenta de absorción).|X.D; Anexo H.5 (H05.05)
+            96|Procedimiento|Procedimiento de estimación de costos (desglose del trabajo y tres puntos PERT)|Descompone el trabajo en actividades, estima cada una con tres puntos (optimista, probable, pesimista) → PERT = (O + 4P + Pess)/6, acumula esfuerzo, aplica tarifa y margen para proponer precio unitario.|X.I; Anexo I.G
+            97|Procedimiento|Procedimiento de aprobación de horas directas|Las horas directas se registran por orden con fecha y actividad; el jefe de proyecto aprueba y quien ejecuta no aprueba lo suyo; solo horas aprobadas alimentan la tarifa y el costeo.|X.A; Anexo I.C
+            98|Procedimiento|Procedimiento de autorización de ventas bajo el margen mínimo|Si el margen de la orden queda bajo el mínimo (meta 35 % bruto), la aplicación alerta y la venta requiere autorización del nivel correspondiente antes de facturar.|X.C; Anexo H.6 (H06.08)
+            99|Procedimiento|Procedimiento de compras (requisición, cotizaciones, recepción y pago)|Requisición → cotización comparativa → recepción conforme → clasificación contable → autorización por monto → pago y conciliación; compras sobre umbral escalan a Administrador Único.|VI.G; VI.I.4; VI.K
+            100|Procedimiento|Procedimiento de elevación de compromisos fuera de presupuesto al Administrador Único|Compromisos que exceden el presupuesto o los umbrales de Gerencia se elevan al Administrador Único con constancia de autorización antes de ejecutar el gasto.|VI.H.4; VI.K
+            101|Procedimiento|Procedimiento de entrega de licencia descargable (pedido, DTE, enlace temporal y bitácora)|Pedido confirmado → emisión de DTE → enlace temporal de descarga → registro de activación en bitácora → ingreso reconocido al transferir el derecho; la clave se asigna por unidad.|VI.F.3
+            102|Procedimiento|Procedimiento de aprobación y pago de planilla|Novedades → cálculo de salarios, descuentos, aportes y prestaciones → aprobación de Gerencia → pago → registro de cuotas patronales ISSS/AFP/INCAF con su calendario.|VII.D.4; Anexo A
+            103|Procedimiento|Procedimiento de cobro y aplicación a documentos concretos|El cobro se aplica a documentos concretos del auxiliar (DTE, factura, orden), no al saldo global; excedentes quedan como anticipo del cliente hasta aplicar.|VI.J; Anexo A; Anexo L.B
+            104|Procedimiento|Procedimiento de conciliaciones al cierre (bancos, cartera, órdenes, inventario, impuestos, planilla y activos)|Siete conciliaciones del mes: bancos vs mayor, cartera vs auxiliar de clientes, órdenes vs costos en proceso, inventario digital vs licencias, impuestos vs libros IVA, planilla vs cuotas y activos vs depreciación.|IX.E; IX.I; Anexo L.I
+            105|Procedimiento|Procedimiento de preparación, revisión y autorización del expediente de cierre|El auxiliar prepara el expediente con ajustes y conciliaciones; el contador revisa y valida; Gerencia aprueba el cierre gerencial antes del bloqueo del período.|Anexo L.I
+            106|Procedimiento|Procedimiento de validaciones previas al cierre|Antes de cerrar se exige: cero partidas pendientes de aprobación, IVA liquidado, conciliaciones realizadas, ajustes contabilizados y mayor cuadrado contra la balanza.|Anexo H.11 (H11.04)
+            107|Procedimiento|Procedimiento de cancelación de cuentas temporales y traslado del resultado|Al cierre anual se cancelan las clases 4 a 7 (ingresos, costos, gastos) contra 310401 Resultado del ejercicio; el saldo se traslada al patrimonio para la apertura del año siguiente.|IX.R; Anexo H.11 (H11.07, H11.08)
+            108|Procedimiento|Procedimiento de reapertura de un período (autorización, motivo, respaldo y nuevo cierre)|Reapertura excepcional: el contador adjunta autorización externa, documenta el motivo, genera respaldo y programa el nuevo cierre; todo queda en bitácora con valores anterior/nuevo.|IX.R; Anexo H.11 (H11.06)
+            109|Procedimiento|Procedimiento de corrección por reversión|Para corregir una partida contabilizada se genera una AJ reversora que la neutraliza y luego la partida correcta en el período abierto; nunca se edita el asiento original.|IX.B; Anexo H.2 (H02.05)
+            110|Procedimiento|Procedimiento de alta, edición, desactivación y bloqueo de cuentas|El contador crea subcuentas de seis dígitos, edita denominación, desactiva (sin nuevos usos) o bloquea (suspensión temporal); cuentas con movimientos conservan código y naturaleza.|IX.D; Anexo H.1 (H01.08)
+            111|Procedimiento|Procedimiento de aprobación del catálogo inicial|Se carga íntegramente la tabla XX del anexo E con naturalezas, rubros de estados, auxiliares y restricciones; Gerencia aprueba el catálogo antes de habilitar movimientos.|Anexo H.1 (H01.10)
+            112|Procedimiento|Procedimiento de actualización de la tasa fiscal|La tasa de IVA vigente (13 %) se mantiene como parámetro fiscal activo; el contador la actualiza cuando la normativa cambia y los cálculos usan siempre la tasa vigente a la fecha.|Anexo H.1 (H01.07); tabla XXXII (XI.D)
+            113|Procedimiento|Procedimiento de importación de asientos desde CSV a borrador|Importa asientos desde archivo CSV directamente a estado borrador para revisión; el Contador valida cuentas, cuadre y duplicidad antes de aprobar y contabilizar.|IX.H; Anexo H.9 (H09.06)
+            114|Procedimiento|Procedimiento de recuperación de contraseña|El usuario solicita recuperación; el sistema genera enlace o código temporal con expiración, exige nueva contraseña con hash y sal, y registra el evento en bitácora.|Anexo H.8 (H08.02)
+            115|Procedimiento|Procedimiento de respaldo de la base de datos (pg_dump)|El rol Soporte Técnico genera manualmente un respaldo con pg_dump desde la aplicación; el archivo se conserva con fecha y se prueba periódicamente.|IX.G; Anexo H.8 (H08.09)
+            116|Procedimiento|Procedimiento de restauración de respaldos en entorno aislado (externo al prototipo)|La restauración se ejecuta fuera del prototipo, en un entorno aislado: se verifica integridad del respaldo, se restaura en base separada y se valida antes de cualquier uso productivo.|IX.G; Anexo H.8 (H08.09); XIII
+            117|Procedimiento|Procedimiento de exportación de reportes (PDF, Excel y ZIP)|Los reportes se visualizan en pantalla y se exportan a PDF (con presentación institucional) y Excel (.xlsx); un paquete ZIP puede agrupar varios reportes del período.|IX.H; Anexo H.7 (H07.07); Anexo J.G
+            118|Procedimiento|Procedimiento de control de duplicidad de DTE, facturas, partidas y terceros|Antes de registrar se valida unicidad: DTE por emisor+código de generación, factura por emisor+tendero, partida por folio y tercero por NIT/DU; duplicados se rechazan con el documento existente.|Anexo H.8 (H08.06)
+            119|Procedimiento|Procedimiento de conservación e invalidación de DTE|Los DTE emitidos se conservan con su XML y constancia; la invalidación sigue el plazo y motivo legal, y un DTE invalidado no puede reutilizar su código de generación.|IX.F; Anexo H.3 (H03.09)
+            120|Procedimiento|Procedimiento de evaluación anual de la obligación de auditor fiscal|Cada ejercicio se evalúa el artículo 131 (activo, ingresos y actos societarios) para determinar si la empresa requiere auditor fiscal externo; el resultado se documenta para la Junta.|VII.D.3; Anexo B
+            121|Procedimiento|Procedimiento de entrega del encargo al cambiar el profesional responsable|Al cambiar el contador responsable se entrega el encargo completo: catálogo, parámetros, períodos, respaldos y pendientes, con acta de recepción.|VI.K
+            122|Procedimiento|Procedimiento de documentación de pruebas y evidencia|Cada caso de prueba del prototipo conserva su evidencia (capturas, asientos, estados) en el expediente de pruebas para sustentar la aceptación del sistema.|XI.D; Anexo G
             """;
 
     private InstrumentosInstitucionales() {
@@ -153,9 +154,9 @@ public final class InstrumentosInstitucionales {
                 .map(String::trim)
                 .filter(linea -> !linea.isEmpty())
                 .map(linea -> {
-                    String[] partes = linea.split("\\|", 4);
+                    String[] partes = linea.split("\\|", 5);
                     return new Instrumento(Integer.parseInt(partes[0]), partes[1],
-                            partes[2], partes[3]);
+                            partes[2], partes[3], partes[4]);
                 })
                 .toList();
     }
