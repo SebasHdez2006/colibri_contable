@@ -409,6 +409,8 @@
     -fx-min-width: 264;
     -fx-max-width: 264;
     -fx-background-color: linear-gradient(to bottom, -colibri-navy 0%, -colibri-navy-gradient-end 100%);
+    -fx-transition-property: -fx-pref-width;
+    -fx-transition-duration: 220ms;
 }
 .side-nav:colapsado {
     -fx-pref-width: 78;
@@ -796,3 +798,148 @@
     -fx-border-color: -color-paper-fg -colibri-transparent -colibri-transparent -colibri-transparent;
     -fx-border-width: 1 0 0 0;
 }
+
+/* ============================================================
+   Shell Fase 2: footer del sidebar, búsqueda, paleta Ctrl+K,
+   flyout de vidrio, chip de período y avatar.
+   ============================================================ */
+
+/* Footer del menú lateral */
+.side-footer {
+    -fx-background-color: -color-bg-sunken;
+    -fx-border-color: -color-border-subtle;
+    -fx-border-width: 1 0 0 0;
+    -fx-padding: 10 0 12 0;
+}
+.pie-content { -fx-spacing: 10; }
+.pie-name { -fx-font-size: 0.9em; -fx-font-weight: 700; -fx-text-fill: -color-nav-text; }
+.pie-role { -fx-font-size: 0.78em; -fx-font-weight: 600; -fx-text-fill: -color-nav-subtle; }
+.pie-logout { -fx-padding: 6 10; -fx-min-height: 30; -fx-font-size: 0.85em; }
+.footer-zoom { -fx-spacing: 6; -fx-alignment: center; }
+.avatar {
+    -fx-min-width: 36;
+    -fx-pref-width: 36;
+    -fx-max-width: 36;
+    -fx-min-height: 36;
+    -fx-pref-height: 36;
+    -fx-max-height: 36;
+    -fx-background-color: -color-interactive-subtle;
+    -fx-background-radius: 999;
+    -fx-text-fill: -color-interactive;
+    -fx-font-weight: 700;
+    -fx-alignment: center;
+}
+
+/* Búsqueda y chip de período en la barra superior */
+.search-box { -fx-spacing: 8; -fx-alignment: center-right; }
+.search-pill {
+    -fx-background-color: -color-bg-raised;
+    -fx-border-color: -color-border-subtle;
+    -fx-text-fill: -color-fg-muted;
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-padding: 7 14;
+    -fx-min-height: 32;
+}
+.search-pill .brand-icon-shape { -fx-fill: -color-fg-subtle; }
+.search-pill:hover { -fx-border-color: -color-interactive; -fx-text-fill: -color-fg; }
+.search-pill:hover .brand-icon-shape { -fx-fill: -color-interactive; }
+.kbd-hint {
+    -fx-background-color: -color-bg-subtle;
+    -fx-border-color: -color-border-subtle;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-padding: 3 8;
+    -fx-font-size: 0.78em;
+    -fx-font-weight: 700;
+    -fx-text-fill: -color-fg-subtle;
+}
+.period-chip {
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-padding: 6 12;
+    -fx-font-size: 0.82em;
+    -fx-font-weight: 700;
+}
+.period-chip-abierto { -fx-background-color: -color-success-subtle; -fx-text-fill: -color-success; }
+.period-chip-revision { -fx-background-color: -color-warning-subtle; -fx-text-fill: -color-warning; }
+.period-chip-cerrado { -fx-background-color: -color-danger-subtle; -fx-text-fill: -color-danger; }
+.period-chip-none { -fx-background-color: -color-bg-subtle; -fx-text-fill: -color-fg-muted; }
+
+/* Paleta de comandos (Ctrl+K) */
+.palette-overlay { -fx-background-color: -colibri-transparent; }
+.palette-scrim { -fx-background-color: -color-scrim; }
+.palette-panel {
+    -fx-background-color: -color-bg-glass;
+    -fx-background-radius: 18;
+    -fx-border-color: -color-border-glass;
+    -fx-border-radius: 18;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, -color-shadow-strong, 30, 0.5, 0, 12);
+}
+.palette-field {
+    -fx-background-color: -color-bg-raised;
+    -fx-background-radius: 10;
+    -fx-border-color: -color-border-subtle;
+    -fx-border-radius: 10;
+    -fx-padding: 10 14;
+    -fx-font-size: 1em;
+    -fx-min-height: 40;
+    -fx-prompt-text-fill: -color-fg-subtle;
+}
+.palette-field:focused {
+    -fx-border-color: -color-focus-ring;
+    -fx-border-width: 2;
+    -fx-effect: dropshadow(gaussian, -color-focus-faint, 8, 0.18, 0, 0);
+}
+.palette-list {
+    -fx-background-color: -colibri-transparent;
+    -fx-border-color: -colibri-transparent;
+    -fx-padding: 0;
+    -fx-pref-height: 320;
+}
+.palette-list > .viewport { -fx-background-color: -colibri-transparent; }
+.palette-list .list-cell {
+    -fx-background-color: -colibri-transparent;
+    -fx-padding: 0;
+    -fx-text-fill: -color-fg;
+}
+.palette-list .list-cell:filled:hover,
+.palette-list .list-cell:filled:selected {
+    -fx-background-color: -color-interactive-subtle;
+    -fx-background-radius: 10;
+}
+.palette-list .placeholder .label {
+    -fx-text-fill: -color-fg-subtle;
+    -fx-padding: 18;
+}
+.palette-item-title { -fx-font-size: 0.95em; -fx-font-weight: 600; -fx-text-fill: -color-fg; }
+.palette-item-sub { -fx-font-size: 0.8em; -fx-text-fill: -color-fg-subtle; }
+.palette-hint { -fx-font-size: 0.78em; -fx-text-fill: -color-fg-subtle; -fx-padding: 0 4; }
+
+/* Flyout de vidrio para el rail contraído */
+.nav-flyout {
+    -fx-background-color: -color-bg-glass;
+    -fx-background-radius: 14;
+    -fx-border-color: -color-border-glass;
+    -fx-border-radius: 14;
+    -fx-border-width: 1;
+    -fx-padding: 6;
+    -fx-spacing: 2;
+    -fx-effect: dropshadow(gaussian, -color-shadow-strong, 24, 0.5, 0, 10);
+}
+.nav-flyout-item {
+    -fx-background-color: -colibri-transparent;
+    -fx-border-color: -colibri-transparent;
+    -fx-text-fill: -color-nav-text;
+    -fx-background-radius: 8;
+    -fx-padding: 9 14;
+    -fx-min-height: 34;
+    -fx-font-size: 0.92em;
+    -fx-font-weight: 600;
+    -fx-alignment: center-left;
+    -fx-graphic-text-gap: 10;
+    -fx-cursor: hand;
+}
+.nav-flyout-item .brand-icon-shape { -fx-fill: -clb-cyan-500; }
+.nav-flyout-item:hover { -fx-background-color: -color-nav-hover; -fx-text-fill: -color-fg; }

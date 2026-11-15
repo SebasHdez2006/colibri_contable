@@ -174,6 +174,16 @@ public final class UiTheme {
         }
     }
 
+    /**
+     * URL externa de la hoja de estilo principal. Los popups y ventanas
+     * auxiliares la registran en su propia escena para heredar los tokens.
+     *
+     * @return URL de {@code colibri.css}
+     */
+    public static String hojaEstilos() {
+        return stylesheetUrl();
+    }
+
     private static String stylesheetUrl() {
         URL resource = UiTheme.class.getResource(STYLESHEET);
         return Objects.requireNonNull(resource, "No se encontró " + STYLESHEET).toExternalForm();

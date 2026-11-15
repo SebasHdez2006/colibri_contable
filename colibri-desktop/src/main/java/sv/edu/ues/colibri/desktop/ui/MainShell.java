@@ -1,6 +1,7 @@
 package sv.edu.ues.colibri.desktop.ui;
 
 import javafx.application.Platform;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -16,6 +17,8 @@ import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import sv.edu.ues.colibri.application.AppContext;
 import sv.edu.ues.colibri.desktop.AppLog;
 import sv.edu.ues.colibri.desktop.ui.ResponsiveLayouts;
@@ -26,8 +29,10 @@ import sv.edu.ues.colibri.desktop.ui.nav.Navegador;
 import sv.edu.ues.colibri.desktop.ui.nav.SectionHost;
 import sv.edu.ues.colibri.desktop.ui.nav.SideNav;
 import sv.edu.ues.colibri.domain.model.Contador;
+import sv.edu.ues.colibri.domain.model.Periodo;
 
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Shell principal de la aplicación de escritorio.
@@ -42,6 +47,8 @@ public class MainShell extends BorderPane implements Navegador {
     private static final double ZOOM_MAX = 1.35;
     private static final double ZOOM_STEP = 0.05;
     private static final double ZOOM_BASE_FONT = 14.0;
+    private static final String[] MESES = {"Ene", "Feb", "Mar", "Abr", "May", "Jun",
+            "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"};
 
     private final AppContext context;
     private final Runnable onLogout;
@@ -50,8 +57,8 @@ public class MainShell extends BorderPane implements Navegador {
     private final SideNav menu;
     private final SectionHost host = new SectionHost();
     private final HBox breadcrumb = new HBox();
+    private PaletaComandos paleta;
     private Label zoomIndicator;
-    private HBox zoomControls;
     private boolean colapsadoAutomatico;
     private double zoomFactor = 1.0;
 
@@ -73,19 +80,18 @@ public class MainShell extends BorderPane implements Navegador {
         menu = new SideNav("Colibrí", soporte ? "SOPORTE TÉCNICO" : "CONTABILIDAD Y CONTROL", arbol,
                 this::abrirConSesion, this::alternarMenu);
         setLeft(menu);
+        paleta = new PaletaComandos(arbol, this::abrirConSesion, this::cerrarSesion);
+        menu.setPie(construirPie());
 
         BorderPane centro = new BorderPane();
         centro.setTop(crearBarra());
-        centro.setCenter(host);
+        centro.setCenter(new StackPane(host, paleta));
         centro.setMinSize(0, 0);
         setCenter(centro);
 
-        sceneProperty().addListener((observable, anterior, actual) -> instalarAtajosZoom(actual));
+        sceneProperty().addListener((observable, anterior, actual) -> instalarAtajos(actual));
         Breakpoints bp = Breakpoints.instalar(this);
-        bp.nivelProperty().addListener((o, anterior, nivel) -> {
-            ajustarMenuAlAncho(nivel);
-            ajustarBarraAlNivel(nivel);
-        });
+        bp.nivelProperty().addListener((o, anterior, nivel) -> ajustarMenuAlAncho(nivel));
         aplicarZoom();
 
         abrirConSesion(arbol.getFirst().esGrupo() ? arbol.getFirst().hijos().getFirst() : arbol.getFirst());
@@ -129,30 +135,124 @@ public class MainShell extends BorderPane implements Navegador {
     }
 
     private HBox crearBarra() {
-        var sesion = context.auth().getSesionActual();
         breadcrumb.getStyleClass().addAll("top-context", "breadcrumb-bar");
-        String nombreCompleto = sesion == null ? "" : sesion.getRol().etiqueta() + ": " + sesion.getNombre();
-        Label user = new Label(nombreCompleto);
-        user.getStyleClass().add("user-pill");
-        user.setMinWidth(0);
-        user.setMaxWidth(220);
-        user.setTextOverrun(OverrunStyle.ELLIPSIS);
-        if (sesion != null) {
-            Tooltip.install(user, new Tooltip(nombreCompleto));
+
+        Button buscar = new Button("Buscar");
+        buscar.setGraphic(BrandIcon.create(BrandIcon.Symbol.SEARCH));
+        buscar.getStyleClass().addAll("button", "secondary-button", "search-pill");
+        buscar.setOnAction(e -> paleta.alternar());
+        buscar.setAccessibleHelp("Abrir la paleta de comandos (Ctrl+K)");
+        Label kbd = new Label("Ctrl K");
+        kbd.getStyleClass().add("kbd-hint");
+        HBox busqueda = new HBox(8, buscar, kbd);
+        busqueda.setAlignment(Pos.CENTER_RIGHT);
+        busqueda.getStyleClass().add("search-box");
+
+        HBox controles = new HBox(12, busqueda);
+        controles.setAlignment(Pos.CENTER_RIGHT);
+        Node chip = crearChipPeriodo();
+        if (chip != null) {
+            controles.getChildren().add(0, chip);
         }
-        Button salir = new Button("Cerrar sesión");
-        UiTheme.decorateButton(salir);
-        salir.setOnAction(e -> {
-            context.auth().logout();
-            onLogout.run();
-        });
-        zoomControls = crearControlesZoom();
+
         HBox spacer = new HBox();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        HBox bar = new HBox(breadcrumb, spacer, zoomControls, user, salir);
+        HBox bar = new HBox(breadcrumb, spacer, controles);
         bar.getStyleClass().add("top-bar");
         bar.setAlignment(Pos.CENTER_LEFT);
         return bar;
+    }
+
+    private Node crearChipPeriodo() {
+        if (soporte) {
+            return null;
+        }
+        try {
+            var periodo = context.periodos().periodoAbierto();
+            Label chip = new Label();
+            chip.getStyleClass().add("period-chip");
+            if (periodo.isEmpty()) {
+                chip.setText("Sin período abierto");
+                chip.getStyleClass().add("period-chip-none");
+                return chip;
+            }
+            Periodo p = periodo.get();
+            String estado = switch (p.getEstado()) {
+                case ABIERTO -> "Abierto";
+                case EN_REVISION -> "En revisión";
+                case CERRADO -> "Cerrado";
+            };
+            chip.setText("%s %d · %s".formatted(
+                    MESES[p.getMes() - 1], p.getFechaInicio().getYear(), estado));
+            chip.getStyleClass().add(switch (p.getEstado()) {
+                case ABIERTO -> "period-chip-abierto";
+                case EN_REVISION -> "period-chip-revision";
+                case CERRADO -> "period-chip-cerrado";
+            });
+            return chip;
+        } catch (Exception ex) {
+            AppLog.error("No se pudo leer el período para la barra superior", ex);
+            return null;
+        }
+    }
+
+    private void cerrarSesion() {
+        context.auth().logout();
+        onLogout.run();
+    }
+
+    private Node construirPie() {
+        VBox pie = new VBox(10);
+        pie.getStyleClass().add("pie-content");
+        pie.setPadding(new Insets(12, 14, 12, 14));
+        var sesion = context.auth().getSesionActual();
+        if (sesion == null) {
+            return pie;
+        }
+        if (menu.isColapsado()) {
+            pie.setAlignment(Pos.CENTER);
+            pie.getChildren().add(avatar(sesion.getNombre()));
+            HBox zoom = new HBox(6,
+                    botonZoom(BrandIcon.Symbol.MINUS, "Reducir zoom", this::zoomOut),
+                    botonZoom(BrandIcon.Symbol.PLUS, "Aumentar zoom", this::zoomIn));
+            zoom.setAlignment(Pos.CENTER);
+            zoom.getStyleClass().add("footer-zoom");
+            Button salir = botonZoom(BrandIcon.Symbol.LOGOUT, "Cerrar sesión", this::cerrarSesion);
+            zoomIndicator = null;
+            pie.getChildren().addAll(zoom, salir);
+            return pie;
+        }
+        VBox datos = new VBox(1,
+                etiqueta(sesion.getNombre(), "pie-name"),
+                etiqueta(sesion.getRol().etiqueta(), "pie-role"));
+        datos.setMinWidth(0);
+        HBox.setHgrow(datos, Priority.ALWAYS);
+        Button salir = new Button("Cerrar sesión");
+        salir.setGraphic(BrandIcon.create(BrandIcon.Symbol.LOGOUT));
+        salir.getStyleClass().addAll("button", "secondary-button", "pie-logout");
+        salir.setOnAction(e -> cerrarSesion());
+        HBox usuario = new HBox(10, avatar(sesion.getNombre()), datos, salir);
+        usuario.setAlignment(Pos.CENTER_LEFT);
+        pie.getChildren().add(usuario);
+        pie.getChildren().add(crearControlesZoom());
+        return pie;
+    }
+
+    private Label avatar(String nombre) {
+        String[] partes = nombre.trim().split("\\s+");
+        String iniciales = (partes.length > 0 && !partes[0].isEmpty() ? partes[0].substring(0, 1) : "?")
+                + (partes.length > 1 && !partes[1].isEmpty() ? partes[1].substring(0, 1) : "");
+        Label l = new Label(iniciales.toUpperCase(Locale.ROOT));
+        l.getStyleClass().add("avatar");
+        return l;
+    }
+
+    private Label etiqueta(String texto, String clase) {
+        Label l = new Label(texto);
+        l.getStyleClass().add(clase);
+        l.setTextOverrun(OverrunStyle.ELLIPSIS);
+        l.setMaxWidth(Double.MAX_VALUE);
+        return l;
     }
 
     private void abrirConSesion(NavItem item) {
@@ -206,6 +306,7 @@ public class MainShell extends BorderPane implements Navegador {
     private void alternarMenu() {
         colapsadoAutomatico = false;
         menu.setColapsado(!menu.isColapsado());
+        menu.setPie(construirPie());
         // Notifica a la vista activa del nuevo ancho disponible tras el colapso/expansión.
         Platform.runLater(() -> {
             if (host.vista() instanceof Parent parent) {
@@ -222,16 +323,6 @@ public class MainShell extends BorderPane implements Navegador {
             colapsadoAutomatico = false;
             menu.setColapsado(false);
         }
-    }
-
-    /** En ventanas compactas los controles de zoom ceden espacio a la sesión. */
-    private void ajustarBarraAlNivel(Breakpoints.Nivel nivel) {
-        if (zoomControls == null) {
-            return;
-        }
-        boolean compacto = nivel == Breakpoints.Nivel.COMPACT;
-        zoomControls.setVisible(!compacto);
-        zoomControls.setManaged(!compacto);
     }
 
     private HBox crearControlesZoom() {
@@ -283,10 +374,12 @@ public class MainShell extends BorderPane implements Navegador {
         }
     }
 
-    private void instalarAtajosZoom(Scene scene) {
+    private void instalarAtajos(Scene scene) {
         if (scene == null) {
             return;
         }
+        scene.getAccelerators().put(new KeyCodeCombination(KeyCode.K, KeyCombination.SHORTCUT_DOWN),
+                paleta::alternar);
         scene.getAccelerators().put(new KeyCodeCombination(KeyCode.ADD, KeyCombination.SHORTCUT_DOWN), this::zoomIn);
         scene.getAccelerators().put(new KeyCodeCombination(KeyCode.EQUALS, KeyCombination.SHORTCUT_DOWN), this::zoomIn);
         scene.getAccelerators().put(new KeyCodeCombination(KeyCode.MINUS, KeyCombination.SHORTCUT_DOWN), this::zoomOut);

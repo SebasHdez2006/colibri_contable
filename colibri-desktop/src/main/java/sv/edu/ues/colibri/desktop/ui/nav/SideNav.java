@@ -1,13 +1,11 @@
 package sv.edu.ues.colibri.desktop.ui.nav;
 
 import javafx.css.PseudoClass;
+import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
-import javafx.geometry.Side;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
-import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
-import javafx.scene.control.MenuItem;
 import javafx.scene.control.OverrunStyle;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Separator;
@@ -17,8 +15,11 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.stage.Popup;
+import javafx.stage.Window;
 import sv.edu.ues.colibri.desktop.ui.BrandIcon;
 import sv.edu.ues.colibri.desktop.ui.BrandLogo;
+import sv.edu.ues.colibri.desktop.ui.UiTheme;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -49,6 +50,7 @@ public final class SideNav extends BorderPane {
     private final StackPane logo;
     private final Button alternar = new Button();
     private final Runnable alAlternar;
+    private Popup flyout;
     private boolean colapsado;
     private String activo;
 
@@ -120,6 +122,22 @@ public final class SideNav extends BorderPane {
         scroll.getStyleClass().add("menu-scroll-pane");
         setTop(marca);
         setCenter(scroll);
+    }
+
+    /**
+     * Instala el contenido del pie del menú (usuario, zoom, sesión).
+     * El shell lo reconstruye al alternar el estado contraído/expandido.
+     *
+     * @param contenido nodo raíz del pie, o {@code null} para quitarlo
+     */
+    public void setPie(Node contenido) {
+        if (contenido == null) {
+            setBottom(null);
+            return;
+        }
+        VBox contenedor = new VBox(contenido);
+        contenedor.getStyleClass().add("side-footer");
+        setBottom(contenedor);
     }
 
     private VBox crear(NavItem item, String padre) {
@@ -207,14 +225,7 @@ public final class SideNav extends BorderPane {
 
     private void pulsarGrupo(NavItem grupo, Button boton) {
         if (colapsado) {
-            ContextMenu menu = new ContextMenu();
-            for (NavItem hijo : grupo.hijos()) {
-                MenuItem mi = new MenuItem(hijo.etiqueta());
-                mi.setId("popup-" + hijo.id());
-                mi.setOnAction(e -> alSolicitar.accept(hijo));
-                menu.getItems().add(mi);
-            }
-            menu.show(boton, Side.RIGHT, 0, 0);
+            mostrarFlyout(grupo, boton);
             return;
         }
         boolean abierto = hijosDe.get(grupo.id()).isVisible();
@@ -225,6 +236,56 @@ public final class SideNav extends BorderPane {
         }
         expandir(grupo.id(), true);
         alSolicitar.accept(grupo.hijos().getFirst());
+    }
+
+    /**
+     * Muestra un flyout de vidrio con las secciones del grupo cuando el menú
+     * está contraído. Sustituye al menú contextual nativo.
+     */
+    private void mostrarFlyout(NavItem grupo, Button boton) {
+        if (flyout != null && flyout.isShowing()) {
+            flyout.hide();
+        }
+        VBox contenido = new VBox();
+        contenido.getStyleClass().add("nav-flyout");
+        for (NavItem hijo : grupo.hijos()) {
+            Button opcion = new Button(hijo.etiqueta());
+            opcion.setId("popup-" + hijo.id());
+            opcion.getStyleClass().add("nav-flyout-item");
+            if (hijo.icono() != null) {
+                opcion.setGraphic(BrandIcon.create(hijo.icono()));
+            }
+            opcion.setAccessibleText("Abrir " + hijo.etiqueta());
+            opcion.setOnAction(e -> {
+                if (flyout != null) {
+                    flyout.hide();
+                }
+                alSolicitar.accept(hijo);
+            });
+            contenido.getChildren().add(opcion);
+        }
+        flyout = new Popup();
+        flyout.setAutoHide(true);
+        flyout.setHideOnEscape(true);
+        flyout.getContent().add(contenido);
+        // La escena del popup no hereda la hoja de estilos: se registra al
+        // mostrarse para que los tokens -color-* resuelvan igual que en la app.
+        flyout.setOnShown(e -> {
+            var escena = flyout.getScene();
+            if (escena != null) {
+                String css = UiTheme.hojaEstilos();
+                if (!escena.getStylesheets().contains(css)) {
+                    escena.getStylesheets().add(css);
+                }
+                contenido.applyCss();
+            }
+        });
+        Window ventana = boton.getScene() == null ? null : boton.getScene().getWindow();
+        if (ventana == null) {
+            return;
+        }
+        Point2D esquina = boton.localToScreen(new Point2D(boton.getWidth() + 6, 0));
+        flyout.show(ventana, esquina.getX(), esquina.getY());
     }
 
     private void expandir(String idGrupo, boolean abrir) {
