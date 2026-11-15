@@ -19,10 +19,12 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.stage.Popup;
 import sv.edu.ues.colibri.application.AppContext;
 import sv.edu.ues.colibri.desktop.AppLog;
 import sv.edu.ues.colibri.desktop.ui.ResponsiveLayouts;
 import sv.edu.ues.colibri.desktop.ui.layout.Breakpoints;
+import sv.edu.ues.colibri.desktop.ui.nav.NavFlyout;
 import sv.edu.ues.colibri.desktop.ui.nav.NavItem;
 import sv.edu.ues.colibri.desktop.ui.nav.NavRegistry;
 import sv.edu.ues.colibri.desktop.ui.nav.Navegador;
@@ -57,6 +59,7 @@ public class MainShell extends BorderPane implements Navegador {
     private final SideNav menu;
     private final SectionHost host = new SectionHost();
     private final HBox breadcrumb = new HBox();
+    private Popup migasFlyout;
     private PaletaComandos paleta;
     private Label zoomIndicator;
     private boolean colapsadoAutomatico;
@@ -132,6 +135,16 @@ public class MainShell extends BorderPane implements Navegador {
      */
     public NavItem itemActual() {
         return host.actual();
+    }
+
+    /**
+     * Flyout de secciones del módulo desplegado desde el breadcrumb, o
+     * {@code null} si aún no se ha invocado.
+     *
+     * @return popup del breadcrumb (diagnóstico y pruebas)
+     */
+    Popup migasFlyout() {
+        return migasFlyout;
     }
 
     private HBox crearBarra() {
@@ -285,12 +298,17 @@ public class MainShell extends BorderPane implements Navegador {
         modulo.setMinWidth(0);
         modulo.setMaxWidth(140);
         modulo.setTextOverrun(OverrunStyle.ELLIPSIS);
-        modulo.setAccessibleHelp("Mostrar las secciones de " + padre.etiqueta()
-                + " en el menú lateral");
-        // El nombre del módulo en la barra superior funciona como acceso al
-        // acordeón. Conservamos la sección actual para que el usuario pueda
-        // elegir explícitamente cuál abrir después.
-        modulo.setOnAction(e -> menu.mostrarAcordeon(padre.id()));
+        modulo.setAccessibleHelp("Desplegar las secciones de " + padre.etiqueta());
+        // El nombre del módulo despliega sus secciones para saltar entre
+        // ellas sin pasar por el menú lateral.
+        modulo.setOnAction(e -> {
+            if (migasFlyout != null && migasFlyout.isShowing()) {
+                migasFlyout.hide();
+                return;
+            }
+            migasFlyout = NavFlyout.mostrar(modulo, NavFlyout.Posicion.DEBAJO,
+                    padre.hijos(), this::abrirConSesion);
+        });
         Label separador = new Label("›");
         separador.getStyleClass().add("breadcrumb-sep");
         Label seccion = new Label(item.etiqueta());
@@ -335,7 +353,7 @@ public class MainShell extends BorderPane implements Navegador {
 
         HBox controles = new HBox(zoomOut, zoomIndicator, zoomReset, zoomIn);
         controles.getStyleClass().add("zoom-controls");
-        controles.setAlignment(Pos.CENTER_RIGHT);
+        controles.setAlignment(Pos.CENTER);
         return controles;
     }
 

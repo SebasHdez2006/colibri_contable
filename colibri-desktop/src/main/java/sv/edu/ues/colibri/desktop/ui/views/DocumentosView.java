@@ -19,7 +19,6 @@ import sv.edu.ues.colibri.application.AppContext;
 import sv.edu.ues.colibri.application.operacion.OperacionContableService;
 import sv.edu.ues.colibri.desktop.ui.ResponsiveLayouts;
 import sv.edu.ues.colibri.desktop.ui.UiDialogs;
-import sv.edu.ues.colibri.desktop.ui.layout.DosColumnas;
 import sv.edu.ues.colibri.domain.exception.DomainException;
 import sv.edu.ues.colibri.domain.model.Documento;
 import sv.edu.ues.colibri.domain.model.Partida;
@@ -192,10 +191,9 @@ public class DocumentosView extends VBox {
         tablaTerceros.setPrefHeight(330);
         tablaDocumentos.setPrefHeight(330);
 
-        // Ambos listados son pares de igual jerarquía. Un grid adaptable evita
-        // que una tabla se envuelva debajo de la otra dejando un hueco lateral.
-        var listas = new DosColumnas(panelTerceros, panelDocumentos);
-        getChildren().addAll(titulo, ayuda, cardTercero, cardOperacion, cardAnticipo, listas);
+        // Cada listado ocupa una fila completa del ancho de la ventana.
+        getChildren().addAll(titulo, ayuda, cardTercero, cardOperacion,
+                cardAnticipo, panelTerceros, panelDocumentos);
         configurarTercero();
         refrescar();
     }

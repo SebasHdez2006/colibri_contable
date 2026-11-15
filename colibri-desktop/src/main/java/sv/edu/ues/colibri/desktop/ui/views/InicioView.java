@@ -13,6 +13,7 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.VBox;
 import sv.edu.ues.colibri.application.AppContext;
 import sv.edu.ues.colibri.application.panel.PanelInicioService;
@@ -93,6 +94,11 @@ public class InicioView extends VBox {
         ColumnConstraints angosta = new ColumnConstraints();
         angosta.setPercentWidth(27);
         bento.getColumnConstraints().addAll(ancha, angosta, angosta);
+        // La gráfica ocupa dos filas: se fija una altura mínima por fila para
+        // que su tarjeta no desborde sobre el tile «Por hacer».
+        RowConstraints filaKpi = new RowConstraints();
+        filaKpi.setMinHeight(165);
+        bento.getRowConstraints().addAll(filaKpi, filaKpi, new RowConstraints());
 
         bento.add(graficaBarras(resumen.serieMensual()), 0, 0, 1, 2);
         bento.add(cifraFinanciera("Ingresos", dinero(resumen.ingresosMes()),
@@ -254,7 +260,8 @@ public class InicioView extends VBox {
         chart.setAnimated(false);
         chart.setCategoryGap(22);
         chart.setBarGap(3);
-        chart.setPrefHeight(250);
+        chart.setPrefHeight(200);
+        chart.setMinHeight(0);
         chart.getStyleClass().addAll("dashboard-chart", "dashboard-income-chart");
         javafx.scene.chart.XYChart.Series<String, Number> ingresos =
                 new javafx.scene.chart.XYChart.Series<>();

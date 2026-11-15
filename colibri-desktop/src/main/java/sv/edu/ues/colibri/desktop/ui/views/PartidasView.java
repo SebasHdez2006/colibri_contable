@@ -274,12 +274,14 @@ public class PartidasView extends VBox {
         recientes.setMinHeight(160);
         VBox.setVgrow(recientes, Priority.ALWAYS);
 
-        // Columna central: captura, líneas, cuadre y acciones.
-        VBox centro = new VBox(12, captura, lineasCard, balanceBar, acciones);
+        // Columna central: captura, líneas, cuadre, acciones e inspector
+        // inferior con el detalle de la partida seleccionada.
+        VBox centro = new VBox(12, captura, lineasCard, balanceBar, acciones,
+                inspectorInferior(comprobante, evidencia));
         centro.setMinWidth(0);
         HBox.setHgrow(centro, Priority.ALWAYS);
 
-        HBox columnas = new HBox(16, listaCard, centro, inspectorPanel(comprobante, evidencia));
+        HBox columnas = new HBox(16, listaCard, centro);
         columnas.setAlignment(Pos.TOP_LEFT);
 
         getChildren().addAll(titulo, subtitulo, columnas);
@@ -1212,17 +1214,13 @@ public class PartidasView extends VBox {
     }
 
     // ------------------------------------------------------------------
-    // Inspector lateral: detalle de la partida seleccionada y cuadre
+    // Inspector inferior: detalle de la partida seleccionada, cuadre del
+    // asiento y acciones de documento en una franja bajo la tabla de líneas.
     // ------------------------------------------------------------------
 
-    private VBox inspectorPanel(Button comprobante, Button evidencia) {
-        VBox insp = new VBox(14);
+    private Node inspectorInferior(Button comprobante, Button evidencia) {
+        VBox insp = new VBox(10);
         insp.getStyleClass().addAll("surface-card", "journal-inspector");
-        insp.setPrefWidth(280);
-        insp.setMinWidth(250);
-
-        Label titulo = new Label("Inspector");
-        titulo.getStyleClass().add("section-heading");
 
         Label subtituloSel = new Label("Partida seleccionada");
         subtituloSel.getStyleClass().add("inspector-subheading");
@@ -1231,20 +1229,27 @@ public class PartidasView extends VBox {
         selConcepto.getStyleClass().add("inspector-concepto");
         selConcepto.setWrapText(true);
         inspectorVacio.getStyleClass().add("muted-caption");
-        VBox seleccion = new VBox(6, subtituloSel, selFolio, selOrigen, selConcepto, inspectorVacio);
+        VBox seleccion = new VBox(4, subtituloSel, selFolio, selOrigen,
+                selConcepto, inspectorVacio);
+        seleccion.setMinWidth(0);
+        HBox.setHgrow(seleccion, Priority.ALWAYS);
 
         Label tituloCuadre = new Label("Cuadre del asiento");
         tituloCuadre.getStyleClass().add("inspector-subheading");
-        cuadreLbl.setWrapText(true);
+        cuadreLbl.setWrapText(false);
         cuadreLbl.getStyleClass().add("inspector-cuadre");
+        VBox cuadre = new VBox(4, tituloCuadre, cuadreLbl);
+        cuadre.setMinWidth(0);
 
         Label tituloAcciones = new Label("Documento");
         tituloAcciones.getStyleClass().add("inspector-subheading");
-        VBox.setVgrow(seleccion, Priority.ALWAYS);
-        insp.getChildren().addAll(titulo, seleccion,
-                new javafx.scene.control.Separator(), tituloCuadre, cuadreLbl,
-                new javafx.scene.control.Separator(), tituloAcciones,
-                new HBox(8, comprobante, evidencia));
+        VBox doc = new VBox(4, tituloAcciones, new HBox(8, comprobante, evidencia));
+        doc.setMinWidth(0);
+
+        HBox fila = new HBox(24, seleccion, cuadre, doc);
+        fila.setAlignment(Pos.TOP_LEFT);
+        fila.getStyleClass().add("journal-inspector-row");
+        insp.getChildren().add(fila);
         return insp;
     }
 

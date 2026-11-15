@@ -153,11 +153,19 @@ class NavegacionModulosTest {
                     .filter(enlace -> "Costos".equals(enlace.getText()))
                     .findFirst().orElseThrow();
             modulo.fire();
-            assertFalse(s.menu().isColapsado(),
-                    "El breadcrumb debe revelar el menú para mostrar el acordeón");
-            assertTrue(hijosVisibles(s, "nav-costos-procesos-y-cif"));
-            assertEquals("nav-costos-procesos-y-cif", s.itemActual().id(),
-                    "Abrir el acordeón desde el breadcrumb no debe cambiar la vista actual");
+            javafx.stage.Popup flyout = s.migasFlyout();
+            assertNotNull(flyout, "El breadcrumb debe ofrecer las secciones del módulo");
+            assertTrue(s.menu().isColapsado(),
+                    "El flyout permite cambiar de sección sin expandir el menú");
+            // La prueba no monta el shell en una ventana, así que el popup no
+            // llega a mostrarse; sus opciones existen y navegan igual.
+            Node contenidoFlyout = (Node) flyout.getContent().get(0);
+            Button destino = encontrar(contenidoFlyout, Button.class).stream()
+                    .filter(b -> "popup-nav-costos-a-la-medida".equals(b.getId()))
+                    .findFirst().orElseThrow();
+            destino.fire();
+            assertEquals("nav-costos-a-la-medida", s.itemActual().id(),
+                    "Elegir una sección del flyout del breadcrumb debe navegar a ella");
         });
     }
 

@@ -193,7 +193,7 @@ public class ReportesView extends VBox {
                 }));
 
         tabla.setPlaceholder(new Label("No hay movimientos para mostrar."));
-        tabla.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        tabla.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
         tabla.setMinHeight(260);
         VBox.setVgrow(tabla, Priority.ALWAYS);
         var filtros = ResponsiveLayouts.row(ResponsiveLayouts.field("Formato", tipo),
@@ -221,14 +221,25 @@ public class ReportesView extends VBox {
             final int columna = index;
             TableColumn<ObservableList<String>, String> column = new TableColumn<>(encabezados.get(index));
             column.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().get(columna)));
-            column.setPrefWidth(Math.max(110, 800.0 / encabezados.size()));
-            column.setMinWidth(90);
+            column.setPrefWidth(anchoColumna(index));
+            column.setMinWidth(80);
             tabla.getColumns().add(column);
         }
         ObservableList<ObservableList<String>> datosTabla = FXCollections.observableArrayList();
         filas.forEach(fila -> datosTabla.add(FXCollections.observableArrayList(fila)));
         tabla.setItems(datosTabla);
         totalRegistros.setText(filas.size() + " filas · " + periodoReporte);
+    }
+
+    /** Ancho estimado de la columna según el texto más largo de sus celdas. */
+    private double anchoColumna(int index) {
+        int max = encabezados.get(index).length();
+        for (List<String> fila : filas) {
+            if (index < fila.size()) {
+                max = Math.max(max, fila.get(index).length());
+            }
+        }
+        return Math.min(380, Math.max(90, max * 7.4 + 30));
     }
 
     private DatosReporte datosReporte(String tipo, LocalDate desde, LocalDate hasta, Cuenta cuenta,

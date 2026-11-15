@@ -1,7 +1,6 @@
 package sv.edu.ues.colibri.desktop.ui.nav;
 
 import javafx.css.PseudoClass;
-import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -16,10 +15,8 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Popup;
-import javafx.stage.Window;
 import sv.edu.ues.colibri.desktop.ui.BrandIcon;
 import sv.edu.ues.colibri.desktop.ui.BrandLogo;
-import sv.edu.ues.colibri.desktop.ui.UiTheme;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -245,47 +242,10 @@ public final class SideNav extends BorderPane {
     private void mostrarFlyout(NavItem grupo, Button boton) {
         if (flyout != null && flyout.isShowing()) {
             flyout.hide();
-        }
-        VBox contenido = new VBox();
-        contenido.getStyleClass().add("nav-flyout");
-        for (NavItem hijo : grupo.hijos()) {
-            Button opcion = new Button(hijo.etiqueta());
-            opcion.setId("popup-" + hijo.id());
-            opcion.getStyleClass().add("nav-flyout-item");
-            if (hijo.icono() != null) {
-                opcion.setGraphic(BrandIcon.create(hijo.icono()));
-            }
-            opcion.setAccessibleText("Abrir " + hijo.etiqueta());
-            opcion.setOnAction(e -> {
-                if (flyout != null) {
-                    flyout.hide();
-                }
-                alSolicitar.accept(hijo);
-            });
-            contenido.getChildren().add(opcion);
-        }
-        flyout = new Popup();
-        flyout.setAutoHide(true);
-        flyout.setHideOnEscape(true);
-        flyout.getContent().add(contenido);
-        // La escena del popup no hereda la hoja de estilos: se registra al
-        // mostrarse para que los tokens -color-* resuelvan igual que en la app.
-        flyout.setOnShown(e -> {
-            var escena = flyout.getScene();
-            if (escena != null) {
-                String css = UiTheme.hojaEstilos();
-                if (!escena.getStylesheets().contains(css)) {
-                    escena.getStylesheets().add(css);
-                }
-                contenido.applyCss();
-            }
-        });
-        Window ventana = boton.getScene() == null ? null : boton.getScene().getWindow();
-        if (ventana == null) {
             return;
         }
-        Point2D esquina = boton.localToScreen(new Point2D(boton.getWidth() + 6, 0));
-        flyout.show(ventana, esquina.getX(), esquina.getY());
+        flyout = NavFlyout.mostrar(boton, NavFlyout.Posicion.DERECHA,
+                grupo.hijos(), alSolicitar);
     }
 
     private void expandir(String idGrupo, boolean abrir) {

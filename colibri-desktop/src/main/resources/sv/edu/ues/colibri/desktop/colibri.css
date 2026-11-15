@@ -367,13 +367,13 @@
     -fx-font-weight: 600;
     -fx-text-overrun: ellipsis;
 }
-.side-menu { -fx-background-color: -colibri-transparent; -fx-padding: 20 14 20 14; -fx-spacing: 6; }
+.side-menu { -fx-background-color: -colibri-transparent; -fx-padding: 20 10 20 10; -fx-spacing: 6; }
 .side-brand { -fx-padding: 2 2 16 2; -fx-spacing: 9; -fx-alignment: center-left; }
 .side-logo { -fx-alignment: center; }
 .brand-logo-badge {
-    -fx-background-color: -color-bg-glass;
+    -fx-background-color: -color-paper-bg;
     -fx-background-radius: 16;
-    -fx-border-color: -color-border-glass;
+    -fx-border-color: -color-border;
     -fx-border-width: 1;
     -fx-border-radius: 16;
     -fx-effect: dropshadow(gaussian, -colibri-shadow-strong, 16, 0.18, 0, 5);
@@ -405,9 +405,9 @@
 .menu-toggle:hover .brand-icon-shape { -fx-fill: -colibri-cyan-bright; }
 
 .side-nav {
-    -fx-pref-width: 264;
-    -fx-min-width: 264;
-    -fx-max-width: 264;
+    -fx-pref-width: 288;
+    -fx-min-width: 288;
+    -fx-max-width: 288;
     -fx-background-color: linear-gradient(to bottom, -colibri-navy 0%, -colibri-navy-gradient-end 100%);
     -fx-transition-property: -fx-pref-width;
     -fx-transition-duration: 220ms;
@@ -424,8 +424,8 @@
 .side-nav:colapsado .nav-divider { -fx-padding: 8 0; }
 
 .nav-entry { -fx-spacing: 3; }
-.nav-children { -fx-padding: 0 0 6 30; -fx-spacing: 2; }
-.nav-content { -fx-spacing: 10; -fx-alignment: center-left; }
+.nav-children { -fx-padding: 0 0 6 26; -fx-spacing: 2; }
+.nav-content { -fx-spacing: 9; -fx-alignment: center-left; }
 .nav-label { -fx-text-fill: -colibri-nav-text; }
 .nav-chevron .brand-icon-shape { -fx-fill: -colibri-nav-subtle; }
 .nav-button:hover .nav-label { -fx-text-fill: -colibri-on-navy; }
@@ -448,10 +448,10 @@
     -fx-border-radius: 9;
     -fx-text-fill: -colibri-nav-text;
     -fx-font-weight: 500;
-    -fx-font-size: 0.97em;
+    -fx-font-size: 0.95em;
     -fx-alignment: center-left;
-    -fx-graphic-text-gap: 12;
-    -fx-padding: 10 16;
+    -fx-graphic-text-gap: 10;
+    -fx-padding: 10 12;
     -fx-min-height: 36;
 }
 .nav-button .brand-icon-shape { -fx-fill: -colibri-cyan; }
@@ -815,7 +815,18 @@
 .pie-name { -fx-font-size: 0.9em; -fx-font-weight: 700; -fx-text-fill: -color-nav-text; }
 .pie-role { -fx-font-size: 0.78em; -fx-font-weight: 600; -fx-text-fill: -color-nav-subtle; }
 .pie-logout { -fx-padding: 6 10; -fx-min-height: 30; -fx-font-size: 0.85em; }
-.footer-zoom { -fx-spacing: 6; -fx-alignment: center; }
+.footer-zoom { -fx-spacing: 4; -fx-alignment: center; }
+/* Con el menú contraído el pie tiene ~62 px útiles: zoom compacto y sin
+   padding lateral excesivo para que avatar, zoom y sesión queden centrados. */
+.side-nav:colapsado .pie-content { -fx-padding: 10 4; }
+.side-nav:colapsado .footer-zoom { -fx-spacing: 4; }
+.side-nav:colapsado .zoom-button {
+    -fx-min-width: 28;
+    -fx-min-height: 28;
+    -fx-pref-width: 28;
+    -fx-pref-height: 28;
+    -fx-padding: 4;
+}
 .avatar {
     -fx-min-width: 36;
     -fx-pref-width: 36;
@@ -964,7 +975,8 @@
     -fx-background-color: -color-success-subtle;
 }
 .journal-list { -fx-pref-width: 320; -fx-min-width: 300; }
-.journal-inspector { -fx-pref-width: 280; -fx-min-width: 250; }
+.journal-inspector { -fx-padding: 12 16; }
+.journal-inspector-row { -fx-alignment: top-left; }
 .inspector-subheading {
     -fx-font-size: 0.78em;
     -fx-font-weight: 700;
