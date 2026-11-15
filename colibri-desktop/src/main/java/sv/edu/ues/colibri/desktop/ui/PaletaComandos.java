@@ -175,15 +175,28 @@ public final class PaletaComandos extends StackPane {
     }
 
     private void teclaCampo(KeyEvent evento) {
+        // Solo se consumen las teclas de navegación/comando; el resto
+        // (caracteres, retroceso, supr) debe llegar intacto al campo.
         switch (evento.getCode()) {
-            case UP, KP_UP -> moverSeleccion(-1);
-            case DOWN, KP_DOWN -> moverSeleccion(1);
-            case ENTER -> abrirSeleccion();
-            case ESCAPE -> cerrar();
+            case UP, KP_UP -> {
+                moverSeleccion(-1);
+                evento.consume();
+            }
+            case DOWN, KP_DOWN -> {
+                moverSeleccion(1);
+                evento.consume();
+            }
+            case ENTER -> {
+                abrirSeleccion();
+                evento.consume();
+            }
+            case ESCAPE -> {
+                cerrar();
+                evento.consume();
+            }
             default -> {
             }
         }
-        evento.consume();
     }
 
     private void moverSeleccion(int delta) {
