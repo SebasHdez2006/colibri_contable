@@ -943,3 +943,34 @@
 }
 .nav-flyout-item .brand-icon-shape { -fx-fill: -clb-cyan-500; }
 .nav-flyout-item:hover { -fx-background-color: -color-nav-hover; -fx-text-fill: -color-fg; }
+
+/* Libro diario: lista + editor + inspector */
+.balance-bar {
+    -fx-background-color: -color-bg-raised;
+    -fx-background-radius: 12;
+    -fx-border-color: -color-border-subtle;
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+    -fx-padding: 10 14;
+    -fx-alignment: center-left;
+}
+.balance-bar .label { -fx-font-weight: 700; }
+.balance-bar-error {
+    -fx-border-color: -color-danger;
+    -fx-background-color: -color-danger-subtle;
+}
+.balance-bar-ok {
+    -fx-border-color: -color-success;
+    -fx-background-color: -color-success-subtle;
+}
+.journal-list { -fx-pref-width: 320; -fx-min-width: 300; }
+.journal-inspector { -fx-pref-width: 280; -fx-min-width: 250; }
+.inspector-subheading {
+    -fx-font-size: 0.78em;
+    -fx-font-weight: 700;
+    -fx-text-fill: -color-fg-subtle;
+    -fx-padding: 0 0 2 0;
+}
+.inspector-folio { -fx-font-size: 1.02em; -fx-font-weight: 700; -fx-text-fill: -color-fg; }
+.inspector-concepto { -fx-font-size: 0.88em; -fx-text-fill: -color-fg-muted; }
+.inspector-cuadre { -fx-font-size: 0.88em; -fx-font-weight: 600; }

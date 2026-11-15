@@ -18,6 +18,8 @@ import javafx.scene.control.DatePicker;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuButton;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -28,6 +30,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -84,6 +87,12 @@ public class PartidasView extends VBox {
     private final Label totalHaber = new Label("Haber: 0.00");
     private final Label diferencia = new Label("Diferencia: 0.00");
     private final Label periodoLbl = new Label();
+    private final Label selFolio = new Label();
+    private final Label selOrigen = new Label();
+    private final Label selConcepto = new Label();
+    private final Label cuadreLbl = new Label("Cuadre: —");
+    private final Label inspectorVacio = new Label("Seleccione una partida de la lista.");
+    private FlowPane balanceBar;
     private UUID partidaActualId;
     private boolean sucia;
     private CeldaEditableUI edicionActiva;
@@ -200,33 +209,35 @@ public class PartidasView extends VBox {
                 ResponsiveLayouts.field("Debe (USD)", debeCampo),
                 ResponsiveLayouts.field("Haber (USD)", haberCampo),
                 agregar, quitar, cuadrar);
-        var totales = ResponsiveLayouts.row(totalDebe, totalHaber, diferencia);
-
         configurarTablaLineas();
         tabla.setMinHeight(300);
         tabla.setPrefHeight(380);
 
-        Button nueva = new Button("Nueva");
-        Button duplicar = new Button("Duplicar");
-        Button importar = new Button("Importar CSV");
-        Button guardar = new Button("Guardar borrador");
-        Button aprobar = new Button("Aprobar");
-        Button contabilizar = new Button("Contabilizar");
-        Button anular = new Button("Anular");
-        Button revertir = new Button("Revertir contabilizada");
-        Button comprobante = new Button("Comprobante");
-        Button evidencia = new Button("Cadena de evidencia");
+        Button nueva = UiTheme.boton("Nueva", UiTheme.Variante.SECUNDARIA);
+        Button guardar = UiTheme.boton("Guardar borrador", UiTheme.Variante.PRIMARIA);
+        Button contabilizar = UiTheme.boton("Contabilizar", UiTheme.Variante.EXITO);
+        Button comprobante = UiTheme.boton("Comprobante", UiTheme.Variante.SECUNDARIA);
+        Button evidencia = UiTheme.boton("Cadena de evidencia", UiTheme.Variante.SECUNDARIA);
+
+        MenuButton mas = new MenuButton("Más");
+        mas.getStyleClass().add("secondary-button");
+        MenuItem miDuplicar = new MenuItem("Duplicar partida");
+        miDuplicar.setOnAction(e -> duplicarPartida());
+        MenuItem miImportar = new MenuItem("Importar CSV…");
+        miImportar.setOnAction(e -> importarCsv());
+        MenuItem miAprobar = new MenuItem("Aprobar");
+        miAprobar.setOnAction(e -> aprobarPartida());
+        MenuItem miAnular = new MenuItem("Anular…");
+        miAnular.setOnAction(e -> anularPartida());
+        MenuItem miRevertir = new MenuItem("Revertir contabilizada…");
+        miRevertir.setOnAction(e -> revertirPartida());
+        mas.getItems().addAll(miDuplicar, miImportar, miAprobar, miAnular, miRevertir);
 
         configurarRecientes();
 
         nueva.setOnAction(e -> nuevaPartida());
-        duplicar.setOnAction(e -> duplicarPartida());
-        importar.setOnAction(e -> importarCsv());
         guardar.setOnAction(e -> guardarBorrador());
-        aprobar.setOnAction(e -> aprobarPartida());
         contabilizar.setOnAction(e -> contabilizarPartida());
-        anular.setOnAction(e -> anularPartida());
-        revertir.setOnAction(e -> revertirPartida());
         comprobante.setOnAction(e -> mostrarComprobanteSeleccionada());
         evidencia.setOnAction(e -> mostrarEvidencia());
 
@@ -235,17 +246,21 @@ public class PartidasView extends VBox {
         Button exportar = new Button("Exportar diario filtrado");
         exportar.setOnAction(e -> exportarDiario(exportDesde.getValue(), exportHasta.getValue()));
 
-        var acciones = ResponsiveLayouts.row(nueva, duplicar, importar, guardar, aprobar,
-                contabilizar, anular, revertir, comprobante, evidencia);
+        // Barra de cuadre persistente bajo la tabla de líneas.
+        balanceBar = ResponsiveLayouts.row(totalDebe, totalHaber, diferencia);
+        balanceBar.getStyleClass().add("balance-bar");
+
+        var acciones = ResponsiveLayouts.row(nueva, guardar, contabilizar, mas);
         VBox lineasCard = ResponsiveLayouts.sectionCard("Líneas del asiento",
                 "Cada línea registra cuenta, auxiliar y centro de costo con su importe en "
                         + "debe o haber; el cuadre se muestra debajo de la tabla.",
-                lineBox, tabla, totales);
+                lineBox, tabla);
         VBox.setVgrow(lineasCard, Priority.ALWAYS);
 
-        VBox recientesCard = ResponsiveLayouts.sectionCard("Partidas recientes",
-                "Doble clic sobre una partida para cargarla; los filtros y la exportación "
-                        + "del diario usan el rango indicado.",
+        // Columna izquierda: lista de partidas con sus filtros.
+        Label tituloLista = new Label("Partidas");
+        tituloLista.getStyleClass().add("section-heading");
+        VBox listaCard = new VBox(10, tituloLista,
                 ResponsiveLayouts.row(ResponsiveLayouts.field("Estado", filtroEstado),
                         ResponsiveLayouts.field("Tipo", filtroTipo),
                         ResponsiveLayouts.field("Desde", filtroDesde),
@@ -253,11 +268,25 @@ public class PartidasView extends VBox {
                 ResponsiveLayouts.row(ResponsiveLayouts.field("Diario desde", exportDesde),
                         ResponsiveLayouts.field("Diario hasta", exportHasta), exportar),
                 recientes);
-        recientes.setMinHeight(180);
-        recientes.setPrefHeight(240);
+        listaCard.getStyleClass().addAll("surface-card", "journal-list");
+        listaCard.setPrefWidth(320);
+        listaCard.setMinWidth(300);
+        recientes.setMinHeight(160);
         VBox.setVgrow(recientes, Priority.ALWAYS);
 
-        getChildren().addAll(titulo, subtitulo, captura, lineasCard, acciones, recientesCard);
+        // Columna central: captura, líneas, cuadre y acciones.
+        VBox centro = new VBox(12, captura, lineasCard, balanceBar, acciones);
+        centro.setMinWidth(0);
+        HBox.setHgrow(centro, Priority.ALWAYS);
+
+        HBox columnas = new HBox(16, listaCard, centro, inspectorPanel(comprobante, evidencia));
+        columnas.setAlignment(Pos.TOP_LEFT);
+
+        getChildren().addAll(titulo, subtitulo, columnas);
+
+        recientes.getSelectionModel().getSelectedItems()
+                .addListener((ListChangeListener<Partida>) c ->
+                        actualizarInspector(recientes.getSelectionModel().getSelectedItem()));
 
         haberCampo.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.ENTER && !e.isControlDown() && !e.isAltDown()
@@ -849,6 +878,18 @@ public class PartidasView extends VBox {
         diferencia.setText("Diferencia: " + MONEDA.format(dif.abs()));
         diferencia.getStyleClass().removeAll("balance-error", "balance-ok");
         diferencia.getStyleClass().add(dif.signum() != 0 ? "balance-error" : "balance-ok");
+        if (balanceBar != null) {
+            balanceBar.getStyleClass().removeAll("balance-bar-error", "balance-bar-ok");
+            balanceBar.getStyleClass().add(dif.signum() != 0 ? "balance-bar-error" : "balance-bar-ok");
+        }
+        if (cuadreLbl != null) {
+            cuadreLbl.setText(dif.signum() == 0
+                    ? "Cuadrado — el asiento puede contabilizarse."
+                    : "Descuadre de $" + MONEDA.format(dif.abs()) + " ("
+                            + (dif.signum() > 0 ? "falta Haber" : "falta Debe") + ")");
+            cuadreLbl.getStyleClass().removeAll("balance-error", "balance-ok");
+            cuadreLbl.getStyleClass().add(dif.signum() != 0 ? "balance-error" : "balance-ok");
+        }
     }
 
     // ------------------------------------------------------------------
@@ -1168,6 +1209,65 @@ public class PartidasView extends VBox {
             items = List.of();
         }
         recientes.setItems(FXCollections.observableArrayList(items));
+    }
+
+    // ------------------------------------------------------------------
+    // Inspector lateral: detalle de la partida seleccionada y cuadre
+    // ------------------------------------------------------------------
+
+    private VBox inspectorPanel(Button comprobante, Button evidencia) {
+        VBox insp = new VBox(14);
+        insp.getStyleClass().addAll("surface-card", "journal-inspector");
+        insp.setPrefWidth(280);
+        insp.setMinWidth(250);
+
+        Label titulo = new Label("Inspector");
+        titulo.getStyleClass().add("section-heading");
+
+        Label subtituloSel = new Label("Partida seleccionada");
+        subtituloSel.getStyleClass().add("inspector-subheading");
+        selFolio.getStyleClass().add("inspector-folio");
+        selOrigen.getStyleClass().add("muted-caption");
+        selConcepto.getStyleClass().add("inspector-concepto");
+        selConcepto.setWrapText(true);
+        inspectorVacio.getStyleClass().add("muted-caption");
+        VBox seleccion = new VBox(6, subtituloSel, selFolio, selOrigen, selConcepto, inspectorVacio);
+
+        Label tituloCuadre = new Label("Cuadre del asiento");
+        tituloCuadre.getStyleClass().add("inspector-subheading");
+        cuadreLbl.setWrapText(true);
+        cuadreLbl.getStyleClass().add("inspector-cuadre");
+
+        Label tituloAcciones = new Label("Documento");
+        tituloAcciones.getStyleClass().add("inspector-subheading");
+        VBox.setVgrow(seleccion, Priority.ALWAYS);
+        insp.getChildren().addAll(titulo, seleccion,
+                new javafx.scene.control.Separator(), tituloCuadre, cuadreLbl,
+                new javafx.scene.control.Separator(), tituloAcciones,
+                new HBox(8, comprobante, evidencia));
+        return insp;
+    }
+
+    private void actualizarInspector(Partida p) {
+        boolean vacio = p == null;
+        inspectorVacio.setVisible(vacio);
+        inspectorVacio.setManaged(vacio);
+        for (Label l : List.of(selFolio, selOrigen, selConcepto)) {
+            l.setVisible(!vacio);
+            l.setManaged(!vacio);
+        }
+        if (vacio) {
+            selFolio.setText("");
+            selOrigen.setText("");
+            selConcepto.setText("");
+            return;
+        }
+        selFolio.setText((p.getFolio() != null ? p.getFolio() : "Borrador (sin folio)")
+                + "  ·  " + p.getEstado());
+        selOrigen.setText("Tipo: " + p.getTipo().getEtiqueta()
+                + "   Origen: " + (p.getOrigen() != null ? p.getOrigen().name() : "—"));
+        selConcepto.setText(p.getConcepto());
+        selConcepto.setTooltip(new Tooltip(p.getConcepto()));
     }
 
     // ------------------------------------------------------------------
