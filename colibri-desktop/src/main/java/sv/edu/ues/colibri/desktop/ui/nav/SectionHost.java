@@ -8,6 +8,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import sv.edu.ues.colibri.desktop.AppLog;
+import sv.edu.ues.colibri.desktop.ui.Motion;
 import sv.edu.ues.colibri.desktop.ui.UiTheme;
 import sv.edu.ues.colibri.desktop.ui.layout.Page;
 
@@ -49,6 +50,7 @@ public final class SectionHost extends StackPane {
         }
         Region pagina = item.pagina() == NavItem.Arquetipo.FILL ? Page.fill(contenido) : Page.scroll(contenido);
         getChildren().setAll(pagina);
+        Motion.entrada(pagina);
         vista = contenido;
         return contenido;
     }

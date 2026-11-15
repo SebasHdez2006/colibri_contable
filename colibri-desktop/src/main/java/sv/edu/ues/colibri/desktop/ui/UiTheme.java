@@ -17,6 +17,10 @@ import java.util.Objects;
 public final class UiTheme {
 
     private static final String STYLESHEET = "/sv/edu/ues/colibri/desktop/colibri.css";
+    private static final String PROP_VARIANTE = "colibri-variante";
+
+    /** Variante visual explícita de botón; sustituye a la inferencia por texto. */
+    public enum Variante { PRIMARIA, SECUNDARIA, EXITO, PELIGRO }
 
     private UiTheme() {
     }
@@ -67,6 +71,32 @@ public final class UiTheme {
     }
 
     /**
+     * Declara la variante visual de un botón de forma explícita. Tiene
+     * prioridad sobre la inferencia por texto, que se mantiene como
+     * compatibilidad transitoria para las vistas aún no migradas.
+     *
+     * @param button botón a decorar
+     * @param variante variante visual a aplicar
+     */
+    public static void variante(Button button, Variante variante) {
+        button.getProperties().put(PROP_VARIANTE, variante);
+        decorateButton(button);
+    }
+
+    /**
+     * Crea un botón con variante explícita ya aplicada.
+     *
+     * @param texto etiqueta del botón
+     * @param variante variante visual
+     * @return botón listo para usar
+     */
+    public static Button boton(String texto, Variante variante) {
+        Button button = new Button(texto);
+        variante(button, variante);
+        return button;
+    }
+
+    /**
      * Asigna icono y estilo de color a un botón según su etiqueta textual.
      *
      * @param button botón a decorar
@@ -82,7 +112,16 @@ public final class UiTheme {
         button.getStyleClass().removeAll(
                 "primary-button", "secondary-button", "success-button", "danger-button");
 
-        if (containsAny(text, "anular", "cerrar período", "desactivar", "quitar")) {
+        Variante variante = (Variante) button.getProperties().get(PROP_VARIANTE);
+        if (variante == Variante.PELIGRO) {
+            addClass(button, "danger-button");
+        } else if (variante == Variante.EXITO) {
+            addClass(button, "success-button");
+        } else if (variante == Variante.PRIMARIA) {
+            addClass(button, "primary-button");
+        } else if (variante == Variante.SECUNDARIA) {
+            addClass(button, "secondary-button");
+        } else if (containsAny(text, "anular", "cerrar período", "desactivar", "quitar")) {
             addClass(button, "danger-button");
         } else if (containsAny(text, "aprobar", "contabilizar", "activar")) {
             addClass(button, "success-button");

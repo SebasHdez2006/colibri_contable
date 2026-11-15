@@ -1,58 +1,66 @@
-/* Identidad visual y accesibilidad de Soluciones Empresariales Colibrí. */
+/* ============================================================
+   colibri.css — Componentes del sistema visual "Vuelo nocturno"
+   ------------------------------------------------------------
+   Los literales de color viven SOLO en tokens.css (@import).
+   El bloque .root inferior es la capa de compatibilidad: los
+   nombres -colibri-* heredados se aliasan a tokens -color-*.
+   Código nuevo: usar -color-* / -paint-* directamente.
+   ============================================================ */
+
+@import url("tokens.css");
+
 .root {
-    /* Tokens de marca y superficies: los únicos literales de color del tema. */
-    -colibri-navy: #0B1C2C;
-    -colibri-navy-soft: #102A44;
-    -colibri-navy-gradient-end: #0D2338;
-    -colibri-cyan: #00A8E8;
-    -colibri-cyan-accessible: #0077A3;
-    -colibri-cyan-bright: #00C2FF;
-    -colibri-lime: #A8E010;
-    -colibri-lime-bright: #C5F200;
-    -colibri-ink: #0F172A;
-    -colibri-muted: #55647A;
-    -colibri-surface: #FFFFFF;
-    -colibri-canvas: #F8FAFC;
-    -colibri-border: #CBD5E1;
-    -colibri-field-border: #64748B;
-    -colibri-line: #E2E8F0;
-    -colibri-subtle: #F1F5F9;
-    -colibri-row: #FBFCFE;
-    -colibri-cyan-tint: #E2F5FC;
-    -colibri-cyan-tint-strong: #EAF6FB;
-    -colibri-prompt: #64748B;
-    -colibri-error: #D1435B;
-    -colibri-error-bg: #FDECEF;
-    -colibri-error-border: #B4233C;
-    -colibri-success: #157A4E;
-    -colibri-success-hover: #12633F;
-    -colibri-success-bg: #E7F6EE;
-    -colibri-warning: #865900;
-    -colibri-warning-bg: #FFF4DC;
-    -colibri-login-start: #F4F9FC;
-    -colibri-login-end: #E8F3F7;
-    -colibri-focus: #0077A3;
-    -colibri-focus-faint: rgba(0,119,163,0.25);
-    -colibri-shadow: rgba(11,28,44,0.18);
-    -colibri-shadow-soft: rgba(15,23,42,0.06);
-    -colibri-shadow-strong: rgba(11,28,44,0.35);
-    -colibri-scroll-thumb: rgba(15,23,42,0.18);
-    -colibri-scroll-thumb-hover: rgba(15,23,42,0.30);
-    -colibri-on-navy: #FFFFFF;
-    -colibri-nav-text: rgba(255,255,255,0.80);
-    -colibri-nav-subtle: rgba(255,255,255,0.56);
-    -colibri-nav-divider: rgba(255,255,255,0.12);
-    -colibri-nav-hover: rgba(255,255,255,0.08);
-    -colibri-nav-toggle-hover: rgba(255,255,255,0.10);
-    -colibri-nav-active: rgba(0,194,255,0.14);
+    /* Compatibilidad: aliases -colibri-* → tokens semánticos. */
+    -colibri-navy: -color-bg-surface;
+    -colibri-navy-soft: -color-bg-raised;
+    -colibri-navy-gradient-end: -color-bg-sunken;
+    -colibri-cyan: -clb-cyan-500;
+    -colibri-cyan-accessible: -color-interactive;
+    -colibri-cyan-bright: -clb-cyan-400;
+    -colibri-lime: -clb-lime-500;
+    -colibri-lime-bright: -clb-lime-400;
+    -colibri-ink: -color-fg;
+    -colibri-muted: -color-fg-muted;
+    -colibri-surface: -color-bg-surface;
+    -colibri-canvas: -color-bg-canvas;
+    -colibri-border: -color-border;
+    -colibri-field-border: -color-border-control;
+    -colibri-line: -color-border-subtle;
+    -colibri-subtle: -color-bg-subtle;
+    -colibri-row: -color-bg-subtle;
+    -colibri-cyan-tint: -color-interactive-subtle;
+    -colibri-cyan-tint-strong: -color-interactive-subtle-soft;
+    -colibri-prompt: -color-fg-subtle;
+    -colibri-error: -color-danger;
+    -colibri-error-bg: -color-danger-subtle;
+    -colibri-error-border: -color-danger;
+    -colibri-success: -color-success;
+    -colibri-success-hover: -clb-lime-500;
+    -colibri-success-bg: -color-success-subtle;
+    -colibri-warning: -color-warning;
+    -colibri-warning-bg: -color-warning-subtle;
+    -colibri-login-start: -color-bg-canvas;
+    -colibri-login-end: -color-bg-sunken;
+    -colibri-focus: -color-focus-ring;
+    -colibri-focus-faint: -color-focus-faint;
+    -colibri-shadow: -color-shadow;
+    -colibri-shadow-soft: -color-shadow-soft;
+    -colibri-shadow-strong: -color-shadow-strong;
+    -colibri-scroll-thumb: -color-scroll-thumb;
+    -colibri-scroll-thumb-hover: -color-scroll-thumb-hover;
+    -colibri-on-navy: -color-fg;
+    -colibri-nav-text: -color-nav-text;
+    -colibri-nav-subtle: -color-nav-subtle;
+    -colibri-nav-divider: -color-nav-divider;
+    -colibri-nav-hover: -color-nav-hover;
+    -colibri-nav-toggle-hover: -color-nav-toggle-hover;
+    -colibri-nav-active: -color-interactive-subtle;
     -colibri-transparent: transparent;
 
     -fx-font-family: "Segoe UI";
     -fx-font-size: 14px;
     -fx-text-fill: -colibri-ink;
     -fx-background-color: -colibri-canvas;
-    -fx-focus-color: -colibri-focus;
-    -fx-faint-focus-color: -colibri-focus-faint;
 }
 
 .label { -fx-text-fill: -colibri-ink; }
@@ -157,7 +165,7 @@
     -fx-padding: 12 16;
     -fx-spacing: 6;
 }
-.result-panel .section-note, .result-panel .data-label { -fx-text-fill: -colibri-navy; }
+.result-panel .section-note, .result-panel .data-label { -fx-text-fill: -color-fg; }
 .dashboard-chart { -fx-padding: 6 4; }
 .metric-value { -fx-text-fill: -colibri-ink; -fx-font-size: 1.58em; -fx-font-weight: 700; }
 .metrics-row { -fx-spacing: 16; }
@@ -190,7 +198,7 @@
 .dashboard-period-value {
     -fx-font-size: 1.13em;
     -fx-font-weight: 700;
-    -fx-text-fill: -colibri-navy;
+    -fx-text-fill: -color-fg;
 }
 .dashboard-period-note { -fx-font-size: 0.82em; -fx-text-fill: -colibri-muted; }
 .dashboard-overview {
@@ -209,7 +217,8 @@
 }
 .financial-value { -fx-font-size: 1.75em; -fx-font-weight: 700; }
 .financial-positive, .financial-neutral { -fx-text-fill: -colibri-on-navy; }
-.financial-negative, .financial-attention { -fx-text-fill: -colibri-lime-bright; }
+.financial-negative { -fx-text-fill: -color-danger; }
+.financial-attention { -fx-text-fill: -color-warning; }
 .financial-note { -fx-font-size: 0.82em; -fx-text-fill: -colibri-muted; }
 .dashboard-overview .financial-note { -fx-text-fill: -colibri-nav-subtle; }
 .financial-divider { -fx-padding: 0 18; }
@@ -225,7 +234,7 @@
 .operational-value { -fx-font-size: 1em; -fx-font-weight: 600; -fx-text-fill: -colibri-ink; -fx-text-overrun: ellipsis; }
 .commercial-row { -fx-padding: 7 0 9 0; -fx-border-color: -colibri-line; -fx-border-width: 0 0 1 0; }
 .commercial-row:last-child { -fx-border-width: 0; }
-.commercial-value { -fx-font-size: 1.12em; -fx-font-weight: 700; -fx-text-fill: -colibri-navy; -fx-text-overrun: ellipsis; }
+.commercial-value { -fx-font-size: 1.12em; -fx-font-weight: 700; -fx-text-fill: -color-fg; -fx-text-overrun: ellipsis; }
 .dashboard-actions { -fx-padding: 7 0 0 0; -fx-background-color: -colibri-transparent; }
 .dashboard-chart-card { -fx-padding: 20 20 16 20; }
 .dashboard-income-chart .chart-plot-background { -fx-background-color: -colibri-subtle; }
@@ -268,7 +277,7 @@
     -fx-text-fill: -colibri-cyan-accessible;
 }
 .customer-name { -fx-font-size: 0.87em; -fx-font-weight: 600; -fx-text-fill: -colibri-ink; }
-.customer-amount { -fx-font-size: 0.85em; -fx-font-weight: 700; -fx-text-fill: -colibri-navy; }
+.customer-amount { -fx-font-size: 0.85em; -fx-font-weight: 700; -fx-text-fill: -color-fg; }
 .customer-progress { -fx-pref-height: 7; }
 .customer-progress > .track { -fx-background-color: -colibri-line; -fx-background-radius: 999; }
 .customer-progress > .bar { -fx-background-color: -colibri-cyan; -fx-background-radius: 999; -fx-padding: 0.22em; }
@@ -345,7 +354,7 @@
     -fx-background-color: -colibri-cyan-tint-strong;
     -fx-background-radius: 999;
     -fx-padding: 6 10;
-    -fx-text-fill: -colibri-navy;
+    -fx-text-fill: -color-fg;
     -fx-font-size: 0.86em;
     -fx-font-weight: 700;
 }
@@ -353,7 +362,7 @@
     -fx-background-color: -colibri-cyan-tint-strong;
     -fx-background-radius: 999;
     -fx-padding: 7 14;
-    -fx-text-fill: -colibri-navy;
+    -fx-text-fill: -color-fg;
     -fx-font-size: 0.93em;
     -fx-font-weight: 600;
     -fx-text-overrun: ellipsis;
@@ -362,11 +371,14 @@
 .side-brand { -fx-padding: 2 2 16 2; -fx-spacing: 9; -fx-alignment: center-left; }
 .side-logo { -fx-alignment: center; }
 .brand-logo-badge {
-    -fx-background-color: -colibri-surface;
+    -fx-background-color: -color-bg-glass;
     -fx-background-radius: 16;
+    -fx-border-color: -color-border-glass;
+    -fx-border-width: 1;
+    -fx-border-radius: 16;
     -fx-effect: dropshadow(gaussian, -colibri-shadow-strong, 16, 0.18, 0, 5);
 }
-.side-logo .brand-logo-badge { -fx-background-radius: 9; -fx-effect: none; }
+.side-logo .brand-logo-badge { -fx-background-radius: 9; -fx-border-radius: 9; -fx-effect: none; }
 .side-brand-text { -fx-alignment: center-left; }
 .side-brand-name { -fx-font-size: 1.36em; -fx-font-weight: 700; -fx-text-fill: -colibri-on-navy; }
 .side-brand-subtitle {
@@ -491,7 +503,7 @@
 /* Botones y foco. El botón primario conserva lima con texto navy. */
 .button {
     -fx-cursor: hand;
-    -fx-background-color: -colibri-surface;
+    -fx-background-color: -color-bg-raised;
     -fx-border-color: -colibri-field-border;
     -fx-text-fill: -colibri-ink;
     -fx-background-radius: 9;
@@ -514,7 +526,7 @@
 }
 .primary-button:hover { -fx-background-color: -colibri-lime-bright; -fx-border-color: -colibri-lime-bright; }
 .secondary-button {
-    -fx-background-color: -colibri-surface;
+    -fx-background-color: -color-bg-raised;
     -fx-border-color: -colibri-field-border;
     -fx-text-fill: -colibri-ink;
 }
@@ -522,7 +534,7 @@
 .success-button {
     -fx-background-color: -colibri-success;
     -fx-border-color: -colibri-success;
-    -fx-text-fill: -colibri-on-navy;
+    -fx-text-fill: -color-on-primary;
 }
 .success-button:hover { -fx-background-color: -colibri-success-hover; -fx-border-color: -colibri-success-hover; }
 .danger-button {
@@ -533,7 +545,7 @@
 .danger-button:hover { -fx-background-color: -colibri-error-bg; -fx-border-color: -colibri-error; }
 .brand-icon-shape { -fx-fill: -colibri-ink; }
 .primary-button .brand-icon-shape { -fx-fill: -colibri-navy; }
-.success-button .brand-icon-shape { -fx-fill: -colibri-on-navy; }
+.success-button .brand-icon-shape { -fx-fill: -color-on-primary; }
 .danger-button .brand-icon-shape { -fx-fill: -colibri-error-border; }
 .menu-toggle {
     -fx-background-color: -colibri-transparent;
@@ -554,9 +566,17 @@
     -fx-effect: dropshadow(gaussian, -colibri-navy, 8, 0.18, 0, 0);
 }
 
+/* Microinteracciones: feedback rápido en controles interactivos (140 ms).
+   El movimiento largo (entrada de página, sidebar) vive en Motion.java. */
+.button, .primary-button, .secondary-button, .success-button, .danger-button,
+.nav-button, .menu-toggle, .zoom-button, .hyperlink, .tab {
+    -fx-transition-property: -fx-background-color, -fx-border-color, -fx-text-fill;
+    -fx-transition-duration: 140ms;
+}
+
 /* Formularios y validación visual. */
 .text-field, .password-field, .combo-box, .date-picker, .text-area {
-    -fx-background-color: -colibri-surface;
+    -fx-background-color: -color-bg-raised;
     -fx-background-radius: 8;
     -fx-border-color: -colibri-field-border;
     -fx-border-radius: 8;
@@ -579,13 +599,13 @@
 .error-label, .error-caption { -fx-text-fill: -colibri-error-border; -fx-font-size: 0.86em; -fx-font-weight: 600; }
 .combo-box .list-cell { -fx-text-fill: -colibri-ink; }
 .check-box .box {
-    -fx-background-color: -colibri-surface;
+    -fx-background-color: -color-bg-raised;
     -fx-border-color: -colibri-field-border;
     -fx-border-radius: 4;
     -fx-background-radius: 4;
 }
-.check-box:selected .box { -fx-background-color: -colibri-navy; -fx-border-color: -colibri-navy; }
-.check-box:selected .mark { -fx-background-color: -colibri-on-navy; }
+.check-box:selected .box { -fx-background-color: -color-interactive; -fx-border-color: -color-interactive; }
+.check-box:selected .mark { -fx-background-color: -color-on-primary; }
 .check-box:focus-visible .box {
     -fx-border-color: -colibri-focus;
     -fx-border-width: 2;
@@ -593,7 +613,7 @@
 
 /* Tablas, listas, enlaces y pestañas. */
 .table-view, .list-view {
-    -fx-background-color: -colibri-surface;
+    -fx-background-color: -color-bg-sunken;
     -fx-background-radius: 10;
     -fx-border-color: -colibri-border;
     -fx-border-radius: 10;
@@ -609,16 +629,16 @@
 }
 .table-view .table-row-cell {
     -fx-cell-size: 44;
-    -fx-background-color: -colibri-surface;
+    -fx-background-color: -color-bg-sunken;
     -fx-border-color: -colibri-transparent -colibri-transparent -colibri-line -colibri-transparent;
 }
 .table-view .table-row-cell:odd { -fx-background-color: -colibri-row; }
 .table-view .table-row-cell:selected, .list-view .list-cell:selected {
-    -fx-background-color: -colibri-cyan-tint;
-    -fx-text-fill: -colibri-navy;
+    -fx-background-color: -color-interactive-subtle;
+    -fx-text-fill: -color-fg;
 }
-.table-view .table-row-cell:selected .table-cell { -fx-text-fill: -colibri-navy; }
-.list-view .list-cell:selected .label { -fx-text-fill: -colibri-navy; }
+.table-view .table-row-cell:selected .table-cell { -fx-text-fill: -color-fg; }
+.list-view .list-cell:selected .label { -fx-text-fill: -color-fg; }
 .table-view .table-cell {
     -fx-padding: 10 14;
     -fx-text-fill: -colibri-ink;
@@ -631,13 +651,13 @@
 }
 .table-view .column-header { -fx-background-color: -colibri-transparent; -fx-size: 40; -fx-padding: 10 8; }
 .table-view .column-header .label {
-    -fx-text-fill: -colibri-navy-soft;
+    -fx-text-fill: -color-fg-muted;
     -fx-font-weight: 700;
     -fx-font-size: 0.86em;
     -fx-alignment: center-left;
 }
 .table-view .filler { -fx-background-color: -colibri-transparent; }
-.list-view .list-cell { -fx-padding: 10 12; -fx-background-color: -colibri-surface; -fx-text-fill: -colibri-ink; }
+.list-view .list-cell { -fx-padding: 10 12; -fx-background-color: -color-bg-sunken; -fx-text-fill: -colibri-ink; }
 .list-view .list-cell:odd { -fx-background-color: -colibri-row; }
 .list-view .list-cell .label { -fx-text-fill: -colibri-ink; }
 .list-view .list-cell:hover { -fx-background-color: -colibri-cyan-tint-strong; }
@@ -654,7 +674,7 @@
 }
 .valuation-header {
     -fx-background-color: -colibri-subtle;
-    -fx-text-fill: -colibri-navy-soft;
+    -fx-text-fill: -color-fg-muted;
     -fx-font-size: 0.86em;
     -fx-font-weight: 700;
     -fx-padding: 10 14;
@@ -665,9 +685,10 @@
     -fx-padding: 10 14;
 }
 .valuation-method { -fx-text-fill: -colibri-ink; -fx-font-weight: 600; }
-.valuation-value { -fx-text-fill: -colibri-navy; -fx-font-weight: 700; }
+.valuation-value { -fx-text-fill: -color-fg; -fx-font-weight: 700; }
 .hyperlink { -fx-text-fill: -colibri-cyan-accessible; -fx-border-color: -colibri-transparent; -fx-underline: false; }
-.hyperlink:hover, .hyperlink:visited { -fx-text-fill: -colibri-navy; -fx-underline: true; }
+.hyperlink:hover { -fx-text-fill: -color-interactive; -fx-underline: true; }
+.hyperlink:visited { -fx-text-fill: -color-fg-muted; -fx-underline: true; }
 .separator .line { -fx-border-color: -colibri-line; -fx-border-width: 1 0 0 0; }
 .tab-pane { -fx-background-color: -colibri-transparent; -fx-tab-min-height: 38; }
 .tab-pane > .tab-content-area { -fx-background-color: -colibri-transparent; }
@@ -676,7 +697,7 @@
 .tab-pane .tab { -fx-background-color: -colibri-transparent; -fx-padding: 9 18; -fx-background-radius: 8 8 0 0; }
 .tab-pane .tab:selected { -fx-background-color: -colibri-cyan-tint-strong; }
 .tab-pane .tab-label { -fx-text-fill: -colibri-muted; -fx-font-weight: 700; }
-.tab-pane .tab:selected .tab-label { -fx-text-fill: -colibri-navy; }
+.tab-pane .tab:selected .tab-label { -fx-text-fill: -color-fg; }
 .topic-tabs { -fx-tab-min-height: 42; }
 .topic-tabs .tab { -fx-padding: 9 14; }
 .topic-tabs .tab-label { -fx-text-overrun: ellipsis; }
@@ -695,7 +716,7 @@
     -fx-max-width: 840;
 }
 .login-brand-panel {
-    -fx-background-color: linear-gradient(to bottom right, -colibri-navy 0%, -colibri-navy-soft 78%, -colibri-navy-gradient-end 100%);
+    -fx-background-color: linear-gradient(to bottom right, -color-bg-canvas 0%, -color-bg-surface 55%, -color-bg-raised 100%);
     -fx-background-radius: 18 0 0 18;
     -fx-padding: 40 34;
     -fx-spacing: 16;
@@ -714,7 +735,7 @@
 .login-form { -fx-padding: 50 52; -fx-spacing: 13; -fx-alignment: center-left; }
 .login-title { -fx-font-size: 2em; -fx-font-weight: 700; -fx-text-fill: -colibri-ink; }
 .login-subtitle { -fx-text-fill: -colibri-muted; -fx-font-size: 0.97em; -fx-padding: 0 0 14 0; }
-.login-form .field-label { -fx-font-size: 0.9em; -fx-font-weight: 600; -fx-text-fill: -colibri-navy-soft; }
+.login-form .field-label { -fx-font-size: 0.9em; -fx-font-weight: 600; -fx-text-fill: -color-fg-muted; }
 .login-form .text-field, .login-form .password-field { -fx-min-height: 42; }
 .login-form .primary-button { -fx-min-height: 44; -fx-font-size: 1em; }
 .login-card-compact { -fx-padding: 22; }
@@ -757,4 +778,21 @@
     -fx-border-radius: 12;
     -fx-padding: 18 24;
     -fx-effect: dropshadow(gaussian, -colibri-shadow-soft, 14, 0.06, 0, 3);
+}
+
+/* Documento de comprobante: siempre papel claro, incluso en tema oscuro. */
+.paper-scroll { -fx-background-color: -color-paper-bg; }
+.paper-scroll > .viewport { -fx-background-color: -color-paper-bg; }
+.paper-doc {
+    -fx-background-color: -color-paper-bg;
+    -fx-text-fill: -color-paper-fg;
+}
+.paper-doc .label { -fx-text-fill: -color-paper-fg; }
+.paper-title { -fx-font-size: 1.2em; -fx-font-weight: 700; }
+.paper-heading { -fx-font-size: 0.93em; -fx-font-weight: 700; }
+.paper-meta { -fx-font-size: 0.79em; }
+.paper-strong { -fx-font-weight: 700; }
+.paper-line {
+    -fx-border-color: -color-paper-fg -colibri-transparent -colibri-transparent -colibri-transparent;
+    -fx-border-width: 1 0 0 0;
 }

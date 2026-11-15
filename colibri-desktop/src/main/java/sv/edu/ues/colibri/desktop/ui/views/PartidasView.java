@@ -1283,7 +1283,7 @@ public class PartidasView extends VBox {
         scroll.setFitToWidth(true);
         scroll.setPrefViewportWidth(730);
         scroll.setPrefHeight(540);
-        scroll.setStyle("-fx-background-color: white;");
+        scroll.getStyleClass().add("paper-scroll");
 
         Button imprimir = new Button("Imprimir");
         imprimir.setOnAction(e -> imprimirComprobante(doc));
@@ -1364,21 +1364,21 @@ public class PartidasView extends VBox {
         doc.setPadding(new Insets(26));
         doc.setPrefWidth(720);
         doc.setMinWidth(720);
-        doc.setStyle("-fx-background-color: white;");
+        doc.getStyleClass().add("paper-doc");
 
         Optional<Empresa> empresa = context.periodos().empresa();
         empresa.ifPresent(e -> {
             Label rs = new Label(e.getRazonSocial());
-            rs.setStyle("-fx-font-size:17px;-fx-font-weight:700;");
+            rs.getStyleClass().add("paper-title");
             Label datos = new Label("NIT: " + nvl(e.getNit()) + "   NRC: " + nvl(e.getNrc())
                     + "   Moneda: " + nvl(e.getMoneda()));
-            datos.setStyle("-fx-font-size:11px;");
+            datos.getStyleClass().add("paper-meta");
             doc.getChildren().addAll(rs, datos);
         });
 
         Label titulo = new Label("COMPROBANTE DE ASIENTO — "
                 + p.getTipo().getEtiqueta().toUpperCase());
-        titulo.setStyle("-fx-font-size:13px;-fx-font-weight:700;");
+        titulo.getStyleClass().add("paper-heading");
         doc.getChildren().add(titulo);
         doc.getChildren().add(new Label("Folio: " + nvl(p.getFolio(), "(borrador)")
                 + "    Fecha: " + p.getFechaContable()
@@ -1418,14 +1418,14 @@ public class PartidasView extends VBox {
             fila++;
         }
         Label t1 = new Label("TOTALES");
-        t1.setStyle("-fx-font-weight:700;");
+        t1.getStyleClass().add("paper-strong");
         tablaDoc.add(t1, 0, fila);
         tablaDoc.add(new Label(""), 1, fila);
         tablaDoc.add(new Label(""), 2, fila);
         Label tdL = new Label(MONEDA.format(td));
-        tdL.setStyle("-fx-font-weight:700;");
+        tdL.getStyleClass().add("paper-strong");
         Label thL = new Label(MONEDA.format(th));
-        thL.setStyle("-fx-font-weight:700;");
+        thL.getStyleClass().add("paper-strong");
         tablaDoc.add(tdL, 3, fila);
         tablaDoc.add(thL, 4, fila);
         doc.getChildren().add(tablaDoc);
@@ -1445,7 +1445,7 @@ public class PartidasView extends VBox {
 
     private static void encabezadoDoc(GridPane grid, int col, String texto) {
         Label l = new Label(texto);
-        l.setStyle("-fx-font-weight:700;");
+        l.getStyleClass().add("paper-strong");
         grid.add(l, col, 0);
     }
 
@@ -1458,8 +1458,7 @@ public class PartidasView extends VBox {
     private static Node firmaDoc(String rol) {
         javafx.scene.layout.Region linea = new javafx.scene.layout.Region();
         linea.setMinHeight(18);
-        linea.setStyle("-fx-border-color: black transparent transparent transparent;"
-                + "-fx-border-width: 1 0 0 0;");
+        linea.getStyleClass().add("paper-line");
         VBox v = new VBox(4, new Label(rol), linea);
         v.setMinWidth(170);
         return v;

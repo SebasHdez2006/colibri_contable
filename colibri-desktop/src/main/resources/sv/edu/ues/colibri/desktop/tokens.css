@@ -1,0 +1,178 @@
+/* ============================================================
+   tokens.css — Sistema de diseño "Vuelo nocturno" (Colibrí)
+   ------------------------------------------------------------
+   ÚNICA hoja que contiene literales de color. Los componentes
+   consumen exclusivamente tokens semánticos (-color-*, -paint-*).
+
+   - Oscuro por defecto (looked-up colors de JavaFX).
+   - El tema claro se define en @media (prefers-color-scheme: light)
+     con los MISMOS nombres semánticos.
+   - Los puentes -fx-* heredan los tokens, por lo que los
+     controles Modena sin estilo propio se adaptan solos.
+
+   Escalas cerradas (aplicadas por DisenoTokensTest):
+     Espaciado (rejilla 4px): 4 · 8 · 12 · 16 · 24 · 32 · 48
+     Radio:   xs 4 · sm 8 · md 12 · lg 16 · xl 24 · full 999
+     Tipo:    caption 11 · label 12 · body 14 · heading 16
+              title 22 · display 30  (peso 400/600/700)
+     Motion:  fast 140ms · base 220ms · slow 320ms
+   ============================================================ */
+
+.root {
+    /* — Primitivos de marca (los componentes NO los usan) — */
+    -clb-navy-950: #050C14;
+    -clb-navy-900: #08141F;
+    -clb-navy-800: #0B1C2C;   /* navy del logo */
+    -clb-navy-700: #102A44;
+    -clb-navy-600: #17395A;
+    -clb-slate-400: #5F7D9A;
+    -clb-slate-300: #7C98B3;
+    -clb-slate-200: #8FA7BE;
+    -clb-slate-100: #E6EDF5;
+    -clb-cyan-500: #00A8E8;    /* cian del logo */
+    -clb-cyan-400: #00C2FF;
+    -clb-lime-600: #86B500;
+    -clb-lime-500: #A8E010;    /* lima del logo */
+    -clb-lime-400: #C5F200;
+    -clb-amber-400: #FFB84D;
+    -clb-coral-400: #FF7A8C;
+    -clb-violet-400: #A594FF;
+
+    /* — Superficies: más claro = más cerca del usuario — */
+    -color-bg-canvas:  -clb-navy-950;
+    -color-bg-sunken:  -clb-navy-900;
+    -color-bg-surface: -clb-navy-800;
+    -color-bg-raised:  -clb-navy-700;
+    -color-bg-overlay: -clb-navy-600;
+    -color-bg-subtle:  rgba(255,255,255,0.03);
+    -color-bg-glass:   rgba(16,42,68,0.78);
+    -color-scrim:      rgba(5,12,20,0.60);
+
+    /* — Texto y bordes — */
+    -color-fg:             -clb-slate-100;
+    -color-fg-muted:       -clb-slate-200;
+    -color-fg-subtle:      -clb-slate-300;
+    -color-on-primary:     -clb-navy-800;
+    -color-border-subtle:  rgba(143,167,190,0.12);
+    -color-border:         rgba(143,167,190,0.22);
+    -color-border-control: -clb-slate-400;
+    -color-border-glass:   rgba(255,255,255,0.10);
+
+    /* — Acción principal y "positivo" (lima) — */
+    -color-primary:          -clb-lime-500;
+    -color-primary-hover:    -clb-lime-400;
+    -color-primary-pressed:  -clb-lime-600;
+    -color-primary-subtle:   rgba(168,224,16,0.14);
+    -color-success:          -clb-lime-400;
+    -color-success-subtle:   rgba(168,224,16,0.14);
+
+    /* — Interacción (cian) — */
+    -color-interactive:            -clb-cyan-400;
+    -color-interactive-pressed:    -clb-cyan-500;
+    -color-interactive-subtle:     rgba(0,194,255,0.14);
+    -color-interactive-subtle-soft: rgba(0,194,255,0.08);
+    -color-focus-ring:             -clb-cyan-400;
+
+    /* — Estados — */
+    -color-warning:        -clb-amber-400;
+    -color-warning-subtle: rgba(255,184,77,0.14);
+    -color-danger:         -clb-coral-400;
+    -color-danger-subtle:  rgba(255,122,140,0.14);
+    -color-note:           -clb-violet-400;
+    -color-note-subtle:    rgba(165,148,255,0.14);
+
+    /* — Marca, series de datos y papel (siempre claro) — */
+    -paint-brand:     linear-gradient(to right, -clb-cyan-400, -clb-lime-500);
+    -color-data-1:    -clb-cyan-400;
+    -color-data-2:    -clb-lime-500;
+    -color-data-3:    -clb-violet-400;
+    -color-data-4:    -clb-amber-400;
+    -color-paper-bg:  #FFFFFF;
+    -color-paper-fg:  #0F172A;
+
+    /* — Elevación — */
+    -color-shadow:       rgba(0,0,0,0.45);
+    -color-shadow-soft:  rgba(0,0,0,0.30);
+    -color-shadow-strong: rgba(0,0,0,0.60);
+
+    /* — Sidebar navy (oscuro en ambos temas) — */
+    -color-nav-text:          rgba(255,255,255,0.80);
+    -color-nav-subtle:        rgba(255,255,255,0.56);
+    -color-nav-divider:       rgba(255,255,255,0.12);
+    -color-nav-hover:         rgba(255,255,255,0.08);
+    -color-nav-toggle-hover:  rgba(255,255,255,0.10);
+
+    /* — Scrollbars y foco — */
+    -color-scroll-thumb:       rgba(143,167,190,0.28);
+    -color-scroll-thumb-hover: rgba(143,167,190,0.45);
+    -color-focus-faint:        rgba(0,194,255,0.25);
+
+    /* — Puente Modena: controles sin estilo propio heredan el tema — */
+    -fx-base: -color-bg-surface;
+    -fx-background: -color-bg-canvas;
+    -fx-control-inner-background: -color-bg-raised;
+    -fx-accent: -color-interactive;
+    -fx-focus-color: -color-focus-ring;
+    -fx-faint-focus-color: -color-focus-faint;
+}
+
+/* ============================================================
+   Tema claro: mismos nombres semánticos, mapeo claro.
+   Se activa por preferencia de SO/escena; los alias -colibri-*
+   y los puentes -fx-* los siguen automáticamente.
+   ============================================================ */
+@media (prefers-color-scheme: light) {
+    .root {
+        -color-bg-canvas:  #F8FAFC;
+        -color-bg-sunken:  #F1F5F9;
+        -color-bg-surface: #FFFFFF;
+        -color-bg-raised:  #F8FAFC;
+        -color-bg-overlay: #FFFFFF;
+        -color-bg-subtle:  #F1F5F9;
+        -color-bg-glass:   rgba(255,255,255,0.82);
+        -color-scrim:      rgba(15,23,42,0.45);
+
+        -color-fg:             #0F172A;
+        -color-fg-muted:       #475569;
+        -color-fg-subtle:      #64748B;
+        -color-on-primary:     #0B1C2C;
+        -color-border-subtle:  rgba(15,23,42,0.08);
+        -color-border:         rgba(15,23,42,0.14);
+        -color-border-control: #64748B;
+        -color-border-glass:   rgba(15,23,42,0.10);
+
+        -color-primary-subtle:    rgba(168,224,16,0.22);
+        -color-success-subtle:    rgba(21,122,78,0.12);
+        -color-interactive:       #0077A3;
+        -color-interactive-pressed: #005F80;
+        -color-interactive-subtle:  rgba(0,119,163,0.12);
+        -color-interactive-subtle-soft: rgba(0,119,163,0.06);
+        -color-focus-ring:        #0077A3;
+        -color-focus-faint:       rgba(0,119,163,0.20);
+
+        -color-warning:        #865900;
+        -color-warning-subtle: rgba(255,214,138,0.45);
+        -color-danger:         #D1435B;
+        -color-danger-subtle:  rgba(225,29,72,0.08);
+        -color-note:           #5B4FC4;
+        -color-note-subtle:    rgba(91,79,196,0.10);
+
+        -color-success: #157A4E;
+
+        -paint-brand: linear-gradient(to right, #0077A3, #86B500);
+
+        -color-shadow:       rgba(15,23,42,0.18);
+        -color-shadow-soft:  rgba(15,23,42,0.10);
+        -color-shadow-strong: rgba(15,23,42,0.28);
+
+        -color-scroll-thumb:       rgba(15,23,42,0.18);
+        -color-scroll-thumb-hover: rgba(15,23,42,0.30);
+    }
+}
+
+/* ============================================================
+   Movimiento: JavaFX no expone @media (prefers-reduced-motion)
+   de forma fiable ni el selector universal. El respeto a
+   "reducir movimiento" se aplica en Motion.java (Java) y las
+   transiciones CSS se limitan a fast/base (140/220 ms).
+   ============================================================ */
