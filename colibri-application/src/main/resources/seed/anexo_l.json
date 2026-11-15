@@ -1,0 +1,6265 @@
+{
+ "meta": {
+  "docx": "Informe_tecnico_Colibri.docx",
+  "docx_sha256": "dfbcd1f04365992f5ac3e6b039efca45dd5fcc77ec7eea1606a2200c88b55f9b",
+  "corte": "2026-10-31",
+  "moneda": "USD",
+  "version_esquema": 1,
+  "prefijo_evento": "SEED-ANEXOL-2026-"
+ },
+ "empresa": {
+  "razon_social": "Soluciones Empresariales Colibrí, S.A. de C.V.",
+  "nombre_comercial": "Colibrí",
+  "nit": "SIMULADO-NIT",
+  "nrc": "SIMULADO-NRC",
+  "moneda": "USD",
+  "zona_horaria": "America/El_Salvador",
+  "actividad_economica": "Programación informática (CAT-019)"
+ },
+ "ejercicio": {
+  "anio": 2026,
+  "periodos_cerrados": [
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7,
+   8,
+   9
+  ]
+ },
+ "controles": {
+  "diario_debe": "97517.13",
+  "diario_haber": "97517.13",
+  "balanza_debe": "529100.66",
+  "balanza_haber": "529100.66",
+  "apertura_debe": "503615.83",
+  "apertura_haber": "503615.83",
+  "utilidad_neta": "28312.37",
+  "activo_total": "183286.78",
+  "licencias_disponibles": 15,
+  "inventario_licencias": "1680.00"
+ },
+ "balanza": [
+  {
+   "codigo": "110102",
+   "nombre": "Bancos",
+   "debe": "92335.00",
+   "haber": "0.00"
+  },
+  {
+   "codigo": "110201",
+   "nombre": "Clientes por licencias descargables",
+   "debe": "4407.00",
+   "haber": "0.00"
+  },
+  {
+   "codigo": "110202",
+   "nombre": "Clientes por desarrollo a medida",
+   "debe": "20406.78",
+   "haber": "0.00"
+  },
+  {
+   "codigo": "110203",
+   "nombre": "Clientes por suscripciones saas",
+   "debe": "9510.00",
+   "haber": "0.00"
+  },
+  {
+   "codigo": "110204",
+   "nombre": "Clientes por soporte y otros servicios",
+   "debe": "8600.00",
+   "haber": "0.00"
+  },
+  {
+   "codigo": "110401",
+   "nombre": "Infraestructura y nube pagadas por anticipado",
+   "debe": "5210.00",
+   "haber": "0.00"
+  },
+  {
+   "codigo": "1105",
+   "nombre": "Servicios en proceso (control de 110501 a 110503)",
+   "debe": "15614.25",
+   "haber": "0.00"
+  },
+  {
+   "codigo": "110702",
+   "nombre": "Licencias de versiones liberadas",
+   "debe": "1680.00",
+   "haber": "0.00"
+  },
+  {
+   "codigo": "120101",
+   "nombre": "Computadoras y periféricos",
+   "debe": "24750.00",
+   "haber": "0.00"
+  },
+  {
+   "codigo": "120102",
+   "nombre": "Servidores y equipos de red",
+   "debe": "5700.00",
+   "haber": "0.00"
+  },
+  {
+   "codigo": "120103",
+   "nombre": "Mobiliario y equipo de oficina",
+   "debe": "6000.00",
+   "haber": "0.00"
+  },
+  {
+   "codigo": "120301",
+   "nombre": "Software adquirido de uso interno",
+   "debe": "7200.00",
+   "haber": "0.00"
+  },
+  {
+   "codigo": "120201",
+   "nombre": "Depreciación acumulada de computadoras",
+   "debe": "0.00",
+   "haber": "10557.50"
+  },
+  {
+   "codigo": "120202",
+   "nombre": "Depreciación acumulada de servidores y red",
+   "debe": "0.00",
+   "haber": "2668.75"
+  },
+  {
+   "codigo": "120203",
+   "nombre": "Depreciación acumulada de mobiliario",
+   "debe": "0.00",
+   "haber": "3100.00"
+  },
+  {
+   "codigo": "120401",
+   "nombre": "Amortización acumulada de software",
+   "debe": "0.00",
+   "haber": "1800.00"
+  },
+  {
+   "codigo": "210101",
+   "nombre": "Proveedores de bienes y herramientas",
+   "debe": "0.00",
+   "haber": "12800.00"
+  },
+  {
+   "codigo": "210202",
+   "nombre": "IVA por pagar",
+   "debe": "0.00",
+   "haber": "1844.70"
+  },
+  {
+   "codigo": "210204",
+   "nombre": "ISR corriente por pagar",
+   "debe": "0.00",
+   "haber": "3783.88"
+  },
+  {
+   "codigo": "210205",
+   "nombre": "ISR retenido a trabajadores",
+   "debe": "0.00",
+   "haber": "800.00"
+  },
+  {
+   "codigo": "210601",
+   "nombre": "Vacaciones devengadas (recargo de 30 %)",
+   "debe": "0.00",
+   "haber": "1937.50"
+  },
+  {
+   "codigo": "210602",
+   "nombre": "Aguinaldo devengado",
+   "debe": "0.00",
+   "haber": "6458.33"
+  },
+  {
+   "codigo": "210704",
+   "nombre": "Soporte y mantenimiento anticipado",
+   "debe": "0.00",
+   "haber": "7950.00"
+  },
+  {
+   "codigo": "210803",
+   "nombre": "Honorarios y servicios devengados",
+   "debe": "0.00",
+   "haber": "2000.00"
+  },
+  {
+   "codigo": "220101",
+   "nombre": "Deuda financiera a largo plazo",
+   "debe": "0.00",
+   "haber": "9800.00"
+  },
+  {
+   "codigo": "310101",
+   "nombre": "Capital mínimo fijo",
+   "debe": "0.00",
+   "haber": "30000.00"
+  },
+  {
+   "codigo": "310102",
+   "nombre": "Capital variable",
+   "debe": "0.00",
+   "haber": "45000.00"
+  },
+  {
+   "codigo": "310201",
+   "nombre": "Reserva legal",
+   "debe": "0.00",
+   "haber": "2800.00"
+  },
+  {
+   "codigo": "310301",
+   "nombre": "Utilidades acumuladas",
+   "debe": "0.00",
+   "haber": "29800.00"
+  },
+  {
+   "codigo": "410101",
+   "nombre": "Ingresos por desarrollo a medida",
+   "debe": "0.00",
+   "haber": "214600.00"
+  },
+  {
+   "codigo": "410201",
+   "nombre": "Ingresos por soporte y mantenimiento",
+   "debe": "0.00",
+   "haber": "33400.00"
+  },
+  {
+   "codigo": "410301",
+   "nombre": "Ingresos por implementación y consultoría",
+   "debe": "0.00",
+   "haber": "12800.00"
+  },
+  {
+   "codigo": "410402",
+   "nombre": "Ingresos saas Colibrí Inventarios",
+   "debe": "0.00",
+   "haber": "71200.00"
+  },
+  {
+   "codigo": "410602",
+   "nombre": "Ingresos por licencias Colibrí Inventarios",
+   "debe": "0.00",
+   "haber": "24000.00"
+  },
+  {
+   "codigo": "510101",
+   "nombre": "Mano de obra directa de proyectos",
+   "debe": "72000.00",
+   "haber": "0.00"
+  },
+  {
+   "codigo": "510102",
+   "nombre": "Servicios directos de proyectos",
+   "debe": "32190.00",
+   "haber": "0.00"
+  },
+  {
+   "codigo": "510103",
+   "nombre": "Indirectos aplicados a proyectos",
+   "debe": "18000.00",
+   "haber": "0.00"
+  },
+  {
+   "codigo": "510201",
+   "nombre": "Alojamiento de aplicaciones saas",
+   "debe": "12000.00",
+   "haber": "0.00"
+  },
+  {
+   "codigo": "510202",
+   "nombre": "Soporte técnico de saas",
+   "debe": "6705.78",
+   "haber": "0.00"
+  },
+  {
+   "codigo": "510203",
+   "nombre": "Infraestructura compartida saas",
+   "debe": "6400.00",
+   "haber": "0.00"
+  },
+  {
+   "codigo": "510302",
+   "nombre": "Costo de licencias distribuidas",
+   "debe": "9400.00",
+   "haber": "0.00"
+  },
+  {
+   "codigo": "510401",
+   "nombre": "Costo de soporte, mantenimiento e implementación",
+   "debe": "26339.22",
+   "haber": "0.00"
+  },
+  {
+   "codigo": "520103",
+   "nombre": "Depreciación técnica real (control temporal 5201)",
+   "debe": "118.75",
+   "haber": "0.00"
+  },
+  {
+   "codigo": "610101",
+   "nombre": "Sueldos y cargas administrativas",
+   "debe": "63650.00",
+   "haber": "0.00"
+  },
+  {
+   "codigo": "610102",
+   "nombre": "Alquiler y servicios administrativos",
+   "debe": "12100.00",
+   "haber": "0.00"
+  },
+  {
+   "codigo": "610103",
+   "nombre": "Honorarios administrativos",
+   "debe": "9300.00",
+   "haber": "0.00"
+  },
+  {
+   "codigo": "610104",
+   "nombre": "Depreciación administrativa",
+   "debe": "5757.50",
+   "haber": "0.00"
+  },
+  {
+   "codigo": "610105",
+   "nombre": "Amortización de software interno",
+   "debe": "1800.00",
+   "haber": "0.00"
+  },
+  {
+   "codigo": "610106",
+   "nombre": "Otros gastos administrativos",
+   "debe": "6700.00",
+   "haber": "0.00"
+  },
+  {
+   "codigo": "610201",
+   "nombre": "Sueldos y comisiones comerciales",
+   "debe": "21492.50",
+   "haber": "0.00"
+  },
+  {
+   "codigo": "610202",
+   "nombre": "Publicidad y campañas",
+   "debe": "4200.00",
+   "haber": "0.00"
+  },
+  {
+   "codigo": "610203",
+   "nombre": "Visitas y demostraciones",
+   "debe": "2100.00",
+   "haber": "0.00"
+  },
+  {
+   "codigo": "610204",
+   "nombre": "Otros gastos de venta",
+   "debe": "1300.00",
+   "haber": "0.00"
+  },
+  {
+   "codigo": "610303",
+   "nombre": "Otros gastos operativos",
+   "debe": "2800.00",
+   "haber": "0.00"
+  },
+  {
+   "codigo": "710102",
+   "nombre": "Gastos financieros",
+   "debe": "1200.00",
+   "haber": "0.00"
+  },
+  {
+   "codigo": "710201",
+   "nombre": "Gasto por ISR corriente",
+   "debe": "12133.88",
+   "haber": "0.00"
+  }
+ ],
+ "saldos_iniciales_mayor": {
+  "110102": "100914.25",
+  "1102": "33770.78",
+  "1105": "14003.75",
+  "110702": "1800.00"
+ },
+ "diario": [
+  {
+   "fecha": "2026-10-02",
+   "folio": "DI-2026-000001",
+   "tipo": "DI",
+   "concepto": "Clientes por desarrollo a medida (DTE-2026-314, hito OS-2026-014 aceptado)",
+   "soporte_texto": "DTE-2026-314, hito OS-2026-014 aceptado",
+   "lineas": [
+    {
+     "cuenta": "110202",
+     "nombre": "Clientes por desarrollo a medida",
+     "debe": "9492.00",
+     "haber": "0.00"
+    },
+    {
+     "cuenta": "410101",
+     "nombre": "Ingresos por desarrollo contratado",
+     "debe": "0.00",
+     "haber": "8400.00"
+    },
+    {
+     "cuenta": "210201",
+     "nombre": "IVA débito fiscal",
+     "debe": "0.00",
+     "haber": "1092.00"
+    }
+   ]
+  },
+  {
+   "fecha": "2026-10-03",
+   "folio": "IN-2026-000001",
+   "tipo": "IN",
+   "concepto": "Bancos (Recibo BC-2026-188, aplicación parcial DTE-2026-278)",
+   "soporte_texto": "Recibo BC-2026-188, aplicación parcial DTE-2026-278",
+   "lineas": [
+    {
+     "cuenta": "110102",
+     "nombre": "Bancos",
+     "debe": "4746.00",
+     "haber": "0.00"
+    },
+    {
+     "cuenta": "110202",
+     "nombre": "Clientes por desarrollo a medida",
+     "debe": "0.00",
+     "haber": "4746.00"
+    }
+   ]
+  },
+  {
+   "fecha": "2026-10-08",
+   "folio": "DI-2026-000002",
+   "tipo": "DI",
+   "concepto": "Clientes por suscripciones saas (DTE-2026-315, cobertura octubre)",
+   "soporte_texto": "DTE-2026-315, cobertura octubre",
+   "lineas": [
+    {
+     "cuenta": "110203",
+     "nombre": "Clientes por suscripciones saas",
+     "debe": "2542.50",
+     "haber": "0.00"
+    },
+    {
+     "cuenta": "410402",
+     "nombre": "Ingresos saas Colibrí Inventarios",
+     "debe": "0.00",
+     "haber": "2250.00"
+    },
+    {
+     "cuenta": "210201",
+     "nombre": "IVA débito fiscal",
+     "debe": "0.00",
+     "haber": "292.50"
+    }
+   ]
+  },
+  {
+   "fecha": "2026-10-08",
+   "folio": "IN-2026-000002",
+   "tipo": "IN",
+   "concepto": "Bancos (Comprobante bancario BC-2026-191)",
+   "soporte_texto": "Comprobante bancario BC-2026-191",
+   "lineas": [
+    {
+     "cuenta": "110102",
+     "nombre": "Bancos",
+     "debe": "2542.50",
+     "haber": "0.00"
+    },
+    {
+     "cuenta": "110203",
+     "nombre": "Clientes por suscripciones saas",
+     "debe": "0.00",
+     "haber": "2542.50"
+    }
+   ]
+  },
+  {
+   "fecha": "2026-10-10",
+   "folio": "DI-2026-000003",
+   "tipo": "DI",
+   "concepto": "Licencias de versiones liberadas (Acta LI-2026-04 y hoja de costos)",
+   "soporte_texto": "Acta LI-2026-04 y hoja de costos",
+   "lineas": [
+    {
+     "cuenta": "110702",
+     "nombre": "Licencias de versiones liberadas",
+     "debe": "1380.00",
+     "haber": "0.00"
+    },
+    {
+     "cuenta": "110701",
+     "nombre": "Versiones genéricas en producción",
+     "debe": "0.00",
+     "haber": "1380.00"
+    }
+   ]
+  },
+  {
+   "fecha": "2026-10-15",
+   "folio": "DI-2026-000004",
+   "tipo": "DI",
+   "concepto": "Clientes por licencias descargables (DTE-2026-316, activaciones LI-2026-03)",
+   "soporte_texto": "DTE-2026-316, activaciones LI-2026-03",
+   "lineas": [
+    {
+     "cuenta": "110201",
+     "nombre": "Clientes por licencias descargables",
+     "debe": "2644.20",
+     "haber": "0.00"
+    },
+    {
+     "cuenta": "410602",
+     "nombre": "Ingresos por licencias Colibrí Inventarios",
+     "debe": "0.00",
+     "haber": "2340.00"
+    },
+    {
+     "cuenta": "210201",
+     "nombre": "IVA débito fiscal",
+     "debe": "0.00",
+     "haber": "304.20"
+    },
+    {
+     "cuenta": "510302",
+     "nombre": "Costo de licencias distribuidas",
+     "debe": "900.00",
+     "haber": "0.00"
+    },
+    {
+     "cuenta": "110702",
+     "nombre": "Licencias de versiones liberadas",
+     "debe": "0.00",
+     "haber": "900.00"
+    }
+   ]
+  },
+  {
+   "fecha": "2026-10-17",
+   "folio": "DI-2026-000005",
+   "tipo": "DI",
+   "concepto": "Servicios en proceso (Planilla de octubre de Proyectos y Desarrollo, horas y centros de costo aprobados; ISSS con base máxima de $1,000.00 por trabajador)",
+   "soporte_texto": "Planilla de octubre de Proyectos y Desarrollo, horas y centros de costo aprobados; ISSS con base máxima de $1,000.00 por trabajador",
+   "lineas": [
+    {
+     "cuenta": "110501",
+     "nombre": "Servicios en proceso",
+     "debe": "6740.50",
+     "haber": "0.00"
+    },
+    {
+     "cuenta": "510202",
+     "nombre": "Soporte técnico de saas",
+     "debe": "640.97",
+     "haber": "0.00"
+    },
+    {
+     "cuenta": "510401",
+     "nombre": "Costo de soporte, mantenimiento e implementación",
+     "debe": "2517.28",
+     "haber": "0.00"
+    },
+    {
+     "cuenta": "610201",
+     "nombre": "Sueldos y comisiones comerciales",
+     "debe": "2044.38",
+     "haber": "0.00"
+    },
+    {
+     "cuenta": "610101",
+     "nombre": "Sueldos y cargas administrativas",
+     "debe": "6080.62",
+     "haber": "0.00"
+    },
+    {
+     "cuenta": "210301",
+     "nombre": "Remuneraciones netas por pagar",
+     "debe": "0.00",
+     "haber": "13171.25"
+    },
+    {
+     "cuenta": "210401",
+     "nombre": "ISSS laboral retenido",
+     "debe": "0.00",
+     "haber": "405.00"
+    },
+    {
+     "cuenta": "210402",
+     "nombre": "ISSS patronal",
+     "debe": "0.00",
+     "haber": "1012.50"
+    },
+    {
+     "cuenta": "210501",
+     "nombre": "Cotización previsional laboral",
+     "debe": "0.00",
+     "haber": "1123.75"
+    },
+    {
+     "cuenta": "210502",
+     "nombre": "Cotización previsional patronal",
+     "debe": "0.00",
+     "haber": "1356.25"
+    },
+    {
+     "cuenta": "210801",
+     "nombre": "INCAF por pagar",
+     "debe": "0.00",
+     "haber": "155.00"
+    },
+    {
+     "cuenta": "210205",
+     "nombre": "ISR retenido a trabajadores",
+     "debe": "0.00",
+     "haber": "800.00"
+    }
+   ]
+  },
+  {
+   "fecha": "2026-10-20",
+   "folio": "EG-2026-000001",
+   "tipo": "EG",
+   "concepto": "Remuneraciones netas por pagar (Transferencia de planilla TP-2026-10)",
+   "soporte_texto": "Transferencia de planilla TP-2026-10",
+   "lineas": [
+    {
+     "cuenta": "210301",
+     "nombre": "Remuneraciones netas por pagar",
+     "debe": "13171.25",
+     "haber": "0.00"
+    },
+    {
+     "cuenta": "110102",
+     "nombre": "Bancos",
+     "debe": "0.00",
+     "haber": "13171.25"
+    }
+   ]
+  },
+  {
+   "fecha": "2026-10-21",
+   "folio": "EG-2026-000002",
+   "tipo": "EG",
+   "concepto": "ISSS laboral retenido (Planillas y recibos de entero)",
+   "soporte_texto": "Planillas y recibos de entero",
+   "lineas": [
+    {
+     "cuenta": "210401",
+     "nombre": "ISSS laboral retenido",
+     "debe": "405.00",
+     "haber": "0.00"
+    },
+    {
+     "cuenta": "210402",
+     "nombre": "ISSS patronal",
+     "debe": "1012.50",
+     "haber": "0.00"
+    },
+    {
+     "cuenta": "210501",
+     "nombre": "Cotización previsional laboral",
+     "debe": "1123.75",
+     "haber": "0.00"
+    },
+    {
+     "cuenta": "210502",
+     "nombre": "Cotización previsional patronal",
+     "debe": "1356.25",
+     "haber": "0.00"
+    },
+    {
+     "cuenta": "210801",
+     "nombre": "INCAF por pagar",
+     "debe": "155.00",
+     "haber": "0.00"
+    },
+    {
+     "cuenta": "110102",
+     "nombre": "Bancos",
+     "debe": "0.00",
+     "haber": "4052.50"
+    }
+   ]
+  },
+  {
+   "fecha": "2026-10-22",
+   "folio": "EG-2026-000003",
+   "tipo": "EG",
+   "concepto": "Alojamiento de aplicaciones saas (DTE de nube y comprobante bancario)",
+   "soporte_texto": "DTE de nube y comprobante bancario",
+   "lineas": [
+    {
+     "cuenta": "510201",
+     "nombre": "Alojamiento de aplicaciones saas",
+     "debe": "1200.00",
+     "haber": "0.00"
+    },
+    {
+     "cuenta": "110301",
+     "nombre": "IVA crédito fiscal",
+     "debe": "156.00",
+     "haber": "0.00"
+    },
+    {
+     "cuenta": "110102",
+     "nombre": "Bancos",
+     "debe": "0.00",
+     "haber": "1356.00"
+    }
+   ]
+  },
+  {
+   "fecha": "2026-10-24",
+   "folio": "EG-2026-000004",
+   "tipo": "EG",
+   "concepto": "Alquiler y servicios administrativos (CCF de arrendamiento y pago)",
+   "soporte_texto": "CCF de arrendamiento y pago",
+   "lineas": [
+    {
+     "cuenta": "610102",
+     "nombre": "Alquiler y servicios administrativos",
+     "debe": "1200.00",
+     "haber": "0.00"
+    },
+    {
+     "cuenta": "110301",
+     "nombre": "IVA crédito fiscal",
+     "debe": "156.00",
+     "haber": "0.00"
+    },
+    {
+     "cuenta": "110102",
+     "nombre": "Bancos",
+     "debe": "0.00",
+     "haber": "1356.00"
+    }
+   ]
+  },
+  {
+   "fecha": "2026-10-28",
+   "folio": "DI-2026-000006",
+   "tipo": "DI",
+   "concepto": "Clientes por licencias descargables (DTE-2026-317, activaciones LI-2026-03)",
+   "soporte_texto": "DTE-2026-317, activaciones LI-2026-03",
+   "lineas": [
+    {
+     "cuenta": "110201",
+     "nombre": "Clientes por licencias descargables",
+     "debe": "1762.80",
+     "haber": "0.00"
+    },
+    {
+     "cuenta": "410602",
+     "nombre": "Ingresos por licencias Colibrí Inventarios",
+     "debe": "0.00",
+     "haber": "1560.00"
+    },
+    {
+     "cuenta": "210201",
+     "nombre": "IVA débito fiscal",
+     "debe": "0.00",
+     "haber": "202.80"
+    },
+    {
+     "cuenta": "510302",
+     "nombre": "Costo de licencias distribuidas",
+     "debe": "600.00",
+     "haber": "0.00"
+    },
+    {
+     "cuenta": "110702",
+     "nombre": "Licencias de versiones liberadas",
+     "debe": "0.00",
+     "haber": "600.00"
+    }
+   ]
+  },
+  {
+   "fecha": "2026-10-30",
+   "folio": "IN-2026-000003",
+   "tipo": "IN",
+   "concepto": "Bancos (DTE-2026-318, cobertura nov. 2026 a abr. 2027)",
+   "soporte_texto": "DTE-2026-318, cobertura nov. 2026 a abr. 2027",
+   "lineas": [
+    {
+     "cuenta": "110102",
+     "nombre": "Bancos",
+     "debe": "4068.00",
+     "haber": "0.00"
+    },
+    {
+     "cuenta": "210704",
+     "nombre": "Soporte y mantenimiento anticipado",
+     "debe": "0.00",
+     "haber": "3600.00"
+    },
+    {
+     "cuenta": "210201",
+     "nombre": "IVA débito fiscal",
+     "debe": "0.00",
+     "haber": "468.00"
+    }
+   ]
+  },
+  {
+   "fecha": "2026-10-31",
+   "folio": "DI-2026-000007",
+   "tipo": "DI",
+   "concepto": "Mano de obra directa de proyectos (hoja de costo OS-2026-014 y acta de aceptación)",
+   "soporte_texto": "hoja de costo OS-2026-014 y acta de aceptación",
+   "lineas": [
+    {
+     "cuenta": "510101",
+     "nombre": "Mano de obra directa de proyectos",
+     "debe": "3384.00",
+     "haber": "0.00"
+    },
+    {
+     "cuenta": "510102",
+     "nombre": "Servicios directos de proyectos",
+     "debe": "900.00",
+     "haber": "0.00"
+    },
+    {
+     "cuenta": "510103",
+     "nombre": "Indirectos aplicados a proyectos",
+     "debe": "846.00",
+     "haber": "0.00"
+    },
+    {
+     "cuenta": "110501",
+     "nombre": "Servicios en proceso: mano de obra directa de órdenes",
+     "debe": "0.00",
+     "haber": "3384.00"
+    },
+    {
+     "cuenta": "110502",
+     "nombre": "Servicios en proceso: servicios directos de órdenes",
+     "debe": "0.00",
+     "haber": "900.00"
+    },
+    {
+     "cuenta": "110503",
+     "nombre": "Servicios en proceso: indirectos aplicados a órdenes",
+     "debe": "0.00",
+     "haber": "846.00"
+    }
+   ]
+  },
+  {
+   "fecha": "2026-10-31",
+   "folio": "AJ-2026-000001",
+   "tipo": "AJ",
+   "concepto": "Depreciación administrativa (Cédula de activos fijos de octubre; vidas útiles de IX.Q (3, 4 y 5 años))",
+   "soporte_texto": "Cédula de activos fijos de octubre; vidas útiles de IX.Q (3, 4 y 5 años)",
+   "lineas": [
+    {
+     "cuenta": "610104",
+     "nombre": "Depreciación administrativa",
+     "debe": "787.50",
+     "haber": "0.00"
+    },
+    {
+     "cuenta": "520103",
+     "nombre": "Depreciación técnica real",
+     "debe": "118.75",
+     "haber": "0.00"
+    },
+    {
+     "cuenta": "120201",
+     "nombre": "Depreciación acumulada de computadoras",
+     "debe": "0.00",
+     "haber": "687.50"
+    },
+    {
+     "cuenta": "120202",
+     "nombre": "Depreciación acumulada de servidores y red",
+     "debe": "0.00",
+     "haber": "118.75"
+    },
+    {
+     "cuenta": "120203",
+     "nombre": "Depreciación acumulada de mobiliario",
+     "debe": "0.00",
+     "haber": "100.00"
+    }
+   ]
+  },
+  {
+   "fecha": "2026-10-31",
+   "folio": "AJ-2026-000002",
+   "tipo": "AJ",
+   "concepto": "IVA débito fiscal (Libro de IVA; crédito aplicado de $514.80 = $312.00 de octubre + $202.80 de períodos anteriores)",
+   "soporte_texto": "Libro de IVA; crédito aplicado de $514.80 = $312.00 de octubre + $202.80 de períodos anteriores",
+   "lineas": [
+    {
+     "cuenta": "210201",
+     "nombre": "IVA débito fiscal",
+     "debe": "2359.50",
+     "haber": "0.00"
+    },
+    {
+     "cuenta": "110301",
+     "nombre": "IVA crédito fiscal",
+     "debe": "0.00",
+     "haber": "514.80"
+    },
+    {
+     "cuenta": "210202",
+     "nombre": "IVA por pagar",
+     "debe": "0.00",
+     "haber": "1844.70"
+    }
+   ]
+  },
+  {
+   "fecha": "2026-10-31",
+   "folio": "AJ-2026-000003",
+   "tipo": "AJ",
+   "concepto": "Gasto por ISR corriente (Conciliación fiscal interna acumulada)",
+   "soporte_texto": "Conciliación fiscal interna acumulada",
+   "lineas": [
+    {
+     "cuenta": "710201",
+     "nombre": "Gasto por ISR corriente",
+     "debe": "12133.88",
+     "haber": "0.00"
+    },
+    {
+     "cuenta": "210204",
+     "nombre": "ISR corriente por pagar",
+     "debe": "0.00",
+     "haber": "12133.88"
+    }
+   ]
+  },
+  {
+   "fecha": "2026-10-31",
+   "folio": "AJ-2026-000004",
+   "tipo": "AJ",
+   "concepto": "ISR corriente por pagar (Aplicación parcial de créditos de ISR con constancia; ver nota de ISR)",
+   "soporte_texto": "Aplicación parcial de créditos de ISR con constancia; ver nota de ISR",
+   "lineas": [
+    {
+     "cuenta": "210204",
+     "nombre": "ISR corriente por pagar",
+     "debe": "8350.00",
+     "haber": "0.00"
+    },
+    {
+     "cuenta": "110302",
+     "nombre": "Pago a cuenta de ISR",
+     "debe": "0.00",
+     "haber": "6230.00"
+    },
+    {
+     "cuenta": "110303",
+     "nombre": "ISR retenido a favor",
+     "debe": "0.00",
+     "haber": "2120.00"
+    }
+   ]
+  }
+ ],
+ "derivados": {
+  "apertura": [
+   {
+    "cuenta": "110102",
+    "debe": "100914.25",
+    "haber": "0.00"
+   },
+   {
+    "cuenta": "110202",
+    "debe": "15660.78",
+    "haber": "0.00"
+   },
+   {
+    "cuenta": "110203",
+    "debe": "9510.00",
+    "haber": "0.00"
+   },
+   {
+    "cuenta": "110204",
+    "debe": "8600.00",
+    "haber": "0.00"
+   },
+   {
+    "cuenta": "110301",
+    "debe": "202.80",
+    "haber": "0.00"
+   },
+   {
+    "cuenta": "110302",
+    "debe": "6230.00",
+    "haber": "0.00"
+   },
+   {
+    "cuenta": "110303",
+    "debe": "2120.00",
+    "haber": "0.00"
+   },
+   {
+    "cuenta": "110401",
+    "debe": "5210.00",
+    "haber": "0.00"
+   },
+   {
+    "cuenta": "110501",
+    "debe": "12257.75",
+    "haber": "0.00"
+   },
+   {
+    "cuenta": "110502",
+    "debe": "900.00",
+    "haber": "0.00"
+   },
+   {
+    "cuenta": "110503",
+    "debe": "846.00",
+    "haber": "0.00"
+   },
+   {
+    "cuenta": "110701",
+    "debe": "1380.00",
+    "haber": "0.00"
+   },
+   {
+    "cuenta": "110702",
+    "debe": "1800.00",
+    "haber": "0.00"
+   },
+   {
+    "cuenta": "120101",
+    "debe": "24750.00",
+    "haber": "0.00"
+   },
+   {
+    "cuenta": "120102",
+    "debe": "5700.00",
+    "haber": "0.00"
+   },
+   {
+    "cuenta": "120103",
+    "debe": "6000.00",
+    "haber": "0.00"
+   },
+   {
+    "cuenta": "120201",
+    "debe": "0.00",
+    "haber": "9870.00"
+   },
+   {
+    "cuenta": "120202",
+    "debe": "0.00",
+    "haber": "2550.00"
+   },
+   {
+    "cuenta": "120203",
+    "debe": "0.00",
+    "haber": "3000.00"
+   },
+   {
+    "cuenta": "120301",
+    "debe": "7200.00",
+    "haber": "0.00"
+   },
+   {
+    "cuenta": "120401",
+    "debe": "0.00",
+    "haber": "1800.00"
+   },
+   {
+    "cuenta": "210101",
+    "debe": "0.00",
+    "haber": "12800.00"
+   },
+   {
+    "cuenta": "210601",
+    "debe": "0.00",
+    "haber": "1937.50"
+   },
+   {
+    "cuenta": "210602",
+    "debe": "0.00",
+    "haber": "6458.33"
+   },
+   {
+    "cuenta": "210704",
+    "debe": "0.00",
+    "haber": "4350.00"
+   },
+   {
+    "cuenta": "210803",
+    "debe": "0.00",
+    "haber": "2000.00"
+   },
+   {
+    "cuenta": "220101",
+    "debe": "0.00",
+    "haber": "9800.00"
+   },
+   {
+    "cuenta": "310101",
+    "debe": "0.00",
+    "haber": "30000.00"
+   },
+   {
+    "cuenta": "310102",
+    "debe": "0.00",
+    "haber": "45000.00"
+   },
+   {
+    "cuenta": "310201",
+    "debe": "0.00",
+    "haber": "2800.00"
+   },
+   {
+    "cuenta": "310301",
+    "debe": "0.00",
+    "haber": "29800.00"
+   },
+   {
+    "cuenta": "410101",
+    "debe": "0.00",
+    "haber": "206200.00"
+   },
+   {
+    "cuenta": "410201",
+    "debe": "0.00",
+    "haber": "33400.00"
+   },
+   {
+    "cuenta": "410301",
+    "debe": "0.00",
+    "haber": "12800.00"
+   },
+   {
+    "cuenta": "410402",
+    "debe": "0.00",
+    "haber": "68950.00"
+   },
+   {
+    "cuenta": "410602",
+    "debe": "0.00",
+    "haber": "20100.00"
+   },
+   {
+    "cuenta": "510101",
+    "debe": "68616.00",
+    "haber": "0.00"
+   },
+   {
+    "cuenta": "510102",
+    "debe": "31290.00",
+    "haber": "0.00"
+   },
+   {
+    "cuenta": "510103",
+    "debe": "17154.00",
+    "haber": "0.00"
+   },
+   {
+    "cuenta": "510201",
+    "debe": "10800.00",
+    "haber": "0.00"
+   },
+   {
+    "cuenta": "510202",
+    "debe": "6064.81",
+    "haber": "0.00"
+   },
+   {
+    "cuenta": "510203",
+    "debe": "6400.00",
+    "haber": "0.00"
+   },
+   {
+    "cuenta": "510302",
+    "debe": "7900.00",
+    "haber": "0.00"
+   },
+   {
+    "cuenta": "510401",
+    "debe": "23821.94",
+    "haber": "0.00"
+   },
+   {
+    "cuenta": "610101",
+    "debe": "57569.38",
+    "haber": "0.00"
+   },
+   {
+    "cuenta": "610102",
+    "debe": "10900.00",
+    "haber": "0.00"
+   },
+   {
+    "cuenta": "610103",
+    "debe": "9300.00",
+    "haber": "0.00"
+   },
+   {
+    "cuenta": "610104",
+    "debe": "4970.00",
+    "haber": "0.00"
+   },
+   {
+    "cuenta": "610105",
+    "debe": "1800.00",
+    "haber": "0.00"
+   },
+   {
+    "cuenta": "610106",
+    "debe": "6700.00",
+    "haber": "0.00"
+   },
+   {
+    "cuenta": "610201",
+    "debe": "19448.12",
+    "haber": "0.00"
+   },
+   {
+    "cuenta": "610202",
+    "debe": "4200.00",
+    "haber": "0.00"
+   },
+   {
+    "cuenta": "610203",
+    "debe": "2100.00",
+    "haber": "0.00"
+   },
+   {
+    "cuenta": "610204",
+    "debe": "1300.00",
+    "haber": "0.00"
+   },
+   {
+    "cuenta": "610303",
+    "debe": "2800.00",
+    "haber": "0.00"
+   },
+   {
+    "cuenta": "710102",
+    "debe": "1200.00",
+    "haber": "0.00"
+   }
+  ],
+  "planilla_octubre": {
+   "folio": "DI-2026-000005",
+   "periodo_mes": 10,
+   "fecha_contable": "2026-10-17",
+   "empleados": 15,
+   "salario_nominal": "15500.00",
+   "tasa_isss_laboral": "0.03",
+   "tasa_previsional_laboral": "0.07",
+   "isr_retenido": "800.00",
+   "otras_deducciones": "0.00",
+   "isss_laboral": "405.00",
+   "isss_patronal": "1012.50",
+   "previsional_laboral": "1123.75",
+   "previsional_patronal": "1356.25",
+   "incaf": "155.00",
+   "liquido_por_pagar": "13171.25",
+   "costo_patronal_total": "18023.75",
+   "tasa_isss_patronal": "0.08",
+   "tasa_previsional_patronal": "0.09",
+   "tasa_incaf": "0.01",
+   "umbral_incaf_empleados": 10,
+   "centro_costo": "CC-01",
+   "clave_evento": "PLANILLA-2026-10",
+   "supuesto": true,
+   "fuente": "Derivado de DI-2026-000005 (base previsional 7.25 %)"
+  },
+  "supuestos": [
+   "Control 1105 de la balanza asignado íntegramente a 110501 al 31-oct (110502 y 110503 se consumen en DI-2026-000007)."
+  ]
+ },
+ "seed": {
+  "terceros": [
+   {
+    "nit": "SIM-ANEXOL-DSM",
+    "razon_social": "Distribuidora San Marcos",
+    "es_cliente": true,
+    "es_proveedor": false,
+    "supuesto": false
+   },
+   {
+    "nit": "SIM-ANEXOL-CLN",
+    "razon_social": "Clínica Los Naranjos",
+    "es_cliente": true,
+    "es_proveedor": false,
+    "supuesto": false
+   },
+   {
+    "nit": "SIM-ANEXOL-CDEV",
+    "razon_social": "Cliente de desarrollo a medida (OS-2026-014)",
+    "es_cliente": true,
+    "es_proveedor": false,
+    "supuesto": true
+   },
+   {
+    "nit": "SIM-ANEXOL-CSAAS",
+    "razon_social": "Cliente de suscripción SaaS",
+    "es_cliente": true,
+    "es_proveedor": false,
+    "supuesto": true
+   },
+   {
+    "nit": "SIM-ANEXOL-CSOP",
+    "razon_social": "Cliente de soporte y mantenimiento",
+    "es_cliente": true,
+    "es_proveedor": false,
+    "supuesto": true
+   },
+   {
+    "nit": "SIM-ANEXOL-NUBE",
+    "razon_social": "Proveedor de nube",
+    "es_cliente": false,
+    "es_proveedor": true,
+    "supuesto": true
+   },
+   {
+    "nit": "SIM-ANEXOL-RENTA",
+    "razon_social": "Arrendador de oficina",
+    "es_cliente": false,
+    "es_proveedor": true,
+    "supuesto": true
+   }
+  ],
+  "documentos": [
+   {
+    "codigo": "DTE-2026-278",
+    "tipo": "CCF",
+    "emisor_nit": "SIMULADO-NIT",
+    "receptor_nit": "SIM-ANEXOL-CDEV",
+    "tercero_nit": "SIM-ANEXOL-CDEV",
+    "fecha": "2026-09-20",
+    "base_gravada": "8400.00",
+    "iva": "1092.00",
+    "total": "9492.00",
+    "folio": null,
+    "tipo_evento": null,
+    "supuesto": true
+   },
+   {
+    "codigo": "DTE-2026-314",
+    "tipo": "CCF",
+    "emisor_nit": "SIMULADO-NIT",
+    "receptor_nit": "SIM-ANEXOL-CDEV",
+    "tercero_nit": "SIM-ANEXOL-CDEV",
+    "fecha": "2026-10-02",
+    "base_gravada": "8400.00",
+    "iva": "1092.00",
+    "total": "9492.00",
+    "folio": "DI-2026-000001",
+    "tipo_evento": "VENTA",
+    "supuesto": false
+   },
+   {
+    "codigo": "BC-2026-188",
+    "tipo": "RECIBO",
+    "emisor_nit": "SIM-ANEXOL-CDEV",
+    "receptor_nit": "SIMULADO-NIT",
+    "tercero_nit": "SIM-ANEXOL-CDEV",
+    "fecha": "2026-10-03",
+    "base_gravada": "4746.00",
+    "iva": "0.00",
+    "total": "4746.00",
+    "folio": "IN-2026-000001",
+    "tipo_evento": "COBRO",
+    "supuesto": false
+   },
+   {
+    "codigo": "DTE-2026-315",
+    "tipo": "CCF",
+    "emisor_nit": "SIMULADO-NIT",
+    "receptor_nit": "SIM-ANEXOL-CSAAS",
+    "tercero_nit": "SIM-ANEXOL-CSAAS",
+    "fecha": "2026-10-08",
+    "base_gravada": "2250.00",
+    "iva": "292.50",
+    "total": "2542.50",
+    "folio": "DI-2026-000002",
+    "tipo_evento": "VENTA",
+    "supuesto": false
+   },
+   {
+    "codigo": "BC-2026-191",
+    "tipo": "RECIBO",
+    "emisor_nit": "SIM-ANEXOL-CSAAS",
+    "receptor_nit": "SIMULADO-NIT",
+    "tercero_nit": "SIM-ANEXOL-CSAAS",
+    "fecha": "2026-10-08",
+    "base_gravada": "2542.50",
+    "iva": "0.00",
+    "total": "2542.50",
+    "folio": "IN-2026-000002",
+    "tipo_evento": "COBRO",
+    "supuesto": false
+   },
+   {
+    "codigo": "DTE-2026-316",
+    "tipo": "CCF",
+    "emisor_nit": "SIMULADO-NIT",
+    "receptor_nit": "SIM-ANEXOL-DSM",
+    "tercero_nit": "SIM-ANEXOL-DSM",
+    "fecha": "2026-10-15",
+    "base_gravada": "2340.00",
+    "iva": "304.20",
+    "total": "2644.20",
+    "folio": "DI-2026-000004",
+    "tipo_evento": "VENTA",
+    "supuesto": false
+   },
+   {
+    "codigo": "DTE-2026-317",
+    "tipo": "CCF",
+    "emisor_nit": "SIMULADO-NIT",
+    "receptor_nit": "SIM-ANEXOL-CLN",
+    "tercero_nit": "SIM-ANEXOL-CLN",
+    "fecha": "2026-10-28",
+    "base_gravada": "1560.00",
+    "iva": "202.80",
+    "total": "1762.80",
+    "folio": "DI-2026-000006",
+    "tipo_evento": "VENTA",
+    "supuesto": false
+   },
+   {
+    "codigo": "DTE-2026-318",
+    "tipo": "CCF",
+    "emisor_nit": "SIMULADO-NIT",
+    "receptor_nit": "SIM-ANEXOL-CSOP",
+    "tercero_nit": "SIM-ANEXOL-CSOP",
+    "fecha": "2026-10-30",
+    "base_gravada": "3600.00",
+    "iva": "468.00",
+    "total": "4068.00",
+    "folio": "IN-2026-000003",
+    "tipo_evento": "ANTICIPO",
+    "supuesto": false
+   },
+   {
+    "codigo": "ANEXOL-COMPRA-NUBE-OCT",
+    "tipo": "CCF",
+    "emisor_nit": "SIM-ANEXOL-NUBE",
+    "receptor_nit": "SIMULADO-NIT",
+    "tercero_nit": "SIM-ANEXOL-NUBE",
+    "fecha": "2026-10-22",
+    "base_gravada": "1200.00",
+    "iva": "156.00",
+    "total": "1356.00",
+    "folio": "EG-2026-000003",
+    "tipo_evento": "COMPRA",
+    "supuesto": true
+   },
+   {
+    "codigo": "ANEXOL-COMPRA-RENTA-OCT",
+    "tipo": "CCF",
+    "emisor_nit": "SIM-ANEXOL-RENTA",
+    "receptor_nit": "SIMULADO-NIT",
+    "tercero_nit": "SIM-ANEXOL-RENTA",
+    "fecha": "2026-10-24",
+    "base_gravada": "1200.00",
+    "iva": "156.00",
+    "total": "1356.00",
+    "folio": "EG-2026-000004",
+    "tipo_evento": "COMPRA",
+    "supuesto": true
+   }
+  ],
+  "aplicaciones_pago": [
+   {
+    "origen": "DTE-2026-278",
+    "pago": "BC-2026-188",
+    "folio": "IN-2026-000001",
+    "importe": "4746.00",
+    "fecha": "2026-10-03",
+    "concepto": "Aplicación parcial de BC-2026-188 a DTE-2026-278"
+   },
+   {
+    "origen": "DTE-2026-315",
+    "pago": "BC-2026-191",
+    "folio": "IN-2026-000002",
+    "importe": "2542.50",
+    "fecha": "2026-10-08",
+    "concepto": "Cobro de DTE-2026-315 con BC-2026-191"
+   }
+  ],
+  "partidas": [
+   {
+    "clave": "AP-APERTURA",
+    "folio": "AP-2026-000001",
+    "tipo": "AP",
+    "fecha": "2026-09-30",
+    "concepto": "Apertura: saldos acumulados al 30 de septiembre de 2026 (derivados del Anexo L)",
+    "soporte": "ANEXO-L-APERTURA",
+    "origen": "MANUAL",
+    "documento": null,
+    "tipo_evento": null,
+    "lineas": [
+     {
+      "cuenta": "110102",
+      "debe": "100914.25",
+      "haber": "0.00"
+     },
+     {
+      "cuenta": "110202",
+      "debe": "15660.78",
+      "haber": "0.00"
+     },
+     {
+      "cuenta": "110203",
+      "debe": "9510.00",
+      "haber": "0.00"
+     },
+     {
+      "cuenta": "110204",
+      "debe": "8600.00",
+      "haber": "0.00"
+     },
+     {
+      "cuenta": "110301",
+      "debe": "202.80",
+      "haber": "0.00"
+     },
+     {
+      "cuenta": "110302",
+      "debe": "6230.00",
+      "haber": "0.00"
+     },
+     {
+      "cuenta": "110303",
+      "debe": "2120.00",
+      "haber": "0.00"
+     },
+     {
+      "cuenta": "110401",
+      "debe": "5210.00",
+      "haber": "0.00"
+     },
+     {
+      "cuenta": "110501",
+      "debe": "12257.75",
+      "haber": "0.00"
+     },
+     {
+      "cuenta": "110502",
+      "debe": "900.00",
+      "haber": "0.00"
+     },
+     {
+      "cuenta": "110503",
+      "debe": "846.00",
+      "haber": "0.00"
+     },
+     {
+      "cuenta": "110701",
+      "debe": "1380.00",
+      "haber": "0.00"
+     },
+     {
+      "cuenta": "110702",
+      "debe": "1800.00",
+      "haber": "0.00"
+     },
+     {
+      "cuenta": "120101",
+      "debe": "24750.00",
+      "haber": "0.00"
+     },
+     {
+      "cuenta": "120102",
+      "debe": "5700.00",
+      "haber": "0.00"
+     },
+     {
+      "cuenta": "120103",
+      "debe": "6000.00",
+      "haber": "0.00"
+     },
+     {
+      "cuenta": "120201",
+      "debe": "0.00",
+      "haber": "9870.00"
+     },
+     {
+      "cuenta": "120202",
+      "debe": "0.00",
+      "haber": "2550.00"
+     },
+     {
+      "cuenta": "120203",
+      "debe": "0.00",
+      "haber": "3000.00"
+     },
+     {
+      "cuenta": "120301",
+      "debe": "7200.00",
+      "haber": "0.00"
+     },
+     {
+      "cuenta": "120401",
+      "debe": "0.00",
+      "haber": "1800.00"
+     },
+     {
+      "cuenta": "210101",
+      "debe": "0.00",
+      "haber": "12800.00"
+     },
+     {
+      "cuenta": "210601",
+      "debe": "0.00",
+      "haber": "1937.50"
+     },
+     {
+      "cuenta": "210602",
+      "debe": "0.00",
+      "haber": "6458.33"
+     },
+     {
+      "cuenta": "210704",
+      "debe": "0.00",
+      "haber": "4350.00"
+     },
+     {
+      "cuenta": "210803",
+      "debe": "0.00",
+      "haber": "2000.00"
+     },
+     {
+      "cuenta": "220101",
+      "debe": "0.00",
+      "haber": "9800.00"
+     },
+     {
+      "cuenta": "310101",
+      "debe": "0.00",
+      "haber": "30000.00"
+     },
+     {
+      "cuenta": "310102",
+      "debe": "0.00",
+      "haber": "45000.00"
+     },
+     {
+      "cuenta": "310201",
+      "debe": "0.00",
+      "haber": "2800.00"
+     },
+     {
+      "cuenta": "310301",
+      "debe": "0.00",
+      "haber": "29800.00"
+     },
+     {
+      "cuenta": "410101",
+      "debe": "0.00",
+      "haber": "206200.00"
+     },
+     {
+      "cuenta": "410201",
+      "debe": "0.00",
+      "haber": "33400.00"
+     },
+     {
+      "cuenta": "410301",
+      "debe": "0.00",
+      "haber": "12800.00"
+     },
+     {
+      "cuenta": "410402",
+      "debe": "0.00",
+      "haber": "68950.00"
+     },
+     {
+      "cuenta": "410602",
+      "debe": "0.00",
+      "haber": "20100.00"
+     },
+     {
+      "cuenta": "510101",
+      "debe": "68616.00",
+      "haber": "0.00"
+     },
+     {
+      "cuenta": "510102",
+      "debe": "31290.00",
+      "haber": "0.00"
+     },
+     {
+      "cuenta": "510103",
+      "debe": "17154.00",
+      "haber": "0.00"
+     },
+     {
+      "cuenta": "510201",
+      "debe": "10800.00",
+      "haber": "0.00"
+     },
+     {
+      "cuenta": "510202",
+      "debe": "6064.81",
+      "haber": "0.00"
+     },
+     {
+      "cuenta": "510203",
+      "debe": "6400.00",
+      "haber": "0.00"
+     },
+     {
+      "cuenta": "510302",
+      "debe": "7900.00",
+      "haber": "0.00"
+     },
+     {
+      "cuenta": "510401",
+      "debe": "23821.94",
+      "haber": "0.00"
+     },
+     {
+      "cuenta": "610101",
+      "debe": "57569.38",
+      "haber": "0.00"
+     },
+     {
+      "cuenta": "610102",
+      "debe": "10900.00",
+      "haber": "0.00"
+     },
+     {
+      "cuenta": "610103",
+      "debe": "9300.00",
+      "haber": "0.00"
+     },
+     {
+      "cuenta": "610104",
+      "debe": "4970.00",
+      "haber": "0.00"
+     },
+     {
+      "cuenta": "610105",
+      "debe": "1800.00",
+      "haber": "0.00"
+     },
+     {
+      "cuenta": "610106",
+      "debe": "6700.00",
+      "haber": "0.00"
+     },
+     {
+      "cuenta": "610201",
+      "debe": "19448.12",
+      "haber": "0.00"
+     },
+     {
+      "cuenta": "610202",
+      "debe": "4200.00",
+      "haber": "0.00"
+     },
+     {
+      "cuenta": "610203",
+      "debe": "2100.00",
+      "haber": "0.00"
+     },
+     {
+      "cuenta": "610204",
+      "debe": "1300.00",
+      "haber": "0.00"
+     },
+     {
+      "cuenta": "610303",
+      "debe": "2800.00",
+      "haber": "0.00"
+     },
+     {
+      "cuenta": "710102",
+      "debe": "1200.00",
+      "haber": "0.00"
+     }
+    ]
+   },
+   {
+    "clave": "DI-2026-000001",
+    "folio": "DI-2026-000001",
+    "tipo": "DI",
+    "fecha": "2026-10-02",
+    "concepto": "Clientes por desarrollo a medida (DTE-2026-314, hito OS-2026-014 aceptado)",
+    "soporte": "DTE-2026-314, OS-2026-014",
+    "origen": "AUTOMATICO",
+    "documento": "DTE-2026-314",
+    "tipo_evento": "VENTA",
+    "lineas": [
+     {
+      "cuenta": "110202",
+      "debe": "9492.00",
+      "haber": "0.00",
+      "auxiliar": null
+     },
+     {
+      "cuenta": "410101",
+      "debe": "0.00",
+      "haber": "8400.00",
+      "auxiliar": null
+     },
+     {
+      "cuenta": "210201",
+      "debe": "0.00",
+      "haber": "1092.00",
+      "auxiliar": null
+     }
+    ]
+   },
+   {
+    "clave": "IN-2026-000001",
+    "folio": "IN-2026-000001",
+    "tipo": "IN",
+    "fecha": "2026-10-03",
+    "concepto": "Bancos (Recibo BC-2026-188, aplicación parcial DTE-2026-278)",
+    "soporte": "BC-2026-188, DTE-2026-278",
+    "origen": "AUTOMATICO",
+    "documento": "BC-2026-188",
+    "tipo_evento": "COBRO",
+    "lineas": [
+     {
+      "cuenta": "110102",
+      "debe": "4746.00",
+      "haber": "0.00",
+      "auxiliar": null
+     },
+     {
+      "cuenta": "110202",
+      "debe": "0.00",
+      "haber": "4746.00",
+      "auxiliar": null
+     }
+    ]
+   },
+   {
+    "clave": "DI-2026-000002",
+    "folio": "DI-2026-000002",
+    "tipo": "DI",
+    "fecha": "2026-10-08",
+    "concepto": "Clientes por suscripciones saas (DTE-2026-315, cobertura octubre)",
+    "soporte": "DTE-2026-315",
+    "origen": "AUTOMATICO",
+    "documento": "DTE-2026-315",
+    "tipo_evento": "VENTA",
+    "lineas": [
+     {
+      "cuenta": "110203",
+      "debe": "2542.50",
+      "haber": "0.00",
+      "auxiliar": null
+     },
+     {
+      "cuenta": "410402",
+      "debe": "0.00",
+      "haber": "2250.00",
+      "auxiliar": null
+     },
+     {
+      "cuenta": "210201",
+      "debe": "0.00",
+      "haber": "292.50",
+      "auxiliar": null
+     }
+    ]
+   },
+   {
+    "clave": "IN-2026-000002",
+    "folio": "IN-2026-000002",
+    "tipo": "IN",
+    "fecha": "2026-10-08",
+    "concepto": "Bancos (Comprobante bancario BC-2026-191)",
+    "soporte": "BC-2026-191",
+    "origen": "AUTOMATICO",
+    "documento": "BC-2026-191",
+    "tipo_evento": "COBRO",
+    "lineas": [
+     {
+      "cuenta": "110102",
+      "debe": "2542.50",
+      "haber": "0.00",
+      "auxiliar": null
+     },
+     {
+      "cuenta": "110203",
+      "debe": "0.00",
+      "haber": "2542.50",
+      "auxiliar": null
+     }
+    ]
+   },
+   {
+    "clave": "DI-2026-000003",
+    "folio": "DI-2026-000003",
+    "tipo": "DI",
+    "fecha": "2026-10-10",
+    "concepto": "Licencias de versiones liberadas (Acta LI-2026-04 y hoja de costos)",
+    "soporte": "LI-2026-04",
+    "origen": "AUTOMATICO",
+    "documento": null,
+    "tipo_evento": null,
+    "lineas": [
+     {
+      "cuenta": "110702",
+      "debe": "1380.00",
+      "haber": "0.00",
+      "auxiliar": null
+     },
+     {
+      "cuenta": "110701",
+      "debe": "0.00",
+      "haber": "1380.00",
+      "auxiliar": null
+     }
+    ]
+   },
+   {
+    "clave": "DI-2026-000004",
+    "folio": "DI-2026-000004",
+    "tipo": "DI",
+    "fecha": "2026-10-15",
+    "concepto": "Clientes por licencias descargables (DTE-2026-316, activaciones LI-2026-03)",
+    "soporte": "DTE-2026-316, LI-2026-03",
+    "origen": "AUTOMATICO",
+    "documento": "DTE-2026-316",
+    "tipo_evento": "VENTA",
+    "lineas": [
+     {
+      "cuenta": "110201",
+      "debe": "2644.20",
+      "haber": "0.00",
+      "auxiliar": null
+     },
+     {
+      "cuenta": "410602",
+      "debe": "0.00",
+      "haber": "2340.00",
+      "auxiliar": null
+     },
+     {
+      "cuenta": "210201",
+      "debe": "0.00",
+      "haber": "304.20",
+      "auxiliar": null
+     },
+     {
+      "cuenta": "510302",
+      "debe": "900.00",
+      "haber": "0.00",
+      "auxiliar": null
+     },
+     {
+      "cuenta": "110702",
+      "debe": "0.00",
+      "haber": "900.00",
+      "auxiliar": null
+     }
+    ]
+   },
+   {
+    "clave": "DI-2026-000005",
+    "folio": "DI-2026-000005",
+    "tipo": "DI",
+    "fecha": "2026-10-17",
+    "concepto": "Servicios en proceso (Planilla de octubre de Proyectos y Desarrollo, horas y centros de costo aprobados; ISSS con base máxima de $1,000.00 por trabajador)",
+    "soporte": "Planilla de octubre de Proyectos y Desarrollo, horas y centros de costo aprobados; ISSS con base máxima de $1,000.00 por trabajador",
+    "origen": "AUTOMATICO",
+    "documento": null,
+    "tipo_evento": null,
+    "lineas": [
+     {
+      "cuenta": "110501",
+      "debe": "6740.50",
+      "haber": "0.00",
+      "auxiliar": null
+     },
+     {
+      "cuenta": "510202",
+      "debe": "640.97",
+      "haber": "0.00",
+      "auxiliar": null
+     },
+     {
+      "cuenta": "510401",
+      "debe": "2517.28",
+      "haber": "0.00",
+      "auxiliar": null
+     },
+     {
+      "cuenta": "610201",
+      "debe": "2044.38",
+      "haber": "0.00",
+      "auxiliar": null
+     },
+     {
+      "cuenta": "610101",
+      "debe": "6080.62",
+      "haber": "0.00",
+      "auxiliar": null
+     },
+     {
+      "cuenta": "210301",
+      "debe": "0.00",
+      "haber": "13171.25",
+      "auxiliar": null
+     },
+     {
+      "cuenta": "210401",
+      "debe": "0.00",
+      "haber": "405.00",
+      "auxiliar": null
+     },
+     {
+      "cuenta": "210402",
+      "debe": "0.00",
+      "haber": "1012.50",
+      "auxiliar": null
+     },
+     {
+      "cuenta": "210501",
+      "debe": "0.00",
+      "haber": "1123.75",
+      "auxiliar": null
+     },
+     {
+      "cuenta": "210502",
+      "debe": "0.00",
+      "haber": "1356.25",
+      "auxiliar": null
+     },
+     {
+      "cuenta": "210801",
+      "debe": "0.00",
+      "haber": "155.00",
+      "auxiliar": null
+     },
+     {
+      "cuenta": "210205",
+      "debe": "0.00",
+      "haber": "800.00",
+      "auxiliar": null
+     }
+    ]
+   },
+   {
+    "clave": "EG-2026-000001",
+    "folio": "EG-2026-000001",
+    "tipo": "EG",
+    "fecha": "2026-10-20",
+    "concepto": "Remuneraciones netas por pagar (Transferencia de planilla TP-2026-10)",
+    "soporte": "TP-2026-10",
+    "origen": "AUTOMATICO",
+    "documento": null,
+    "tipo_evento": null,
+    "lineas": [
+     {
+      "cuenta": "210301",
+      "debe": "13171.25",
+      "haber": "0.00",
+      "auxiliar": null
+     },
+     {
+      "cuenta": "110102",
+      "debe": "0.00",
+      "haber": "13171.25",
+      "auxiliar": null
+     }
+    ]
+   },
+   {
+    "clave": "EG-2026-000002",
+    "folio": "EG-2026-000002",
+    "tipo": "EG",
+    "fecha": "2026-10-21",
+    "concepto": "ISSS laboral retenido (Planillas y recibos de entero)",
+    "soporte": "Planillas y recibos de entero",
+    "origen": "AUTOMATICO",
+    "documento": null,
+    "tipo_evento": null,
+    "lineas": [
+     {
+      "cuenta": "210401",
+      "debe": "405.00",
+      "haber": "0.00",
+      "auxiliar": null
+     },
+     {
+      "cuenta": "210402",
+      "debe": "1012.50",
+      "haber": "0.00",
+      "auxiliar": null
+     },
+     {
+      "cuenta": "210501",
+      "debe": "1123.75",
+      "haber": "0.00",
+      "auxiliar": null
+     },
+     {
+      "cuenta": "210502",
+      "debe": "1356.25",
+      "haber": "0.00",
+      "auxiliar": null
+     },
+     {
+      "cuenta": "210801",
+      "debe": "155.00",
+      "haber": "0.00",
+      "auxiliar": null
+     },
+     {
+      "cuenta": "110102",
+      "debe": "0.00",
+      "haber": "4052.50",
+      "auxiliar": null
+     }
+    ]
+   },
+   {
+    "clave": "EG-2026-000003",
+    "folio": "EG-2026-000003",
+    "tipo": "EG",
+    "fecha": "2026-10-22",
+    "concepto": "Alojamiento de aplicaciones saas (DTE de nube y comprobante bancario)",
+    "soporte": "DTE de nube y comprobante bancario",
+    "origen": "AUTOMATICO",
+    "documento": "ANEXOL-COMPRA-NUBE-OCT",
+    "tipo_evento": "COMPRA",
+    "lineas": [
+     {
+      "cuenta": "510201",
+      "debe": "1200.00",
+      "haber": "0.00",
+      "auxiliar": null
+     },
+     {
+      "cuenta": "110301",
+      "debe": "156.00",
+      "haber": "0.00",
+      "auxiliar": null
+     },
+     {
+      "cuenta": "110102",
+      "debe": "0.00",
+      "haber": "1356.00",
+      "auxiliar": null
+     }
+    ]
+   },
+   {
+    "clave": "EG-2026-000004",
+    "folio": "EG-2026-000004",
+    "tipo": "EG",
+    "fecha": "2026-10-24",
+    "concepto": "Alquiler y servicios administrativos (CCF de arrendamiento y pago)",
+    "soporte": "CCF de arrendamiento y pago",
+    "origen": "AUTOMATICO",
+    "documento": "ANEXOL-COMPRA-RENTA-OCT",
+    "tipo_evento": "COMPRA",
+    "lineas": [
+     {
+      "cuenta": "610102",
+      "debe": "1200.00",
+      "haber": "0.00",
+      "auxiliar": null
+     },
+     {
+      "cuenta": "110301",
+      "debe": "156.00",
+      "haber": "0.00",
+      "auxiliar": null
+     },
+     {
+      "cuenta": "110102",
+      "debe": "0.00",
+      "haber": "1356.00",
+      "auxiliar": null
+     }
+    ]
+   },
+   {
+    "clave": "DI-2026-000006",
+    "folio": "DI-2026-000006",
+    "tipo": "DI",
+    "fecha": "2026-10-28",
+    "concepto": "Clientes por licencias descargables (DTE-2026-317, activaciones LI-2026-03)",
+    "soporte": "DTE-2026-317, LI-2026-03",
+    "origen": "AUTOMATICO",
+    "documento": "DTE-2026-317",
+    "tipo_evento": "VENTA",
+    "lineas": [
+     {
+      "cuenta": "110201",
+      "debe": "1762.80",
+      "haber": "0.00",
+      "auxiliar": null
+     },
+     {
+      "cuenta": "410602",
+      "debe": "0.00",
+      "haber": "1560.00",
+      "auxiliar": null
+     },
+     {
+      "cuenta": "210201",
+      "debe": "0.00",
+      "haber": "202.80",
+      "auxiliar": null
+     },
+     {
+      "cuenta": "510302",
+      "debe": "600.00",
+      "haber": "0.00",
+      "auxiliar": null
+     },
+     {
+      "cuenta": "110702",
+      "debe": "0.00",
+      "haber": "600.00",
+      "auxiliar": null
+     }
+    ]
+   },
+   {
+    "clave": "IN-2026-000003",
+    "folio": "IN-2026-000003",
+    "tipo": "IN",
+    "fecha": "2026-10-30",
+    "concepto": "Bancos (DTE-2026-318, cobertura nov. 2026 a abr. 2027)",
+    "soporte": "DTE-2026-318",
+    "origen": "AUTOMATICO",
+    "documento": "DTE-2026-318",
+    "tipo_evento": "ANTICIPO",
+    "lineas": [
+     {
+      "cuenta": "110102",
+      "debe": "4068.00",
+      "haber": "0.00",
+      "auxiliar": null
+     },
+     {
+      "cuenta": "210704",
+      "debe": "0.00",
+      "haber": "3600.00",
+      "auxiliar": null
+     },
+     {
+      "cuenta": "210201",
+      "debe": "0.00",
+      "haber": "468.00",
+      "auxiliar": null
+     }
+    ]
+   },
+   {
+    "clave": "DI-2026-000007",
+    "folio": "DI-2026-000007",
+    "tipo": "DI",
+    "fecha": "2026-10-31",
+    "concepto": "Mano de obra directa de proyectos (hoja de costo OS-2026-014 y acta de aceptación)",
+    "soporte": "OS-2026-014",
+    "origen": "AUTOMATICO",
+    "documento": null,
+    "tipo_evento": null,
+    "lineas": [
+     {
+      "cuenta": "510101",
+      "debe": "3384.00",
+      "haber": "0.00",
+      "auxiliar": "OS-2026-014"
+     },
+     {
+      "cuenta": "510102",
+      "debe": "900.00",
+      "haber": "0.00",
+      "auxiliar": "OS-2026-014"
+     },
+     {
+      "cuenta": "510103",
+      "debe": "846.00",
+      "haber": "0.00",
+      "auxiliar": "OS-2026-014"
+     },
+     {
+      "cuenta": "110501",
+      "debe": "0.00",
+      "haber": "3384.00",
+      "auxiliar": "OS-2026-014"
+     },
+     {
+      "cuenta": "110502",
+      "debe": "0.00",
+      "haber": "900.00",
+      "auxiliar": "OS-2026-014"
+     },
+     {
+      "cuenta": "110503",
+      "debe": "0.00",
+      "haber": "846.00",
+      "auxiliar": "OS-2026-014"
+     }
+    ]
+   },
+   {
+    "clave": "AJ-2026-000001",
+    "folio": "AJ-2026-000001",
+    "tipo": "AJ",
+    "fecha": "2026-10-31",
+    "concepto": "Depreciación administrativa (Cédula de activos fijos de octubre; vidas útiles de IX.Q (3, 4 y 5 años))",
+    "soporte": "Cédula de activos fijos de octubre; vidas útiles de IX.Q (3, 4 y 5 años)",
+    "origen": "MANUAL",
+    "documento": null,
+    "tipo_evento": null,
+    "lineas": [
+     {
+      "cuenta": "610104",
+      "debe": "787.50",
+      "haber": "0.00",
+      "auxiliar": null
+     },
+     {
+      "cuenta": "520103",
+      "debe": "118.75",
+      "haber": "0.00",
+      "auxiliar": null
+     },
+     {
+      "cuenta": "120201",
+      "debe": "0.00",
+      "haber": "687.50",
+      "auxiliar": null
+     },
+     {
+      "cuenta": "120202",
+      "debe": "0.00",
+      "haber": "118.75",
+      "auxiliar": null
+     },
+     {
+      "cuenta": "120203",
+      "debe": "0.00",
+      "haber": "100.00",
+      "auxiliar": null
+     }
+    ]
+   },
+   {
+    "clave": "AJ-2026-000002",
+    "folio": "AJ-2026-000002",
+    "tipo": "AJ",
+    "fecha": "2026-10-31",
+    "concepto": "IVA débito fiscal (Libro de IVA; crédito aplicado de $514.80 = $312.00 de octubre + $202.80 de períodos anteriores)",
+    "soporte": "Libro de IVA; crédito aplicado de $514.80 = $312.00 de octubre + $202.80 de períodos anteriores",
+    "origen": "MANUAL",
+    "documento": null,
+    "tipo_evento": null,
+    "lineas": [
+     {
+      "cuenta": "210201",
+      "debe": "2359.50",
+      "haber": "0.00",
+      "auxiliar": null
+     },
+     {
+      "cuenta": "110301",
+      "debe": "0.00",
+      "haber": "514.80",
+      "auxiliar": null
+     },
+     {
+      "cuenta": "210202",
+      "debe": "0.00",
+      "haber": "1844.70",
+      "auxiliar": null
+     }
+    ]
+   },
+   {
+    "clave": "AJ-2026-000003",
+    "folio": "AJ-2026-000003",
+    "tipo": "AJ",
+    "fecha": "2026-10-31",
+    "concepto": "Gasto por ISR corriente (Conciliación fiscal interna acumulada)",
+    "soporte": "Conciliación fiscal interna acumulada",
+    "origen": "MANUAL",
+    "documento": null,
+    "tipo_evento": null,
+    "lineas": [
+     {
+      "cuenta": "710201",
+      "debe": "12133.88",
+      "haber": "0.00",
+      "auxiliar": null
+     },
+     {
+      "cuenta": "210204",
+      "debe": "0.00",
+      "haber": "12133.88",
+      "auxiliar": null
+     }
+    ]
+   },
+   {
+    "clave": "AJ-2026-000004",
+    "folio": "AJ-2026-000004",
+    "tipo": "AJ",
+    "fecha": "2026-10-31",
+    "concepto": "ISR corriente por pagar (Aplicación parcial de créditos de ISR con constancia; ver nota de ISR)",
+    "soporte": "Aplicación parcial de créditos de ISR con constancia; ver nota de ISR",
+    "origen": "MANUAL",
+    "documento": null,
+    "tipo_evento": null,
+    "lineas": [
+     {
+      "cuenta": "210204",
+      "debe": "8350.00",
+      "haber": "0.00",
+      "auxiliar": null
+     },
+     {
+      "cuenta": "110302",
+      "debe": "0.00",
+      "haber": "6230.00",
+      "auxiliar": null
+     },
+     {
+      "cuenta": "110303",
+      "debe": "0.00",
+      "haber": "2120.00",
+      "auxiliar": null
+     }
+    ]
+   }
+  ],
+  "folio_secuencia": [
+   {
+    "anio": 2026,
+    "tipo": "AJ",
+    "ultimo": 4
+   },
+   {
+    "anio": 2026,
+    "tipo": "AP",
+    "ultimo": 1
+   },
+   {
+    "anio": 2026,
+    "tipo": "DI",
+    "ultimo": 7
+   },
+   {
+    "anio": 2026,
+    "tipo": "EG",
+    "ultimo": 4
+   },
+   {
+    "anio": 2026,
+    "tipo": "IN",
+    "ultimo": 3
+   }
+  ],
+  "producto_versiones": [
+   {
+    "producto": "COL-INV",
+    "version": "2.0",
+    "estado": "LIBERADA"
+   }
+  ],
+  "lotes": [
+   {
+    "codigo_lote": "LI-2026-03",
+    "version": "2.0",
+    "unidades_estimadas": 18,
+    "costo_total": "1800.00",
+    "costo_unitario": "100.00",
+    "unidades_disponibles": 3,
+    "fecha_liberacion": "2026-09-15",
+    "folio": null,
+    "licencias": [
+     {
+      "numero": 1,
+      "costo_unitario": "100.00",
+      "estado": "ENTREGADA",
+      "cliente": "SIM-ANEXOL-DSM",
+      "documento": "DTE-2026-316",
+      "fecha": "2026-10-15"
+     },
+     {
+      "numero": 2,
+      "costo_unitario": "100.00",
+      "estado": "ENTREGADA",
+      "cliente": "SIM-ANEXOL-DSM",
+      "documento": "DTE-2026-316",
+      "fecha": "2026-10-15"
+     },
+     {
+      "numero": 3,
+      "costo_unitario": "100.00",
+      "estado": "ENTREGADA",
+      "cliente": "SIM-ANEXOL-DSM",
+      "documento": "DTE-2026-316",
+      "fecha": "2026-10-15"
+     },
+     {
+      "numero": 4,
+      "costo_unitario": "100.00",
+      "estado": "ENTREGADA",
+      "cliente": "SIM-ANEXOL-DSM",
+      "documento": "DTE-2026-316",
+      "fecha": "2026-10-15"
+     },
+     {
+      "numero": 5,
+      "costo_unitario": "100.00",
+      "estado": "ENTREGADA",
+      "cliente": "SIM-ANEXOL-DSM",
+      "documento": "DTE-2026-316",
+      "fecha": "2026-10-15"
+     },
+     {
+      "numero": 6,
+      "costo_unitario": "100.00",
+      "estado": "ENTREGADA",
+      "cliente": "SIM-ANEXOL-DSM",
+      "documento": "DTE-2026-316",
+      "fecha": "2026-10-15"
+     },
+     {
+      "numero": 7,
+      "costo_unitario": "100.00",
+      "estado": "ENTREGADA",
+      "cliente": "SIM-ANEXOL-DSM",
+      "documento": "DTE-2026-316",
+      "fecha": "2026-10-15"
+     },
+     {
+      "numero": 8,
+      "costo_unitario": "100.00",
+      "estado": "ENTREGADA",
+      "cliente": "SIM-ANEXOL-DSM",
+      "documento": "DTE-2026-316",
+      "fecha": "2026-10-15"
+     },
+     {
+      "numero": 9,
+      "costo_unitario": "100.00",
+      "estado": "ENTREGADA",
+      "cliente": "SIM-ANEXOL-DSM",
+      "documento": "DTE-2026-316",
+      "fecha": "2026-10-15"
+     },
+     {
+      "numero": 10,
+      "costo_unitario": "100.00",
+      "estado": "ENTREGADA",
+      "cliente": "SIM-ANEXOL-CLN",
+      "documento": "DTE-2026-317",
+      "fecha": "2026-10-28"
+     },
+     {
+      "numero": 11,
+      "costo_unitario": "100.00",
+      "estado": "ENTREGADA",
+      "cliente": "SIM-ANEXOL-CLN",
+      "documento": "DTE-2026-317",
+      "fecha": "2026-10-28"
+     },
+     {
+      "numero": 12,
+      "costo_unitario": "100.00",
+      "estado": "ENTREGADA",
+      "cliente": "SIM-ANEXOL-CLN",
+      "documento": "DTE-2026-317",
+      "fecha": "2026-10-28"
+     },
+     {
+      "numero": 13,
+      "costo_unitario": "100.00",
+      "estado": "ENTREGADA",
+      "cliente": "SIM-ANEXOL-CLN",
+      "documento": "DTE-2026-317",
+      "fecha": "2026-10-28"
+     },
+     {
+      "numero": 14,
+      "costo_unitario": "100.00",
+      "estado": "ENTREGADA",
+      "cliente": "SIM-ANEXOL-CLN",
+      "documento": "DTE-2026-317",
+      "fecha": "2026-10-28"
+     },
+     {
+      "numero": 15,
+      "costo_unitario": "100.00",
+      "estado": "ENTREGADA",
+      "cliente": "SIM-ANEXOL-CLN",
+      "documento": "DTE-2026-317",
+      "fecha": "2026-10-28"
+     },
+     {
+      "numero": 16,
+      "costo_unitario": "100.00",
+      "estado": "DISPONIBLE"
+     },
+     {
+      "numero": 17,
+      "costo_unitario": "100.00",
+      "estado": "DISPONIBLE"
+     },
+     {
+      "numero": 18,
+      "costo_unitario": "100.00",
+      "estado": "DISPONIBLE"
+     }
+    ]
+   },
+   {
+    "codigo_lote": "LI-2026-04",
+    "version": "2.0",
+    "unidades_estimadas": 12,
+    "costo_total": "1380.00",
+    "costo_unitario": "115.00",
+    "unidades_disponibles": 12,
+    "fecha_liberacion": "2026-10-10",
+    "folio": "DI-2026-000003",
+    "licencias": [
+     {
+      "numero": 1,
+      "costo_unitario": "115.00",
+      "estado": "DISPONIBLE"
+     },
+     {
+      "numero": 2,
+      "costo_unitario": "115.00",
+      "estado": "DISPONIBLE"
+     },
+     {
+      "numero": 3,
+      "costo_unitario": "115.00",
+      "estado": "DISPONIBLE"
+     },
+     {
+      "numero": 4,
+      "costo_unitario": "115.00",
+      "estado": "DISPONIBLE"
+     },
+     {
+      "numero": 5,
+      "costo_unitario": "115.00",
+      "estado": "DISPONIBLE"
+     },
+     {
+      "numero": 6,
+      "costo_unitario": "115.00",
+      "estado": "DISPONIBLE"
+     },
+     {
+      "numero": 7,
+      "costo_unitario": "115.00",
+      "estado": "DISPONIBLE"
+     },
+     {
+      "numero": 8,
+      "costo_unitario": "115.00",
+      "estado": "DISPONIBLE"
+     },
+     {
+      "numero": 9,
+      "costo_unitario": "115.00",
+      "estado": "DISPONIBLE"
+     },
+     {
+      "numero": 10,
+      "costo_unitario": "115.00",
+      "estado": "DISPONIBLE"
+     },
+     {
+      "numero": 11,
+      "costo_unitario": "115.00",
+      "estado": "DISPONIBLE"
+     },
+     {
+      "numero": 12,
+      "costo_unitario": "115.00",
+      "estado": "DISPONIBLE"
+     }
+    ]
+   }
+  ],
+  "ordenes": [
+   {
+    "codigo": "OS-2026-014",
+    "descripcion": "Desarrollo a medida; hito aceptado en octubre de 2026",
+    "cliente": "SIM-ANEXOL-CDEV",
+    "presupuesto": "5130.00",
+    "precio_venta": "8400.00",
+    "estado": "ENTREGADA",
+    "folio_consumos": "DI-2026-000007",
+    "supuesto_presupuesto": true,
+    "consumos": [
+     {
+      "tipo": "MOD",
+      "descripcion": "Mano de obra directa: 282 horas",
+      "cantidad": "282.00",
+      "tarifa": "12.00",
+      "importe": "3384.00"
+     },
+     {
+      "tipo": "SERVICIO",
+      "descripcion": "Servicios directos del proyecto",
+      "cantidad": "1.00",
+      "tarifa": "900.00",
+      "importe": "900.00"
+     },
+     {
+      "tipo": "CIF",
+      "descripcion": "CIF aplicado a $3.00 por hora",
+      "cantidad": "282.00",
+      "tarifa": "3.00",
+      "importe": "846.00"
+     }
+    ]
+   }
+  ],
+  "activos_fijos": [
+   {
+    "codigo": "AF-COMPUTADORAS",
+    "nombre": "Computadoras y periféricos",
+    "cuenta_activo": "120101",
+    "cuenta_dep_acum": "120201",
+    "cuenta_gasto": "610104",
+    "costo": "24750.00",
+    "vida_meses": 36,
+    "fecha_uso": "2024-03-01",
+    "valor_residual": "0.00",
+    "depreciacion_acum": "10557.50",
+    "supuesto_fecha_uso": true
+   },
+   {
+    "codigo": "AF-SERVIDORES",
+    "nombre": "Servidores y equipos de red",
+    "cuenta_activo": "120102",
+    "cuenta_dep_acum": "120202",
+    "cuenta_gasto": "520103",
+    "costo": "5700.00",
+    "vida_meses": 48,
+    "fecha_uso": "2024-03-01",
+    "valor_residual": "0.00",
+    "depreciacion_acum": "2668.75",
+    "supuesto_fecha_uso": true
+   },
+   {
+    "codigo": "AF-MOBILIARIO",
+    "nombre": "Mobiliario y equipo de oficina",
+    "cuenta_activo": "120103",
+    "cuenta_dep_acum": "120203",
+    "cuenta_gasto": "610104",
+    "costo": "6000.00",
+    "vida_meses": 60,
+    "fecha_uso": "2024-03-01",
+    "valor_residual": "0.00",
+    "depreciacion_acum": "3100.00",
+    "supuesto_fecha_uso": true
+   }
+  ],
+  "cuotas_depreciacion": [
+   {
+    "activo": "AF-COMPUTADORAS",
+    "periodo_mes": 10,
+    "importe": "687.50",
+    "folio": "AJ-2026-000001"
+   },
+   {
+    "activo": "AF-SERVIDORES",
+    "periodo_mes": 10,
+    "importe": "118.75",
+    "folio": "AJ-2026-000001"
+   },
+   {
+    "activo": "AF-MOBILIARIO",
+    "periodo_mes": 10,
+    "importe": "100.00",
+    "folio": "AJ-2026-000001"
+   }
+  ],
+  "activos_intangibles": [
+   {
+    "codigo": "AI-SOFTWARE",
+    "nombre": "Software adquirido de uso interno",
+    "cuenta_activo": "120301",
+    "cuenta_amort_acum": "120401",
+    "cuenta_gasto": "610105",
+    "costo": "7200.00",
+    "vida_meses": 36,
+    "fecha_uso": "2026-02-01",
+    "valor_residual": "0.00",
+    "amortizacion_acum": "1800.00",
+    "supuesto_fecha_uso": true
+   }
+  ],
+  "planillas": [
+   {
+    "folio": "DI-2026-000005",
+    "periodo_mes": 10,
+    "fecha_contable": "2026-10-17",
+    "empleados": 15,
+    "salario_nominal": "15500.00",
+    "tasa_isss_laboral": "0.03",
+    "tasa_previsional_laboral": "0.07",
+    "isr_retenido": "800.00",
+    "otras_deducciones": "0.00",
+    "isss_laboral": "405.00",
+    "isss_patronal": "1012.50",
+    "previsional_laboral": "1123.75",
+    "previsional_patronal": "1356.25",
+    "incaf": "155.00",
+    "liquido_por_pagar": "13171.25",
+    "costo_patronal_total": "18023.75",
+    "tasa_isss_patronal": "0.08",
+    "tasa_previsional_patronal": "0.09",
+    "tasa_incaf": "0.01",
+    "umbral_incaf_empleados": 10,
+    "centro_costo": "CC-01",
+    "clave_evento": "PLANILLA-2026-10",
+    "supuesto": true,
+    "fuente": "Derivado de DI-2026-000005 (base previsional 7.25 %)"
+   }
+  ]
+ },
+ "tablas": {
+  "LXXVI": {
+   "id": "LXXVI",
+   "titulo": "HISTORIA OPERATIVA CONSOLIDADA DEL CASO",
+   "seccion": "A. Historia operativa consolidada",
+   "elemento": 1748,
+   "encabezados": [
+    "Período",
+    "Hecho operativo",
+    "Personal",
+    "Ingresos netos",
+    "Resultado"
+   ],
+   "filas": [
+    [
+     "2024",
+     "Inicio el 15 de enero; cinco personas, cinco laptops asignadas, una oficina híbrida y primeros contratos de desarrollo y soporte.",
+     "5",
+     "$118,400.00",
+     "Pérdida $(7,400.00)"
+    ],
+    [
+     "2025",
+     "Aporte de capital variable, separación de ventas y QA, crecimiento gradual de ocho a once personas y cierre de 24 clientes empresariales.",
+     "8 a 11",
+     "$300,000.00",
+     "Utilidad $40,000.00"
+    ],
+    [
+     "2026 al 31 oct.",
+     "Quince personas, cartera de 38 clientes activos, 25 con cobertura recurrente; control de costos por orden, SaaS y licencias digitales.",
+     "15",
+     "$356,000.00",
+     "Utilidad provisional $28,312.37"
+    ],
+    [
+     "Proyección 2026",
+     "Cierre basado en contratos ya firmados, renovaciones y capacidad disponible; no incorpora ventas hipotéticas.",
+     "15",
+     "$425,500.00",
+     "Sujeta a cierre anual"
+    ]
+   ]
+  },
+  "LXXVII": {
+   "id": "LXXVII",
+   "titulo": "RECURSOS OPERATIVOS A 31 DE OCTUBRE DE 2026",
+   "seccion": "B. Recursos aplicados a la operación diaria",
+   "elemento": 1769,
+   "encabezados": [
+    "Recurso",
+    "Cantidad o condición",
+    "Aplicación diaria y control"
+   ],
+   "filas": [
+    [
+     "Plantilla",
+     "15 trabajadores",
+     "Una Gerencia General, cinco personas en Proyectos y Desarrollo, tres en Implementación y Soporte, dos en Comercial y cuatro en Administración y Finanzas."
+    ],
+    [
+     "Equipos de uso interno",
+     "15 laptops asignadas",
+     "Una por trabajador; se controlan como activos fijos con ficha, número de serie, responsable y depreciación."
+    ],
+    [
+     "Reserva operativa",
+     "2 laptops compartidas",
+     "Se usan para contingencia, campo o sustitución temporal; no son inventario de venta."
+    ],
+    [
+     "Pruebas y continuidad",
+     "3 estaciones especializadas y un NAS",
+     "Pruebas de integración, copias de seguridad y recuperación; el acceso se restringe por rol."
+    ],
+    [
+     "Inventario comercial",
+     "Licencias digitales",
+     "Los derechos de uso liberados se controlan por producto, versión, lote y activación; no representan cajas ni copias físicas de software."
+    ],
+    [
+     "Compras para proyectos",
+     "Bajo contrato",
+     "Cualquier equipo solicitado por un cliente se compra contra orden aprobada y se entrega con evidencia; no se acumula stock de hardware sin demanda."
+    ]
+   ]
+  },
+  "LXXVIII": {
+   "id": "LXXVIII",
+   "titulo": "POLÍTICAS OPERATIVAS Y CONTABLES DEL CASO",
+   "seccion": "C. Políticas de registro aplicadas al caso",
+   "elemento": 1793,
+   "encabezados": [
+    "Área",
+    "Política aplicada"
+   ],
+   "filas": [
+    [
+     "Ingresos",
+     "Proyectos por hito aceptado; saas y soporte por mes servido; licencias cuando se transfiere el derecho de uso y se conserva evidencia de activación."
+    ],
+    [
+     "Crédito",
+     "Plazo normal de 15 a 30 días. El auxiliar de clientes incluye DTE, contrato, responsable, fecha de vencimiento, cobro aplicado y antigüedad."
+    ],
+    [
+     "Inventario digital",
+     "Sistema perpetuo y PEPS por lote de versión liberada. El costo incluye recursos de producción atribuibles y se descarga a costo de ventas al conceder la licencia."
+    ],
+    [
+     "Planilla",
+     "Se separan salarios, descuentos laborales, aportes patronales, retenciones y prestaciones devengadas. Los porcentajes y topes se validan contra la normativa vigente antes de cada pago."
+    ],
+    [
+     "IVA e ISR",
+     "El IVA se separa de ingresos y costos; el crédito requiere documento elegible. La provisión de ISR se calcula sobre conciliación fiscal anual y los pagos a cuenta o retenciones se controlan como activos tributarios."
+    ],
+    [
+     "Cierre",
+     "Mensualmente se concilian bancos, cartera, órdenes, inventario, impuestos, planilla y activos; los errores se corrigen por reversión o ajuste, nunca editando el asiento ya contabilizado."
+    ]
+   ]
+  },
+  "LXXIX": {
+   "id": "LXXIX",
+   "titulo": "KÁRDEX DE LICENCIAS COLIBRÍ INVENTARIOS VERSIÓN 2",
+   "seccion": "D. Ejercicio de inventario digital con PEPS",
+   "elemento": 1798,
+   "encabezados": [
+    "Fecha",
+    "Movimiento",
+    "Unidades",
+    "Costo unitario",
+    "Costo",
+    "Saldo"
+   ],
+   "filas": [
+    [
+     "15 sep.",
+     "Saldo inicial lote LI-2026-03",
+     "18",
+     "$100.00",
+     "$1,800.00",
+     "18 unidades por $1,800.00"
+    ],
+    [
+     "10 oct.",
+     "Liberación lote LI-2026-04",
+     "12",
+     "$115.00",
+     "$1,380.00",
+     "30 unidades por $3,180.00"
+    ],
+    [
+     "15 oct.",
+     "Salida PEPS a Distribuidora San Marcos",
+     "9",
+     "$100.00",
+     "$(900.00)",
+     "9 LI-2026-03 y 12 LI-2026-04"
+    ],
+    [
+     "28 oct.",
+     "Salida PEPS a Clínica Los Naranjos",
+     "6",
+     "$100.00",
+     "$(600.00)",
+     "3 LI-2026-03 y 12 LI-2026-04"
+    ],
+    [
+     "31 oct.",
+     "Existencia final",
+     "15",
+     "Mixto",
+     "$1,680.00",
+     "3 × $100.00 y 12 × $115.00"
+    ]
+   ]
+  },
+  "LXXX": {
+   "id": "LXXX",
+   "titulo": "EXTRACTO DEL LIBRO DIARIO DEL MES DE OCTUBRE DE 2026",
+   "seccion": "E. Libro diario formal del período y ajustes de corte",
+   "elemento": 1832,
+   "encabezados": [
+    "Fecha",
+    "N.º de partida",
+    "Código / Ref.",
+    "Cuenta y concepto",
+    "Debe",
+    "Haber"
+   ],
+   "filas": [
+    [
+     "02 oct.",
+     "DI-2026-000001",
+     "110202",
+     "Clientes por desarrollo a medida (DTE-2026-314, hito OS-2026-014 aceptado)",
+     "$9,492.00",
+     ""
+    ],
+    [
+     "",
+     "",
+     "410101",
+     "Ingresos por desarrollo contratado",
+     "",
+     "$8,400.00"
+    ],
+    [
+     "",
+     "",
+     "210201",
+     "IVA débito fiscal",
+     "",
+     "$1,092.00"
+    ],
+    [
+     "03 oct.",
+     "IN-2026-000001",
+     "110102",
+     "Bancos (Recibo BC-2026-188, aplicación parcial DTE-2026-278)",
+     "$4,746.00",
+     ""
+    ],
+    [
+     "",
+     "",
+     "110202",
+     "Clientes por desarrollo a medida",
+     "",
+     "$4,746.00"
+    ],
+    [
+     "08 oct.",
+     "DI-2026-000002",
+     "110203",
+     "Clientes por suscripciones saas (DTE-2026-315, cobertura octubre)",
+     "$2,542.50",
+     ""
+    ],
+    [
+     "",
+     "",
+     "410402",
+     "Ingresos saas Colibrí Inventarios",
+     "",
+     "$2,250.00"
+    ],
+    [
+     "",
+     "",
+     "210201",
+     "IVA débito fiscal",
+     "",
+     "$292.50"
+    ],
+    [
+     "08 oct.",
+     "IN-2026-000002",
+     "110102",
+     "Bancos (Comprobante bancario BC-2026-191)",
+     "$2,542.50",
+     ""
+    ],
+    [
+     "",
+     "",
+     "110203",
+     "Clientes por suscripciones saas",
+     "",
+     "$2,542.50"
+    ],
+    [
+     "10 oct.",
+     "DI-2026-000003",
+     "110702",
+     "Licencias de versiones liberadas (Acta LI-2026-04 y hoja de costos)",
+     "$1,380.00",
+     ""
+    ],
+    [
+     "",
+     "",
+     "110701",
+     "Versiones genéricas en producción",
+     "",
+     "$1,380.00"
+    ],
+    [
+     "15 oct.",
+     "DI-2026-000004",
+     "110201",
+     "Clientes por licencias descargables (DTE-2026-316, activaciones LI-2026-03)",
+     "$2,644.20",
+     ""
+    ],
+    [
+     "",
+     "",
+     "410602",
+     "Ingresos por licencias Colibrí Inventarios",
+     "",
+     "$2,340.00"
+    ],
+    [
+     "",
+     "",
+     "210201",
+     "IVA débito fiscal",
+     "",
+     "$304.20"
+    ],
+    [
+     "",
+     "",
+     "510302",
+     "Costo de licencias distribuidas",
+     "$900.00",
+     ""
+    ],
+    [
+     "",
+     "",
+     "110702",
+     "Licencias de versiones liberadas",
+     "",
+     "$900.00"
+    ],
+    [
+     "17 oct.",
+     "DI-2026-000005",
+     "110501",
+     "Servicios en proceso (Planilla de octubre de Proyectos y Desarrollo, horas y centros de costo aprobados; ISSS con base máxima de $1,000.00 por trabajador)",
+     "$6,740.50",
+     ""
+    ],
+    [
+     "",
+     "",
+     "510202",
+     "Soporte técnico de saas (82 ÷ 120 de la planilla del técnico de soporte)",
+     "$640.97",
+     ""
+    ],
+    [
+     "",
+     "",
+     "510401",
+     "Costo de soporte, mantenimiento e implementación (jefe de implementación, capacitador y resto del técnico de soporte)",
+     "$2,517.28",
+     ""
+    ],
+    [
+     "",
+     "",
+     "610201",
+     "Sueldos y comisiones comerciales",
+     "$2,044.38",
+     ""
+    ],
+    [
+     "",
+     "",
+     "610101",
+     "Sueldos y cargas administrativas",
+     "$6,080.62",
+     ""
+    ],
+    [
+     "",
+     "",
+     "210301",
+     "Remuneraciones netas por pagar",
+     "",
+     "$13,171.25"
+    ],
+    [
+     "",
+     "",
+     "210401",
+     "ISSS laboral retenido",
+     "",
+     "$405.00"
+    ],
+    [
+     "",
+     "",
+     "210402",
+     "ISSS patronal",
+     "",
+     "$1,012.50"
+    ],
+    [
+     "",
+     "",
+     "210501",
+     "Cotización previsional laboral",
+     "",
+     "$1,123.75"
+    ],
+    [
+     "",
+     "",
+     "210502",
+     "Cotización previsional patronal",
+     "",
+     "$1,356.25"
+    ],
+    [
+     "",
+     "",
+     "210801",
+     "INCAF por pagar",
+     "",
+     "$155.00"
+    ],
+    [
+     "",
+     "",
+     "210205",
+     "ISR retenido a trabajadores",
+     "",
+     "$800.00"
+    ],
+    [
+     "20 oct.",
+     "EG-2026-000001",
+     "210301",
+     "Remuneraciones netas por pagar (Transferencia de planilla TP-2026-10)",
+     "$13,171.25",
+     ""
+    ],
+    [
+     "",
+     "",
+     "110102",
+     "Bancos",
+     "",
+     "$13,171.25"
+    ],
+    [
+     "21 oct.",
+     "EG-2026-000002",
+     "210401",
+     "ISSS laboral retenido (Planillas y recibos de entero)",
+     "$405.00",
+     ""
+    ],
+    [
+     "",
+     "",
+     "210402",
+     "ISSS patronal",
+     "$1,012.50",
+     ""
+    ],
+    [
+     "",
+     "",
+     "210501",
+     "Cotización previsional laboral",
+     "$1,123.75",
+     ""
+    ],
+    [
+     "",
+     "",
+     "210502",
+     "Cotización previsional patronal",
+     "$1,356.25",
+     ""
+    ],
+    [
+     "",
+     "",
+     "210801",
+     "INCAF por pagar",
+     "$155.00",
+     ""
+    ],
+    [
+     "",
+     "",
+     "110102",
+     "Bancos",
+     "",
+     "$4,052.50"
+    ],
+    [
+     "22 oct.",
+     "EG-2026-000003",
+     "510201",
+     "Alojamiento de aplicaciones saas (DTE de nube y comprobante bancario)",
+     "$1,200.00",
+     ""
+    ],
+    [
+     "",
+     "",
+     "110301",
+     "IVA crédito fiscal",
+     "$156.00",
+     ""
+    ],
+    [
+     "",
+     "",
+     "110102",
+     "Bancos",
+     "",
+     "$1,356.00"
+    ],
+    [
+     "24 oct.",
+     "EG-2026-000004",
+     "610102",
+     "Alquiler y servicios administrativos (CCF de arrendamiento y pago)",
+     "$1,200.00",
+     ""
+    ],
+    [
+     "",
+     "",
+     "110301",
+     "IVA crédito fiscal",
+     "$156.00",
+     ""
+    ],
+    [
+     "",
+     "",
+     "110102",
+     "Bancos",
+     "",
+     "$1,356.00"
+    ],
+    [
+     "28 oct.",
+     "DI-2026-000006",
+     "110201",
+     "Clientes por licencias descargables (DTE-2026-317, activaciones LI-2026-03)",
+     "$1,762.80",
+     ""
+    ],
+    [
+     "",
+     "",
+     "410602",
+     "Ingresos por licencias Colibrí Inventarios",
+     "",
+     "$1,560.00"
+    ],
+    [
+     "",
+     "",
+     "210201",
+     "IVA débito fiscal",
+     "",
+     "$202.80"
+    ],
+    [
+     "",
+     "",
+     "510302",
+     "Costo de licencias distribuidas",
+     "$600.00",
+     ""
+    ],
+    [
+     "",
+     "",
+     "110702",
+     "Licencias de versiones liberadas",
+     "",
+     "$600.00"
+    ],
+    [
+     "30 oct.",
+     "IN-2026-000003",
+     "110102",
+     "Bancos (DTE-2026-318, cobertura nov. 2026 a abr. 2027)",
+     "$4,068.00",
+     ""
+    ],
+    [
+     "",
+     "",
+     "210704",
+     "Soporte y mantenimiento anticipado",
+     "",
+     "$3,600.00"
+    ],
+    [
+     "",
+     "",
+     "210201",
+     "IVA débito fiscal",
+     "",
+     "$468.00"
+    ],
+    [
+     "31 oct.",
+     "DI-2026-000007",
+     "510101",
+     "Mano de obra directa de proyectos (hoja de costo OS-2026-014 y acta de aceptación)",
+     "$3,384.00",
+     ""
+    ],
+    [
+     "",
+     "",
+     "510102",
+     "Servicios directos de proyectos",
+     "$900.00",
+     ""
+    ],
+    [
+     "",
+     "",
+     "510103",
+     "Indirectos aplicados a proyectos",
+     "$846.00",
+     ""
+    ],
+    [
+     "",
+     "",
+     "110501",
+     "Servicios en proceso: mano de obra directa de órdenes",
+     "",
+     "$3,384.00"
+    ],
+    [
+     "",
+     "",
+     "110502",
+     "Servicios en proceso: servicios directos de órdenes",
+     "",
+     "$900.00"
+    ],
+    [
+     "",
+     "",
+     "110503",
+     "Servicios en proceso: indirectos aplicados a órdenes",
+     "",
+     "$846.00"
+    ],
+    [
+     "31 oct.",
+     "AJ-2026-000001",
+     "610104",
+     "Depreciación administrativa (Cédula de activos fijos de octubre; vidas útiles de IX.Q (3, 4 y 5 años))",
+     "$787.50",
+     ""
+    ],
+    [
+     "",
+     "",
+     "520103",
+     "Depreciación técnica real",
+     "$118.75",
+     ""
+    ],
+    [
+     "",
+     "",
+     "120201",
+     "Depreciación acumulada de computadoras",
+     "",
+     "$687.50"
+    ],
+    [
+     "",
+     "",
+     "120202",
+     "Depreciación acumulada de servidores y red",
+     "",
+     "$118.75"
+    ],
+    [
+     "",
+     "",
+     "120203",
+     "Depreciación acumulada de mobiliario",
+     "",
+     "$100.00"
+    ],
+    [
+     "31 oct.",
+     "AJ-2026-000002",
+     "210201",
+     "IVA débito fiscal (Libro de IVA; crédito aplicado de $514.80 = $312.00 de octubre + $202.80 de períodos anteriores)",
+     "$2,359.50",
+     ""
+    ],
+    [
+     "",
+     "",
+     "110301",
+     "IVA crédito fiscal",
+     "",
+     "$514.80"
+    ],
+    [
+     "",
+     "",
+     "210202",
+     "IVA por pagar",
+     "",
+     "$1,844.70"
+    ],
+    [
+     "31 oct.",
+     "AJ-2026-000003",
+     "710201",
+     "Gasto por ISR corriente (Conciliación fiscal interna acumulada)",
+     "$12,133.88",
+     ""
+    ],
+    [
+     "",
+     "",
+     "210204",
+     "ISR corriente por pagar",
+     "",
+     "$12,133.88"
+    ],
+    [
+     "31 oct.",
+     "AJ-2026-000004",
+     "210204",
+     "ISR corriente por pagar (Aplicación parcial de créditos de ISR con constancia; ver nota de ISR)",
+     "$8,350.00",
+     ""
+    ],
+    [
+     "",
+     "",
+     "110302",
+     "Pago a cuenta de ISR",
+     "",
+     "$6,230.00"
+    ],
+    [
+     "",
+     "",
+     "110303",
+     "ISR retenido a favor",
+     "",
+     "$2,120.00"
+    ],
+    [
+     "",
+     "",
+     "",
+     "SUMAS IGUALES DEL EXTRACTO",
+     "$97,517.13",
+     "$97,517.13"
+    ]
+   ]
+  },
+  "LXXXI": {
+   "id": "LXXXI",
+   "titulo": "MAYOR DE CUENTAS SELECCIONADAS",
+   "seccion": "F. Libro mayor resumido",
+   "elemento": 1889,
+   "encabezados": [
+    "Código",
+    "Cuenta",
+    "Debe acumulado",
+    "Haber acumulado",
+    "Saldo deudor",
+    "Saldo acreedor"
+   ],
+   "filas": [
+    [
+     "110102",
+     "Bancos",
+     "$112,270.75",
+     "$19,935.75",
+     "$92,335.00",
+     ""
+    ],
+    [
+     "1102",
+     "Clientes",
+     "$50,212.28",
+     "$7,288.50",
+     "$42,923.78",
+     ""
+    ],
+    [
+     "110302",
+     "Pago a cuenta de ISR",
+     "$6,230.00",
+     "$6,230.00",
+     "$0.00",
+     ""
+    ],
+    [
+     "110303",
+     "ISR retenido a favor",
+     "$2,120.00",
+     "$2,120.00",
+     "$0.00",
+     ""
+    ],
+    [
+     "1105",
+     "Servicios en proceso (control de 110501 a 110503)",
+     "$20,744.25",
+     "$5,130.00",
+     "$15,614.25",
+     ""
+    ],
+    [
+     "110702",
+     "Inventario de licencias",
+     "$3,180.00",
+     "$1,500.00",
+     "$1,680.00",
+     ""
+    ],
+    [
+     "210704",
+     "Anticipos de soporte",
+     "$0.00",
+     "$7,950.00",
+     "",
+     "$7,950.00"
+    ],
+    [
+     "210202",
+     "IVA por pagar",
+     "$0.00",
+     "$1,844.70",
+     "",
+     "$1,844.70"
+    ],
+    [
+     "210204",
+     "ISR corriente por pagar",
+     "$8,350.00",
+     "$12,133.88",
+     "",
+     "$3,783.88"
+    ]
+   ]
+  },
+  "LXXXII": {
+   "id": "LXXXII",
+   "titulo": "CUENTAS T DE CUENTAS SELECCIONADAS, OCTUBRE DE 2026",
+   "seccion": "F. Libro mayor resumido",
+   "elemento": 1926,
+   "encabezados": [
+    "Cuenta",
+    "Debe",
+    "Haber",
+    "Saldo"
+   ],
+   "filas": [
+    [
+     "110102 Bancos",
+     "SI D 100,914.25; IN-2026-000001 4,746.00; IN-2026-000002 2,542.50; IN-2026-000003 4,068.00 (11,356.50)",
+     "EG-2026-000001 13,171.25; EG-2026-000002 4,052.50; EG-2026-000003 1,356.00; EG-2026-000004 1,356.00 (19,935.75)",
+     "92,335.00 D"
+    ],
+    [
+     "1102 Clientes",
+     "SI D 33,770.78; DI-2026-000001 9,492.00; DI-2026-000002 2,542.50; DI-2026-000004 2,644.20; DI-2026-000006 1,762.80 (16,441.50)",
+     "IN-2026-000001 4,746.00; IN-2026-000002 2,542.50 (7,288.50)",
+     "42,923.78 D"
+    ],
+    [
+     "1105 Servicios en proceso (110501 a 110503)",
+     "SI D 14,003.75; DI-2026-000005 6,740.50",
+     "DI-2026-000007 5,130.00",
+     "15,614.25 D"
+    ],
+    [
+     "110702 Inventario de licencias",
+     "SI D 1,800.00; DI-2026-000003 1,380.00",
+     "DI-2026-000004 900.00; DI-2026-000006 600.00 (1,500.00)",
+     "1,680.00 D"
+    ],
+    [
+     "210202 IVA por pagar",
+     "—",
+     "AJ-2026-000002 1,844.70",
+     "1,844.70 H"
+    ],
+    [
+     "210204 ISR corriente por pagar",
+     "AJ-2026-000004 8,350.00",
+     "AJ-2026-000003 12,133.88",
+     "3,783.88 H"
+    ]
+   ]
+  },
+  "LXXXIII": {
+   "id": "LXXXIII",
+   "titulo": "BALANZA DE COMPROBACIÓN AJUSTADA AL 31 DE OCTUBRE DE 2026",
+   "seccion": "G. Balanza de comprobación ajustada",
+   "elemento": 1939,
+   "encabezados": [
+    "Código",
+    "Cuenta",
+    "Debe",
+    "Haber"
+   ],
+   "filas": [
+    [
+     "110102",
+     "Bancos",
+     "$92,335.00",
+     ""
+    ],
+    [
+     "110201",
+     "Clientes por licencias descargables",
+     "$4,407.00",
+     ""
+    ],
+    [
+     "110202",
+     "Clientes por desarrollo a medida",
+     "$20,406.78",
+     ""
+    ],
+    [
+     "110203",
+     "Clientes por suscripciones saas",
+     "$9,510.00",
+     ""
+    ],
+    [
+     "110204",
+     "Clientes por soporte y otros servicios",
+     "$8,600.00",
+     ""
+    ],
+    [
+     "110401",
+     "Infraestructura y nube pagadas por anticipado",
+     "$5,210.00",
+     ""
+    ],
+    [
+     "1105",
+     "Servicios en proceso (control de 110501 a 110503)",
+     "$15,614.25",
+     ""
+    ],
+    [
+     "110702",
+     "Licencias de versiones liberadas",
+     "$1,680.00",
+     ""
+    ],
+    [
+     "120101",
+     "Computadoras y periféricos",
+     "$24,750.00",
+     ""
+    ],
+    [
+     "120102",
+     "Servidores y equipos de red",
+     "$5,700.00",
+     ""
+    ],
+    [
+     "120103",
+     "Mobiliario y equipo de oficina",
+     "$6,000.00",
+     ""
+    ],
+    [
+     "120301",
+     "Software adquirido de uso interno",
+     "$7,200.00",
+     ""
+    ],
+    [
+     "120201",
+     "Depreciación acumulada de computadoras",
+     "",
+     "$10,557.50"
+    ],
+    [
+     "120202",
+     "Depreciación acumulada de servidores y red",
+     "",
+     "$2,668.75"
+    ],
+    [
+     "120203",
+     "Depreciación acumulada de mobiliario",
+     "",
+     "$3,100.00"
+    ],
+    [
+     "120401",
+     "Amortización acumulada de software",
+     "",
+     "$1,800.00"
+    ],
+    [
+     "210101",
+     "Proveedores de bienes y herramientas",
+     "",
+     "$12,800.00"
+    ],
+    [
+     "210202",
+     "IVA por pagar",
+     "",
+     "$1,844.70"
+    ],
+    [
+     "210204",
+     "ISR corriente por pagar",
+     "",
+     "$3,783.88"
+    ],
+    [
+     "210205",
+     "ISR retenido a trabajadores",
+     "",
+     "$800.00"
+    ],
+    [
+     "210601",
+     "Vacaciones devengadas (recargo de 30 %)",
+     "",
+     "$1,937.50"
+    ],
+    [
+     "210602",
+     "Aguinaldo devengado",
+     "",
+     "$6,458.33"
+    ],
+    [
+     "210704",
+     "Soporte y mantenimiento anticipado",
+     "",
+     "$7,950.00"
+    ],
+    [
+     "210803",
+     "Honorarios y servicios devengados",
+     "",
+     "$2,000.00"
+    ],
+    [
+     "220101",
+     "Deuda financiera a largo plazo",
+     "",
+     "$9,800.00"
+    ],
+    [
+     "310101",
+     "Capital mínimo fijo",
+     "",
+     "$30,000.00"
+    ],
+    [
+     "310102",
+     "Capital variable",
+     "",
+     "$45,000.00"
+    ],
+    [
+     "310201",
+     "Reserva legal",
+     "",
+     "$2,800.00"
+    ],
+    [
+     "310301",
+     "Utilidades acumuladas",
+     "",
+     "$29,800.00"
+    ],
+    [
+     "410101",
+     "Ingresos por desarrollo a medida",
+     "",
+     "$214,600.00"
+    ],
+    [
+     "410201",
+     "Ingresos por soporte y mantenimiento",
+     "",
+     "$33,400.00"
+    ],
+    [
+     "410301",
+     "Ingresos por implementación y consultoría",
+     "",
+     "$12,800.00"
+    ],
+    [
+     "410402",
+     "Ingresos saas Colibrí Inventarios",
+     "",
+     "$71,200.00"
+    ],
+    [
+     "410602",
+     "Ingresos por licencias Colibrí Inventarios",
+     "",
+     "$24,000.00"
+    ],
+    [
+     "510101",
+     "Mano de obra directa de proyectos",
+     "$72,000.00",
+     ""
+    ],
+    [
+     "510102",
+     "Servicios directos de proyectos",
+     "$32,190.00",
+     ""
+    ],
+    [
+     "510103",
+     "Indirectos aplicados a proyectos",
+     "$18,000.00",
+     ""
+    ],
+    [
+     "510201",
+     "Alojamiento de aplicaciones saas",
+     "$12,000.00",
+     ""
+    ],
+    [
+     "510202",
+     "Soporte técnico de saas",
+     "$6,705.78",
+     ""
+    ],
+    [
+     "510203",
+     "Infraestructura compartida saas",
+     "$6,400.00",
+     ""
+    ],
+    [
+     "510302",
+     "Costo de licencias distribuidas",
+     "$9,400.00",
+     ""
+    ],
+    [
+     "510401",
+     "Costo de soporte, mantenimiento e implementación",
+     "$26,339.22",
+     ""
+    ],
+    [
+     "520103",
+     "Depreciación técnica real (control temporal 5201)",
+     "$118.75",
+     ""
+    ],
+    [
+     "610101",
+     "Sueldos y cargas administrativas",
+     "$63,650.00",
+     ""
+    ],
+    [
+     "610102",
+     "Alquiler y servicios administrativos",
+     "$12,100.00",
+     ""
+    ],
+    [
+     "610103",
+     "Honorarios administrativos",
+     "$9,300.00",
+     ""
+    ],
+    [
+     "610104",
+     "Depreciación administrativa",
+     "$5,757.50",
+     ""
+    ],
+    [
+     "610105",
+     "Amortización de software interno",
+     "$1,800.00",
+     ""
+    ],
+    [
+     "610106",
+     "Otros gastos administrativos",
+     "$6,700.00",
+     ""
+    ],
+    [
+     "610201",
+     "Sueldos y comisiones comerciales",
+     "$21,492.50",
+     ""
+    ],
+    [
+     "610202",
+     "Publicidad y campañas",
+     "$4,200.00",
+     ""
+    ],
+    [
+     "610203",
+     "Visitas y demostraciones",
+     "$2,100.00",
+     ""
+    ],
+    [
+     "610204",
+     "Otros gastos de venta",
+     "$1,300.00",
+     ""
+    ],
+    [
+     "610303",
+     "Otros gastos operativos",
+     "$2,800.00",
+     ""
+    ],
+    [
+     "710102",
+     "Gastos financieros",
+     "$1,200.00",
+     ""
+    ],
+    [
+     "710201",
+     "Gasto por ISR corriente",
+     "$12,133.88",
+     ""
+    ],
+    [
+     "",
+     "SUMAS IGUALES",
+     "$529,100.66",
+     "$529,100.66"
+    ]
+   ]
+  },
+  "LXXXIV": {
+   "id": "LXXXIV",
+   "titulo": "ESTADO DE RESULTADOS ACUMULADO AL 31 DE OCTUBRE DE 2026",
+   "seccion": "H. Estados financieros internos",
+   "elemento": 2040,
+   "encabezados": [
+    "Concepto",
+    "Detalles",
+    "Parciales",
+    "Subtotales",
+    "Totales"
+   ],
+   "filas": [
+    [
+     "Ingresos por desarrollo a medida (410101)",
+     "$214,600.00",
+     "",
+     "",
+     ""
+    ],
+    [
+     "Ingresos por saas (410402)",
+     "$71,200.00",
+     "",
+     "",
+     ""
+    ],
+    [
+     "Ingresos por soporte y mantenimiento (410201)",
+     "$33,400.00",
+     "",
+     "",
+     ""
+    ],
+    [
+     "Ingresos por implementación y consultoría (410301)",
+     "$12,800.00",
+     "",
+     "",
+     ""
+    ],
+    [
+     "Ingresos por licencias digitales (410602)",
+     "$24,000.00",
+     "",
+     "",
+     ""
+    ],
+    [
+     "Ventas totales",
+     "",
+     "$356,000.00",
+     "",
+     ""
+    ],
+    [
+     "(−) Devoluciones sobre ventas (410701)",
+     "$0.00",
+     "",
+     "",
+     ""
+    ],
+    [
+     "(−) Descuentos sobre ventas (410702)",
+     "$0.00",
+     "",
+     "",
+     ""
+    ],
+    [
+     "VENTAS NETAS (ec. 5)",
+     "",
+     "",
+     "$356,000.00",
+     ""
+    ],
+    [
+     "Costo de servicios a medida (5101)",
+     "$122,190.00",
+     "",
+     "",
+     ""
+    ],
+    [
+     "Costo de suscripciones saas (5102)",
+     "$25,105.78",
+     "",
+     "",
+     ""
+    ],
+    [
+     "Costo de soporte, mantenimiento e implementación (5104)",
+     "$26,339.22",
+     "",
+     "",
+     ""
+    ],
+    [
+     "Costo de licencias distribuidas (510302)",
+     "$9,400.00",
+     "",
+     "",
+     ""
+    ],
+    [
+     "Costos indirectos reales pendientes de aplicar (520103)",
+     "$118.75",
+     "",
+     "",
+     ""
+    ],
+    [
+     "Costo de ventas",
+     "",
+     "$183,153.75",
+     "",
+     ""
+    ],
+    [
+     "UTILIDAD BRUTA",
+     "",
+     "",
+     "",
+     "$172,846.25"
+    ],
+    [
+     "Gastos de administración (6101)",
+     "",
+     "$99,307.50",
+     "",
+     ""
+    ],
+    [
+     "Gastos de comercialización (6102)",
+     "",
+     "$29,092.50",
+     "",
+     ""
+    ],
+    [
+     "Otros gastos operativos (610303)",
+     "",
+     "$2,800.00",
+     "",
+     ""
+    ],
+    [
+     "Gastos de operación",
+     "",
+     "",
+     "$131,200.00",
+     ""
+    ],
+    [
+     "UTILIDAD DE OPERACIÓN",
+     "",
+     "",
+     "",
+     "$41,646.25"
+    ],
+    [
+     "Ingresos financieros y otros ingresos (710101, 710401)",
+     "$0.00",
+     "",
+     "",
+     ""
+    ],
+    [
+     "Gastos financieros (710102)",
+     "$(1,200.00)",
+     "",
+     "",
+     ""
+    ],
+    [
+     "Otros gastos (710402)",
+     "$0.00",
+     "",
+     "",
+     ""
+    ],
+    [
+     "Resultado financiero neto y otros",
+     "",
+     "",
+     "$(1,200.00)",
+     ""
+    ],
+    [
+     "UTILIDAD ANTES DE ISR",
+     "",
+     "",
+     "",
+     "$40,446.25"
+    ],
+    [
+     "Gasto por ISR corriente estimado (710201)",
+     "",
+     "",
+     "$(12,133.88)",
+     ""
+    ],
+    [
+     "UTILIDAD NETA DEL PERÍODO",
+     "",
+     "",
+     "",
+     "$28,312.37"
+    ]
+   ]
+  },
+  "LXXXV": {
+   "id": "LXXXV",
+   "titulo": "ESTADO DE SITUACIÓN FINANCIERA AL 31 DE OCTUBRE DE 2026",
+   "seccion": "H. Estados financieros internos",
+   "elemento": 2052,
+   "encabezados": [
+    "Activos",
+    "USD",
+    "Pasivos y patrimonio",
+    "USD"
+   ],
+   "filas": [
+    [
+     "ACTIVOS CORRIENTES",
+     "$157,763.03",
+     "PASIVOS CORRIENTES",
+     "$37,574.41"
+    ],
+    [
+     "Efectivo y bancos",
+     "$92,335.00",
+     "Proveedores",
+     "$12,800.00"
+    ],
+    [
+     "Cuentas por cobrar comerciales",
+     "$42,923.78",
+     "Tributos y retenciones por pagar",
+     "$6,428.58"
+    ],
+    [
+     "Diferidos: pagos anticipados",
+     "$5,210.00",
+     "Prestaciones devengadas",
+     "$8,395.83"
+    ],
+    [
+     "Servicios en proceso",
+     "$15,614.25",
+     "Soporte cobrado por anticipado",
+     "$7,950.00"
+    ],
+    [
+     "Inventario de licencias digitales",
+     "$1,680.00",
+     "Honorarios y servicios devengados",
+     "$2,000.00"
+    ],
+    [
+     "ACTIVOS NO CORRIENTES",
+     "$25,523.75",
+     "PASIVO NO CORRIENTE",
+     "$9,800.00"
+    ],
+    [
+     "Propiedad y equipo neto",
+     "$20,123.75",
+     "Deuda financiera a largo plazo",
+     "$9,800.00"
+    ],
+    [
+     "Software adquirido de uso interno neto",
+     "$5,400.00",
+     "PATRIMONIO",
+     "$135,912.37"
+    ],
+    [
+     "",
+     "",
+     "Capital social pagado",
+     "$75,000.00"
+    ],
+    [
+     "",
+     "",
+     "Reserva legal",
+     "$2,800.00"
+    ],
+    [
+     "",
+     "",
+     "Utilidades acumuladas",
+     "$29,800.00"
+    ],
+    [
+     "",
+     "",
+     "Utilidad del período",
+     "$28,312.37"
+    ],
+    [
+     "TOTAL ACTIVOS",
+     "$183,286.78",
+     "TOTAL PASIVOS Y PATRIMONIO",
+     "$183,286.78"
+    ]
+   ]
+  },
+  "LXXXVI": {
+   "id": "LXXXVI",
+   "titulo": "ESTADO DE CAMBIOS EN EL PATRIMONIO AL 31 DE OCTUBRE DE 2026",
+   "seccion": "H. Estados financieros internos",
+   "elemento": 2063,
+   "encabezados": [
+    "Movimiento",
+    "Capital",
+    "Reserva",
+    "Acumuladas",
+    "Resultado",
+    "Total"
+   ],
+   "filas": [
+    [
+     "Saldo al 1 de enero de 2026",
+     "$75,000.00",
+     "$2,800.00",
+     "$29,800.00",
+     "$0.00",
+     "$107,600.00"
+    ],
+    [
+     "Resultado acumulado enero a octubre",
+     "",
+     "",
+     "",
+     "$28,312.37",
+     "$28,312.37"
+    ],
+    [
+     "Distribuciones aprobadas",
+     "$0.00",
+     "$0.00",
+     "$0.00",
+     "$0.00",
+     "$0.00"
+    ],
+    [
+     "SALDO AL 31 DE OCTUBRE DE 2026",
+     "$75,000.00",
+     "$2,800.00",
+     "$29,800.00",
+     "$28,312.37",
+     "$135,912.37"
+    ]
+   ]
+  },
+  "LXXXVII": {
+   "id": "LXXXVII",
+   "titulo": "ESTADO DE FLUJOS DE EFECTIVO DIRECTO DE OCTUBRE DE 2026 (BANCOS)",
+   "seccion": "H. Estados financieros internos",
+   "elemento": 2069,
+   "encabezados": [
+    "Concepto",
+    "USD"
+   ],
+   "filas": [
+    [
+     "Cobros a clientes (IN-2026-000001 y 000002)",
+     "$7,288.50"
+    ],
+    [
+     "Cobro anticipado de soporte con IVA (IN-2026-000003)",
+     "$4,068.00"
+    ],
+    [
+     "Pago de remuneraciones netas (EG-2026-000001)",
+     "$(13,171.25)"
+    ],
+    [
+     "Pago de seguridad social y previsión (EG-2026-000002)",
+     "$(4,052.50)"
+    ],
+    [
+     "Pago de nube y alquiler con IVA (EG-2026-000003 y 000004)",
+     "$(2,712.00)"
+    ],
+    [
+     "FLUJO NETO DE OPERACIÓN",
+     "$(8,579.25)"
+    ],
+    [
+     "Actividades de inversión y de financiación",
+     "$0.00"
+    ],
+    [
+     "VARIACIÓN NETA DEL EFECTIVO",
+     "$(8,579.25)"
+    ],
+    [
+     "Efectivo al 1 de octubre de 2026",
+     "$100,914.25"
+    ],
+    [
+     "EFECTIVO AL 31 DE OCTUBRE DE 2026",
+     "$92,335.00"
+    ]
+   ]
+  },
+  "LXXXVIII": {
+   "id": "LXXXVIII",
+   "titulo": "MATRIZ DE CIERRE Y EVIDENCIA ACTUAL",
+   "seccion": "I. Conciliaciones y control de cierre",
+   "elemento": 2082,
+   "encabezados": [
+    "Rubro",
+    "Saldo o estado",
+    "Evidencia",
+    "Frecuencia"
+   ],
+   "filas": [
+    [
+     "Bancos",
+     "$92,335.00",
+     "Extracto bancario, comprobantes BC-2026-188 y BC-2026-191, conciliación firmada",
+     "Mensual"
+    ],
+    [
+     "Clientes",
+     "$42,923.78",
+     "DTE, contratos, actas y reporte de antigüedad por documento",
+     "Semanal y mensual"
+    ],
+    [
+     "Servicios en proceso",
+     "$15,614.25",
+     "Órdenes, horas aprobadas, recursos directos y avance de hitos",
+     "Mensual"
+    ],
+    [
+     "Inventario digital",
+     "$1,680.00",
+     "Lotes LI-2026-03 y LI-2026-04, activaciones y Kardex PEPS",
+     "Por cada salida y mensual"
+    ],
+    [
+     "Anticipos de soporte",
+     "$7,950.00",
+     "Contratos vigentes y calendario de cobertura pendiente",
+     "Mensual"
+    ],
+    [
+     "IVA",
+     "$1,844.70 por pagar",
+     "Libros de IVA, DTE emitidos/recibidos y liquidación AJ-2026-000002",
+     "Mensual"
+    ],
+    [
+     "ISR",
+     "$3,783.88 por pagar",
+     "Cédula fiscal, pagos a cuenta y constancias de retención",
+     "En cierre y anual"
+    ],
+    [
+     "Planilla",
+     "Sin sueldo neto pendiente",
+     "Planilla aprobada, enteros de ISSS/AFP/INCAF y provisiones laborales",
+     "Mensual"
+    ]
+   ]
+  },
+  "LXXXIX": {
+   "id": "LXXXIX",
+   "titulo": "CONDICIONES DEL ESTUDIO PARA EL COSTO ACUMULADO DE ENERO A OCTUBRE DE 2026",
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "elemento": 2096,
+   "encabezados": [
+    "Condición",
+    "Valor aplicado",
+    "Origen"
+   ],
+   "filas": [
+    [
+     "Período y corte",
+     "10 meses, de enero a octubre de 2026; corte al 31 de octubre; importes sin IVA",
+     "Introducción del anexo L; IX.A.5 (el IVA recuperable no es costo)"
+    ],
+    [
+     "Personal directo de proyectos",
+     "5 personas de Proyectos y Desarrollo (líder de proyectos y analista, 3 programadores y analista QA), con 120 horas productivas por persona y mes, durante los 10 meses",
+     "Tabla XXXV; VI. L"
+    ],
+    [
+     "Horas directas de proyectos",
+     "5 × 120 h × 10 meses = 6,000 h (3,600 de programación, 1,200 de análisis y dirección y 1,200 de pruebas)",
+     "(D)"
+    ],
+    [
+     "Tarifa estándar de MOD",
+     "$12.00 por hora",
+     "Tabla XXII"
+    ],
+    [
+     "Tasa de CIF",
+     "$3.00 por hora = $1,800.00 ÷ 600 h mensuales",
+     "Tabla XXII"
+    ],
+    [
+     "Servicios directos de proyectos (MPD)",
+     "Presupuesto de $36,000.00 anuales = $30,000.00 en 10 meses, a 15.00 % de los ingresos de desarrollo; real = 15.00 % × $214,600.00 = $32,190.00",
+     "Tabla XXXVI; (D)"
+    ],
+    [
+     "Soporte técnico de saas (MOD)",
+     "82 h por mes del técnico de soporte, de sus 120 h productivas (120 h × $71,200.00 ÷ ($71,200.00 + $33,400.00) = 81.68 h, por ingresos atendidos), a su costo laboral real de $981.33 por mes",
+     "Tablas XXXV y LXIX; (D)"
+    ],
+    [
+     "Soporte, mantenimiento e implementación (MOD)",
+     "Planilla real del jefe de implementación, el capacitador y el técnico de soporte: $3,304.50 por mes = $33,045.00 en 10 meses, menos $6,705.78 cargados a saas = $26,339.22",
+     "Tablas XXXV y LXIX; (D)"
+    ],
+    [
+     "Alojamiento de saas (MPD)",
+     "$1,200.00 por mes durante 10 meses",
+     "EG-2026-000003; cuenta 110401"
+    ],
+    [
+     "Infraestructura compartida de saas (CIF)",
+     "$640.00 por mes = 20.00 % (ingresos saas ÷ ventas) de $3,200.00 mensuales de infraestructura y depreciación no asignados a proyectos",
+     "Tablas XXII y XXXVI; (D)"
+    ],
+    [
+     "Usuarios-mes de saas",
+     "1,424 = $71,200.00 ÷ $50.00",
+     "Tabla LXXXIII"
+    ],
+    [
+     "Licencias distribuidas",
+     "94 licencias; lotes LI-2026-03 y LI-2026-04 costeados con las tarifas de la tabla XXII",
+     "Tabla LXXIX"
+    ],
+    [
+     "Cargas laborales de referencia",
+     "ISSS patronal 7.5 % con tope de $1,000.00 por trabajador; previsional patronal 8.75 %; INCAF 1 %; prestaciones de $48.75 por cada $900.00 de salario",
+     "IX.C.4; tabla LXIX; INCAF: ley del INCAF, art. 19, n.º 3 [32]"
+    ]
+   ]
+  },
+  "XC": {
+   "id": "XC",
+   "titulo": "COSTO DE SERVICIOS A MEDIDA POR ELEMENTO, ENERO A OCTUBRE DE 2026",
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "elemento": 2121,
+   "encabezados": [
+    "Elemento",
+    "Cuenta",
+    "Base y cálculo",
+    "USD",
+    "% del costo"
+   ],
+   "filas": [
+    [
+     "Mano de obra directa (MOD)",
+     "510101",
+     "6,000 h × $12.00",
+     "$72,000.00",
+     "58.92 %"
+    ],
+    [
+     "Servicios directos (MPD)",
+     "510102",
+     "15.00 % × $214,600.00",
+     "$32,190.00",
+     "26.34 %"
+    ],
+    [
+     "Indirectos aplicados (CIF)",
+     "510103",
+     "6,000 h × $3.00",
+     "$18,000.00",
+     "14.73 %"
+    ],
+    [
+     "Costo de servicios a medida",
+     "5101",
+     "Suma de los tres elementos",
+     "$122,190.00",
+     "100.00 %"
+    ]
+   ]
+  },
+  "XCI": {
+   "id": "XCI",
+   "titulo": "COSTO DE SUSCRIPCIONES SAAS POR ELEMENTO, ENERO A OCTUBRE DE 2026",
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "elemento": 2143,
+   "encabezados": [
+    "Elemento",
+    "Cuenta",
+    "Cálculo real",
+    "Real",
+    "Estándar (1,424 × tabla XXVIII)",
+    "Desviación (estándar − real)"
+   ],
+   "filas": [
+    [
+     "Alojamiento (MPD)",
+     "510201",
+     "10 × $1,200.00",
+     "$12,000.00",
+     "$8,544.00",
+     "−$3,456.00"
+    ],
+    [
+     "Soporte técnico (MOD)",
+     "510202",
+     "10 × 82 ÷ 120 × $981.33",
+     "$6,705.78",
+     "$17,088.00",
+     "$10,382.22"
+    ],
+    [
+     "Infraestructura compartida (CIF)",
+     "510203",
+     "10 × $640.00",
+     "$8,400.00",
+     "$9,968.00",
+     "$3,568.00"
+    ],
+    [
+     "Costo de suscripciones saas",
+     "5102",
+     "Suma",
+     "$25,105.78",
+     "$35,600.00",
+     "$10,494.22"
+    ]
+   ]
+  },
+  "XCII": {
+   "id": "XCII",
+   "titulo": "COSTO DE LOS LOTES DE LICENCIAS COLIBRÍ INVENTARIOS POR ELEMENTO",
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "elemento": 2164,
+   "encabezados": [
+    "Concepto",
+    "LI-2026-03",
+    "LI-2026-04"
+   ],
+   "filas": [
+    [
+     "Horas directas",
+     "100 h",
+     "80 h"
+    ],
+    [
+     "Mano de obra directa ($12.00 por hora)",
+     "$1,200.00",
+     "$960.00"
+    ],
+    [
+     "Servicios directos (MPD)",
+     "$300.00",
+     "$180.00"
+    ],
+    [
+     "Indirectos aplicados ($3.00 por hora)",
+     "$300.00",
+     "$240.00"
+    ],
+    [
+     "Costo del lote",
+     "$1,800.00",
+     "$1,380.00"
+    ],
+    [
+     "Licencias del lote",
+     "18",
+     "12"
+    ],
+    [
+     "Costo unitario",
+     "$100.00",
+     "$115.00"
+    ]
+   ]
+  },
+  "XCIII": {
+   "id": "XCIII",
+   "titulo": "RESUMEN DEL COSTO DE VENTAS POR ELEMENTO, ENERO A OCTUBRE DE 2026",
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "elemento": 2181,
+   "encabezados": [
+    "Elemento",
+    "Servicios a medida",
+    "Saas",
+    "Soporte e implementación",
+    "Licencias",
+    "CIF real pendiente",
+    "Total"
+   ],
+   "filas": [
+    [
+     "Mano de obra directa",
+     "$72,000.00",
+     "$6,705.78",
+     "$26,339.22",
+     "$6,266.67",
+     "—",
+     "$111,311.67"
+    ],
+    [
+     "Servicios directos (MPD)",
+     "$32,190.00",
+     "$12,000.00",
+     "—",
+     "$1,566.67",
+     "—",
+     "$45,756.67"
+    ],
+    [
+     "Indirectos (CIF)",
+     "$18,000.00",
+     "$6,400.00",
+     "—",
+     "$1,566.66",
+     "$118.75",
+     "$26,085.41"
+    ],
+    [
+     "Total",
+     "$122,190.00",
+     "$25,105.78",
+     "$26,339.22",
+     "$9,400.00",
+     "$118.75",
+     "$183,153.75"
+    ]
+   ]
+  },
+  "XCIV": {
+   "id": "XCIV",
+   "titulo": "CRITERIOS DE DERIVACIÓN Y LÍMITES QUE PERMANECEN, AL 31 DE OCTUBRE DE 2026",
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "elemento": 2194,
+   "encabezados": [
+    "Tema",
+    "Criterio aplicado y cifras",
+    "Límite que permanece"
+   ],
+   "filas": [
+    [
+     "Parámetros del caso",
+     "Servicios directos. 15.00 % × $214,600.00 = $32,190.00, la misma razón del presupuesto de la tabla XXXVI.\nSoporte saas. 82 h por mes del técnico (120 h × $71,200.00 ÷ ($71,200.00 + $33,400.00) = 81.68 h) a su costo real de $981.33 por mes: $6,705.78.\nInfraestructura saas. $640.00 por mes = 20.00 % de los $3,200.00 mensuales no asignados a proyectos: $6,400.00.",
+     "El reparto por ingresos es un criterio de asignación, no una medición de horas ni de consumo; un diario real de enero a septiembre lo sustituiría. El redondeo a 82 h y el reparto de las 79 licencias previas (tabla XCII) siguen siendo supuestos del caso (P)."
+    ],
+    [
+     "Soporte, mantenimiento, implementación y consultoría",
+     "Cuenta de costo. Los $46,200.00 de ingresos ($33,400.00 + $12,800.00) tienen la cuenta 5104. Su costo es la planilla real del jefe de implementación, el capacitador y el técnico de soporte ($33,045.00 en 10 meses) menos la parte del técnico cargada a saas ($6,705.78): $26,339.22.\nRegistro. DI-2026-000005 carga la planilla de esos puestos a 510401 ($2,517.28) y a 510202 ($640.97) y solo la de Proyectos y Desarrollo a 110501 ($6,740.50).\nMargen. ($46,200.00 − $26,339.22) ÷ $46,200.00 = 42.99 %.",
+     "No se aplica CIF: la tasa de $3.00 por hora se calculó sobre 600 horas de proyectos (tabla XXII). El costo se reconoce en el período y no se difiere por plan hasta el cierre de cada contrato."
+    ],
+    [
+     "Sueldos y cargas administrativas (610101)",
+     "Derivación. $6,365.00 por mes × 10 = $63,650.00: salarios $5,250.00, ISSS patronal $318.75, previsional $459.38, INCAF $52.50 y prestaciones $284.38 de las cinco personas de Administración y Gerencia (suma exacta antes de redondear).",
+     "Supone los cinco puestos ocupados los 10 meses, igual que en las demás áreas; si alguno se hubiera ocupado después, el gasto y las prestaciones bajarían en proporción."
+    ],
+    [
+     "ISR retenido a favor (110303)",
+     "Criterio. $2,120.00 de retenciones con constancia (0.60 % de las ventas), imputadas en AJ-2026-000004; no se registran créditos sin constancia. Como referencia, el 5 % del artículo 156-A sobre $24,000.00 de licencias sería $1,200.00 (IX.C.3).",
+     "Las constancias que lleguen después se imputan al recibirlas y reducen el ISR por pagar en la misma cuantía."
+    ],
+    [
+     "Prestaciones devengadas",
+     "Criterio. Base de $155,000.00 (quince puestos × 10 meses × $15,500.00 ÷ 10) ÷ $900.00 = 172.22 unidades: vacaciones $1,937.50 y aguinaldo $6,458.33, es decir $8,395.83.",
+     "Supone que no se pagaron vacaciones ni aguinaldo en el período."
+    ],
+    [
+     "Cierre de la balanza",
+     "Resultado. Con estos criterios la utilidad antes de ISR es $40,446.25 y A = P + C exige $3,334.08 más de activo que la suma de los saldos antes del ajuste.\nAbsorción. Clientes por desarrollo a medida (110202): saldo inicial de $15,660.78 en lugar de $12,326.70 y final de $20,406.78, es decir 0.84 meses de la facturación mensual con IVA ($24,249.80), por debajo de 110203 (1.18) y 110204 (1.65).",
+     "110202 es el único saldo de apertura de octubre fijado por diferencia (P). El reporte de antigüedad por documento, con el detalle de enero a septiembre, lo reemplazaría."
+    ]
+   ]
+  }
+ },
+ "advertencias": [
+  "Tabla XCI muestra infraestructura saas 8400.00 pero la balanza (510203) y el total usan 6400.00; se siembra 6400.00.",
+  "Cuenta 510401 no existe en el catálogo V2; se agrega en V20__catalogo_costo_soporte.sql."
+ ],
+ "notas": [
+  {
+   "elemento": 1741,
+   "seccion": "",
+   "texto": "Este anexo transforma las cifras aisladas del informe en una sola historia operativa coherente para Soluciones Empresariales Colibrí, S.A. de C.V."
+  },
+  {
+   "elemento": 1742,
+   "seccion": "",
+   "texto": "La entidad continúa siendo ficticia y los libros se presentan como formato formal de caso, no como registros oficiales ni declaraciones ante autoridad alguna."
+  },
+  {
+   "elemento": 1743,
+   "seccion": "",
+   "texto": "El corte de información es el 31 de octubre de 2026; todos los importes se expresan en dólares de los Estados Unidos y sin IVA, salvo cuando se indica lo contrario."
+  },
+  {
+   "elemento": 1745,
+   "seccion": "A. Historia operativa consolidada",
+   "texto": "La empresa inicia en enero de 2024 con una cartera pequeña de proyectos de desarrollo y mantenimiento. El crecimiento se financia con el capital inicial, la aportación de 2025 y la reinversión de resultados."
+  },
+  {
+   "elemento": 1746,
+   "seccion": "A. Historia operativa consolidada",
+   "texto": "La secuencia evita supuestos incompatibles con una pyme tecnológica: la capacidad se expande por personas, horas, infraestructura y licencias, no por compras masivas de computadoras o por inventario físico ajeno al giro."
+  },
+  {
+   "elemento": 1749,
+   "seccion": "A. Historia operativa consolidada",
+   "texto": "Trazabilidad de los valores."
+  },
+  {
+   "elemento": 1750,
+   "seccion": "A. Historia operativa consolidada",
+   "texto": "2024:"
+  },
+  {
+   "elemento": 1752,
+   "seccion": "A. Historia operativa consolidada",
+   "texto": "2025:"
+  },
+  {
+   "elemento": 1754,
+   "seccion": "A. Historia operativa consolidada",
+   "texto": "2026 al 31 de octubre:"
+  },
+  {
+   "elemento": 1756,
+   "seccion": "A. Historia operativa consolidada",
+   "texto": "(tabla LXXXIV)."
+  },
+  {
+   "elemento": 1757,
+   "seccion": "A. Historia operativa consolidada",
+   "texto": "Clientes: 38 activos en 2026 frente a 24 de 2025 (+58.33 %); 25 con cobertura recurrente = 65.79 %."
+  },
+  {
+   "elemento": 1758,
+   "seccion": "A. Historia operativa consolidada",
+   "texto": "Proyección:"
+  },
+  {
+   "elemento": 1760,
+   "seccion": "A. Historia operativa consolidada",
+   "texto": "(tabla V)."
+  },
+  {
+   "elemento": 1761,
+   "seccion": "A. Historia operativa consolidada",
+   "texto": "El capital social pagado asciende a $75,000.00: $30,000.00 del capital mínimo fijo al constituirse y $45,000.00 de capital variable aprobado en 2025."
+  },
+  {
+   "elemento": 1762,
+   "seccion": "A. Historia operativa consolidada",
+   "texto": "De la utilidad neta de 2025 se separa una reserva legal de $2,800.00, equivalente al 7 % de dicho resultado; la reserva se mantiene hasta alcanzar el límite legal aplicable. La pérdida de 2024 y el remanente de 2025 explican utilidades acumuladas de $29,800.00 al inicio de 2026."
+  },
+  {
+   "elemento": 1763,
+   "seccion": "A. Historia operativa consolidada",
+   "texto": "Verificación:"
+  },
+  {
+   "elemento": 1770,
+   "seccion": "B. Recursos aplicados a la operación diaria",
+   "texto": "Trazabilidad de los valores."
+  },
+  {
+   "elemento": 1771,
+   "seccion": "B. Recursos aplicados a la operación diaria",
+   "texto": "Computadoras:"
+  },
+  {
+   "elemento": 1774,
+   "seccion": "B. Recursos aplicados a la operación diaria",
+   "texto": "Suman $24,750.00 (120101)."
+  },
+  {
+   "elemento": 1779,
+   "seccion": "B. Recursos aplicados a la operación diaria",
+   "texto": "Igual al gasto 610105."
+  },
+  {
+   "elemento": 1780,
+   "seccion": "B. Recursos aplicados a la operación diaria",
+   "texto": "Los costos unitarios de $1,450.00 y $400.00 y las vidas de 48 y 60 meses son parámetros del caso que reproducen las cuotas de AJ-2026-000001."
+  },
+  {
+   "elemento": 1781,
+   "seccion": "B. Recursos aplicados a la operación diaria",
+   "texto": "Cada contrato tiene una orden de servicio, presupuesto, responsable técnico, hojas de tiempo aprobadas, hitos y evidencia de aceptación."
+  },
+  {
+   "elemento": 1782,
+   "seccion": "B. Recursos aplicados a la operación diaria",
+   "texto": "Responsabilidades:"
+  },
+  {
+   "elemento": 1783,
+   "seccion": "B. Recursos aplicados a la operación diaria",
+   "texto": "Comercial: sólo registra oportunidades y condiciones pactadas."
+  },
+  {
+   "elemento": 1784,
+   "seccion": "B. Recursos aplicados a la operación diaria",
+   "texto": "Desarrollo y Soporte: aportan horas, versiones, tickets y entregables."
+  },
+  {
+   "elemento": 1785,
+   "seccion": "B. Recursos aplicados a la operación diaria",
+   "texto": "Tesorería: aplica cobros a documentos concretos."
+  },
+  {
+   "elemento": 1786,
+   "seccion": "B. Recursos aplicados a la operación diaria",
+   "texto": "Contabilidad: revisa el expediente antes de contabilizar."
+  },
+  {
+   "elemento": 1787,
+   "seccion": "B. Recursos aplicados a la operación diaria",
+   "texto": "Autorizaciones de compra, conforme a VI.K:"
+  },
+  {
+   "elemento": 1788,
+   "seccion": "B. Recursos aplicados a la operación diaria",
+   "texto": "Compra no presupuestada mayor de $2,000.00: requiere dos cotizaciones o justificación."
+  },
+  {
+   "elemento": 1789,
+   "seccion": "B. Recursos aplicados a la operación diaria",
+   "texto": "Compromiso superior a $5,000.00 fuera del presupuesto: se eleva al Administrador Único."
+  },
+  {
+   "elemento": 1790,
+   "seccion": "B. Recursos aplicados a la operación diaria",
+   "texto": "Los demás casos: siguen la delegación de Gerencia."
+  },
+  {
+   "elemento": 1795,
+   "seccion": "D. Ejercicio de inventario digital con PEPS",
+   "texto": "El inventario del caso no incluye los portátiles de los trabajadores, porque son propiedad, planta y equipo. El ejercicio siguiente controla derechos de uso de Colibrí Inventarios por lote liberado."
+  },
+  {
+   "elemento": 1796,
+   "seccion": "D. Ejercicio de inventario digital con PEPS",
+   "texto": "Las ventas se verifican contra contrato, DTE, bitácora de descarga, clave asignada y aceptación del cliente."
+  },
+  {
+   "elemento": 1799,
+   "seccion": "D. Ejercicio de inventario digital con PEPS",
+   "texto": "Trazabilidad de los valores."
+  },
+  {
+   "elemento": 1800,
+   "seccion": "D. Ejercicio de inventario digital con PEPS",
+   "texto": "Saldo inicial LI-2026-03:"
+  },
+  {
+   "elemento": 1802,
+   "seccion": "D. Ejercicio de inventario digital con PEPS",
+   "texto": "(110702 al inicio de octubre)."
+  },
+  {
+   "elemento": 1803,
+   "seccion": "D. Ejercicio de inventario digital con PEPS",
+   "texto": "Lote LI-2026-04:"
+  },
+  {
+   "elemento": 1806,
+   "seccion": "D. Ejercicio de inventario digital con PEPS",
+   "texto": "(composición en L.J; es 15.00 % más que el lote anterior porque el lote reparte 80 horas entre 12 licencias y no 100 horas entre 18)."
+  },
+  {
+   "elemento": 1807,
+   "seccion": "D. Ejercicio de inventario digital con PEPS",
+   "texto": "Salidas PEPS:"
+  },
+  {
+   "elemento": 1810,
+   "seccion": "D. Ejercicio de inventario digital con PEPS",
+   "texto": "Existencia final:"
+  },
+  {
+   "elemento": 1812,
+   "seccion": "D. Ejercicio de inventario digital con PEPS",
+   "texto": "Ventas:"
+  },
+  {
+   "elemento": 1815,
+   "seccion": "D. Ejercicio de inventario digital con PEPS",
+   "texto": "El precio de lista de $260.00 deja un margen unitario de $160.00 (61.54 %) sobre el costo de $100.00."
+  },
+  {
+   "elemento": 1816,
+   "seccion": "D. Ejercicio de inventario digital con PEPS",
+   "texto": "Acumulado:"
+  },
+  {
+   "elemento": 1818,
+   "seccion": "D. Ejercicio de inventario digital con PEPS",
+   "texto": "(15 de octubre, 9 el día 15 y 6 el 28, y 79 previas)."
+  },
+  {
+   "elemento": 1819,
+   "seccion": "D. Ejercicio de inventario digital con PEPS",
+   "texto": "Los ingresos previos son:"
+  },
+  {
+   "elemento": 1821,
+   "seccion": "D. Ejercicio de inventario digital con PEPS",
+   "texto": "Es decir $254.43 por licencia, 2.14 % bajo la lista."
+  },
+  {
+   "elemento": 1822,
+   "seccion": "D. Ejercicio de inventario digital con PEPS",
+   "texto": "La liberación de octubre se registra debitando Inventario de licencias de versiones liberadas por $1,380.00 y acreditando Versiones genéricas en producción. Las dos salidas se registran contra costo de licencias distribuidas por $900.00 y $600.00, respectivamente."
+  },
+  {
+   "elemento": 1823,
+   "seccion": "D. Ejercicio de inventario digital con PEPS",
+   "texto": "La conciliación final de 15 activaciones disponibles y $1,680.00 coincide con el saldo de la cuenta 110702."
+  },
+  {
+   "elemento": 1825,
+   "seccion": "E. Libro diario formal del período y ajustes de corte",
+   "texto": "El extracto del Libro Diario sigue el formato del anexo J: fecha, número de partida, código, cuenta y concepto, Debe y Haber, con el soporte entre paréntesis."
+  },
+  {
+   "elemento": 1826,
+   "seccion": "E. Libro diario formal del período y ajustes de corte",
+   "texto": "Los folios aplican H02.06 (tipo y año, correlativo por tipo): IN y EG describen movimientos de efectivo y las ventas a crédito y el devengo de planilla son DI (H02.01); los correlativos se numeran dentro del extracto de octubre y no equivalen a los correlativos anuales continuos que asigna el sistema."
+  },
+  {
+   "elemento": 1827,
+   "seccion": "E. Libro diario formal del período y ajustes de corte",
+   "texto": "Las partidas están en orden cronológico y no incluyen los asientos de cierre de amortización de software, provisión de vacaciones y aguinaldo, devengo de soporte y consumo de anticipados, que el documento exige al cierre y que quedan fuera del extracto."
+  },
+  {
+   "elemento": 1828,
+   "seccion": "E. Libro diario formal del período y ajustes de corte",
+   "texto": "El asiento AJ-2026-000003 reconoce la provisión acumulada de ISR del ejercicio a la fecha de corte; la liquidación final queda sujeta a conciliación tributaria anual."
+  },
+  {
+   "elemento": 1829,
+   "seccion": "E. Libro diario formal del período y ajustes de corte",
+   "texto": "La tasa de 30 % es la del artículo 41 de la Ley de Impuesto sobre la Renta, que reserva el 25 % a los sujetos con rentas gravadas menores o iguales a $150,000.00 en el ejercicio [23]."
+  },
+  {
+   "elemento": 1830,
+   "seccion": "E. Libro diario formal del período y ajustes de corte",
+   "texto": "Las ventas acumuladas a octubre ($356,000.00, todas gravadas) ya superan ese límite, por lo que la tasa no depende de proyecciones."
+  },
+  {
+   "elemento": 1833,
+   "seccion": "E. Libro diario formal del período y ajustes de corte",
+   "texto": "Trazabilidad de los valores."
+  },
+  {
+   "elemento": 1834,
+   "seccion": "E. Libro diario formal del período y ajustes de corte",
+   "texto": "DI-1: hito de OS-2026-014:"
+  },
+  {
+   "elemento": 1836,
+   "seccion": "E. Libro diario formal del período y ajustes de corte",
+   "texto": "Total $9,492.00."
+  },
+  {
+   "elemento": 1837,
+   "seccion": "E. Libro diario formal del período y ajustes de corte",
+   "texto": "DI-2:"
+  },
+  {
+   "elemento": 1839,
+   "seccion": "E. Libro diario formal del período y ajustes de corte",
+   "texto": "IVA $292.50; total $2,542.50."
+  },
+  {
+   "elemento": 1840,
+   "seccion": "E. Libro diario formal del período y ajustes de corte",
+   "texto": "IN-1: cobro parcial de DTE-2026-278:"
+  },
+  {
+   "elemento": 1842,
+   "seccion": "E. Libro diario formal del período y ajustes de corte",
+   "texto": "IN-2: cobro de DTE-2026-315 por $2,542.50."
+  },
+  {
+   "elemento": 1843,
+   "seccion": "E. Libro diario formal del período y ajustes de corte",
+   "texto": "DI-3:"
+  },
+  {
+   "elemento": 1845,
+   "seccion": "E. Libro diario formal del período y ajustes de corte",
+   "texto": "DI-4:"
+  },
+  {
+   "elemento": 1847,
+   "seccion": "E. Libro diario formal del período y ajustes de corte",
+   "texto": "IVA $304.20; total $2,644.20."
+  },
+  {
+   "elemento": 1849,
+   "seccion": "E. Libro diario formal del período y ajustes de corte",
+   "texto": "DI-5:"
+  },
+  {
+   "elemento": 1850,
+   "seccion": "E. Libro diario formal del período y ajustes de corte",
+   "texto": "Planilla de $15,500.00 con ISSS laboral $405.00 (3 % × $13,500.00 cotizables, con tope de $1,000.00 por trabajador), previsional laboral $1,123.75 (7.25 % × $15,500.00), ISR retenido $800.00:"
+  },
+  {
+   "elemento": 1853,
+   "seccion": "E. Libro diario formal del período y ajustes de corte",
+   "texto": "Costo total:"
+  },
+  {
+   "elemento": 1855,
+   "seccion": "E. Libro diario formal del período y ajustes de corte",
+   "texto": "Distribuido en $6,740.50 (Proyectos y Desarrollo, 5 personas, a 110501), $3,158.25 (Implementación y Soporte, 3 personas: $640.97 a 510202, que es 82 ÷ 120 de la planilla del técnico de soporte de $938.00, y $2,517.28 a 510401), $2,044.38 (comercial, 2) y $6,080.62 (administración y gerencia, 5)."
+  },
+  {
+   "elemento": 1856,
+   "seccion": "E. Libro diario formal del período y ajustes de corte",
+   "texto": "Cada importe es la suma de salario más cargas, sin prestaciones, de los puestos de la tabla XXXV."
+  },
+  {
+   "elemento": 1857,
+   "seccion": "E. Libro diario formal del período y ajustes de corte",
+   "texto": "EG-1: pago de $13,171.25."
+  },
+  {
+   "elemento": 1858,
+   "seccion": "E. Libro diario formal del período y ajustes de corte",
+   "texto": "EG-2:"
+  },
+  {
+   "elemento": 1860,
+   "seccion": "E. Libro diario formal del período y ajustes de corte",
+   "texto": "EG-3 y EG-4:"
+  },
+  {
+   "elemento": 1862,
+   "seccion": "E. Libro diario formal del período y ajustes de corte",
+   "texto": "Cada uno."
+  },
+  {
+   "elemento": 1863,
+   "seccion": "E. Libro diario formal del período y ajustes de corte",
+   "texto": "DI-6:"
+  },
+  {
+   "elemento": 1865,
+   "seccion": "E. Libro diario formal del período y ajustes de corte",
+   "texto": "IVA $202.80; total $1,762.80."
+  },
+  {
+   "elemento": 1867,
+   "seccion": "E. Libro diario formal del período y ajustes de corte",
+   "texto": "IN-3:"
+  },
+  {
+   "elemento": 1869,
+   "seccion": "E. Libro diario formal del período y ajustes de corte",
+   "texto": "IVA $468.00; total $4,068.00."
+  },
+  {
+   "elemento": 1870,
+   "seccion": "E. Libro diario formal del período y ajustes de corte",
+   "texto": "DI-7:"
+  },
+  {
+   "elemento": 1871,
+   "seccion": "E. Libro diario formal del período y ajustes de corte",
+   "texto": "Costo de OS-2026-014:"
+  },
+  {
+   "elemento": 1873,
+   "seccion": "E. Libro diario formal del período y ajustes de corte",
+   "texto": "Los $4,230.00 de 282 horas × $15.00 son MOD más CIF"
+  },
+  {
+   "elemento": 1875,
+   "seccion": "E. Libro diario formal del período y ajustes de corte",
+   "texto": "Sobre la meta de 35 %."
+  },
+  {
+   "elemento": 1876,
+   "seccion": "E. Libro diario formal del período y ajustes de corte",
+   "texto": "AJ-1:"
+  },
+  {
+   "elemento": 1881,
+   "seccion": "E. Libro diario formal del período y ajustes de corte",
+   "texto": "AJ-2: ver conciliación de IVA."
+  },
+  {
+   "elemento": 1882,
+   "seccion": "E. Libro diario formal del período y ajustes de corte",
+   "texto": "AJ-3:"
+  },
+  {
+   "elemento": 1884,
+   "seccion": "E. Libro diario formal del período y ajustes de corte",
+   "texto": "AJ-4:"
+  },
+  {
+   "elemento": 1886,
+   "seccion": "E. Libro diario formal del período y ajustes de corte",
+   "texto": "Suma de cada lado: $97,517.13."
+  },
+  {
+   "elemento": 1890,
+   "seccion": "F. Libro mayor resumido",
+   "texto": "Trazabilidad de los valores."
+  },
+  {
+   "elemento": 1891,
+   "seccion": "F. Libro mayor resumido",
+   "texto": "Bancos:"
+  },
+  {
+   "elemento": 1893,
+   "seccion": "F. Libro mayor resumido",
+   "texto": "Haber $19,935.75; saldo $92,335.00."
+  },
+  {
+   "elemento": 1894,
+   "seccion": "F. Libro mayor resumido",
+   "texto": "Clientes:"
+  },
+  {
+   "elemento": 1896,
+   "seccion": "F. Libro mayor resumido",
+   "texto": "Haber $7,288.50; saldo $42,923.78."
+  },
+  {
+   "elemento": 1897,
+   "seccion": "F. Libro mayor resumido",
+   "texto": "110302:"
+  },
+  {
+   "elemento": 1899,
+   "seccion": "F. Libro mayor resumido",
+   "texto": "Haber $6,230.00 (AJ-4), saldo $0.00."
+  },
+  {
+   "elemento": 1900,
+   "seccion": "F. Libro mayor resumido",
+   "texto": "110303: Debe $2,120.00 (retenciones con constancia), Haber $2,120.00 (AJ-4), saldo $0.00."
+  },
+  {
+   "elemento": 1901,
+   "seccion": "F. Libro mayor resumido",
+   "texto": "1105 (control de 110501 a 110503):"
+  },
+  {
+   "elemento": 1903,
+   "seccion": "F. Libro mayor resumido",
+   "texto": "Haber $5,130.00 (DI-7: $3,384.00 + $900.00 + $846.00); saldo $15,614.25."
+  },
+  {
+   "elemento": 1904,
+   "seccion": "F. Libro mayor resumido",
+   "texto": "110702:"
+  },
+  {
+   "elemento": 1906,
+   "seccion": "F. Libro mayor resumido",
+   "texto": "Haber $1,500.00; saldo $1,680.00."
+  },
+  {
+   "elemento": 1907,
+   "seccion": "F. Libro mayor resumido",
+   "texto": "210704:"
+  },
+  {
+   "elemento": 1909,
+   "seccion": "F. Libro mayor resumido",
+   "texto": "Los acumulados suman el saldo inicial al 1 de octubre y el movimiento de octubre; el detalle de enero a septiembre no se reproduce. El saldo de Bancos se concilia con el extracto y el de Clientes por DTE, contrato y vencimiento."
+  },
+  {
+   "elemento": 1910,
+   "seccion": "F. Libro mayor resumido",
+   "texto": "El costo en proceso se descarga sólo cuando el hito de la orden queda aceptado; los anticipos de soporte continúan como pasivo mientras no se preste la cobertura."
+  },
+  {
+   "elemento": 1911,
+   "seccion": "F. Libro mayor resumido",
+   "texto": "Conciliación de Clientes. El diario de la tabla LXXX carga a 110201, 110202 y 110203 un total de $16,441.50 ($9,492.00 + $2,542.50 + $2,644.20 + $1,762.80) y abona $7,288.50 ($4,746.00 + $2,542.50)."
+  },
+  {
+   "elemento": 1912,
+   "seccion": "F. Libro mayor resumido",
+   "texto": "El saldo inicial al 1 de octubre es $33,770.78, que resulta del mayor acumulado: Debe acumulado $50,212.28 − $16,441.50 cargados en octubre."
+  },
+  {
+   "elemento": 1913,
+   "seccion": "F. Libro mayor resumido",
+   "texto": "Por subcuenta, el saldo inicial es 110201, $0.00 (las licencias de períodos anteriores están cobradas); 110202, $15,660.78; 110203, $9,510.00; y 110204, $8,600.00 (suma $33,770.78)."
+  },
+  {
+   "elemento": 1914,
+   "seccion": "F. Libro mayor resumido",
+   "texto": "El saldo final es:"
+  },
+  {
+   "elemento": 1916,
+   "seccion": "F. Libro mayor resumido",
+   "texto": "Igual a la balanza y al estado de situación."
+  },
+  {
+   "elemento": 1917,
+   "seccion": "F. Libro mayor resumido",
+   "texto": "Por subcuenta: 110201, $4,407.00; 110202, $20,406.78; 110203, $9,510.00; y 110204, $8,600.00."
+  },
+  {
+   "elemento": 1918,
+   "seccion": "F. Libro mayor resumido",
+   "texto": "IVA. En AJ-2026-000002 el crédito fiscal aplicado de $514.80 se compone del crédito de octubre de $312.00 ($156.00 de EG-2026-000003 + $156.00 de EG-2026-000004, es decir 13 % × $1,200.00 cada uno) y de $202.80 de crédito de períodos anteriores."
+  },
+  {
+   "elemento": 1919,
+   "seccion": "F. Libro mayor resumido",
+   "texto": "Ese crédito es el IVA de un comprobante de crédito fiscal de septiembre de 2026 por herramientas de prueba (base $1,560.00 × 13 % = $202.80), recibido después del cierre del libro de IVA de septiembre; permaneció en 110301 como saldo inicial de octubre y se aplica en esta liquidación."
+  },
+  {
+   "elemento": 1920,
+   "seccion": "F. Libro mayor resumido",
+   "texto": "Su importe coincide numéricamente con el IVA débito de DI-2026-000006, pero son conceptos distintos."
+  },
+  {
+   "elemento": 1921,
+   "seccion": "F. Libro mayor resumido",
+   "texto": "El débito del mes es:"
+  },
+  {
+   "elemento": 1923,
+   "seccion": "F. Libro mayor resumido",
+   "texto": "El IVA por pagar es:"
+  },
+  {
+   "elemento": 1927,
+   "seccion": "F. Libro mayor resumido",
+   "texto": "Trazabilidad de los valores."
+  },
+  {
+   "elemento": 1928,
+   "seccion": "F. Libro mayor resumido",
+   "texto": "Saldos iniciales:"
+  },
+  {
+   "elemento": 1932,
+   "seccion": "F. Libro mayor resumido",
+   "texto": "Clientes $33,770.78"
+  },
+  {
+   "elemento": 1934,
+   "seccion": "F. Libro mayor resumido",
+   "texto": "Cada folio lleva el importe de la tabla LXXX."
+  },
+  {
+   "elemento": 1936,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "La balanza siguiente contiene los saldos acumulados desde el 1 de enero de 2026 hasta el corte."
+  },
+  {
+   "elemento": 1937,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "La utilidad del período no se incluye como cuenta de patrimonio porque las cuentas nominales permanecen abiertas hasta el cierre anual; por ello, las sumas de Debe y Haber incluyen ingresos, costos y gastos."
+  },
+  {
+   "elemento": 1940,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "Trazabilidad de los valores."
+  },
+  {
+   "elemento": 1941,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "Activos."
+  },
+  {
+   "elemento": 1942,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "110102 = $92,335.00 (A, tabla LXXXII)."
+  },
+  {
+   "elemento": 1943,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "Clientes (A):"
+  },
+  {
+   "elemento": 1946,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "Es decir 0.84 meses de la facturación mensual media de desarrollo con IVA ($21,460.00 × 1.13 = $24,249.80)."
+  },
+  {
+   "elemento": 1947,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "Su saldo inicial es el único fijado por diferencia para cerrar la balanza (tabla XCIV)"
+  },
+  {
+   "elemento": 1949,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "1.18 meses de la facturación saas con IVA ($7,120.00 × 1.13 = $8,045.60)."
+  },
+  {
+   "elemento": 1950,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "110204 = $8,600.00 sin movimiento en octubre, 1.65 meses de la facturación media de soporte e implementación con IVA ($4,620.00 × 1.13 = $5,220.60), por lo que parte de esa cartera supera 30 días y debe revisarse para deterioro (IX.A.3) sin estimación registrada."
+  },
+  {
+   "elemento": 1951,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "110303 = $0.00: las retenciones sufridas de $2,120.00 tienen constancia y se imputaron por completo en AJ-2026-000004 (ver nota de ISR)."
+  },
+  {
+   "elemento": 1952,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "110401 = $5,210.00 (P), 4.34 meses del alojamiento mensual de $1,200.00 que se amortizan por cobertura."
+  },
+  {
+   "elemento": 1953,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "1105 = $15,614.25 (A, tabla LXXXI; control de 110501 a 110503):"
+  },
+  {
+   "elemento": 1955,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "110702 = $1,680.00 (A, tabla LXXIX)."
+  },
+  {
+   "elemento": 1956,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "Activos fijos: 120101 = $24,750.00, 120102 = $5,700.00, 120103 = $6,000.00 y 120301 = $7,200.00 (tabla LXXVII)."
+  },
+  {
+   "elemento": 1957,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "Depreciación acumulada (P):"
+  },
+  {
+   "elemento": 1958,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "120201 = $10,557.50 = 42.66 % del costo, 15.36 cuotas mensuales vigentes de $687.50, porque la flota creció de 5 laptops en 2024 a 17 en 2026"
+  },
+  {
+   "elemento": 1959,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "120202 = $2,668.75 = 46.82 % del costo, 22.47 cuotas de $118.75"
+  },
+  {
+   "elemento": 1960,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "120203 = $3,100.00 = 51.67 % del costo, 31 cuotas de $100.00"
+  },
+  {
+   "elemento": 1962,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "El valor neto de propiedad y equipo es:"
+  },
+  {
+   "elemento": 1964,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "El del software:"
+  },
+  {
+   "elemento": 1966,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "Pasivos y patrimonio."
+  },
+  {
+   "elemento": 1967,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "210101 = $12,800.00 (P), sin movimiento en octubre, 6.69 % del total de pasivos y patrimonio ($12,800.00 ÷ $183,286.78)."
+  },
+  {
+   "elemento": 1970,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "210205 = $800.00 de ISR retenido de la planilla de octubre, 5.16 % de $15,500.00 (D, DI-5)."
+  },
+  {
+   "elemento": 1971,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "210601 = $1,937.50 y 210602 = $6,458.33 (P):"
+  },
+  {
+   "elemento": 1973,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "Con los quince puestos activos desde enero (congruente con las planillas por área de L.J)."
+  },
+  {
+   "elemento": 1975,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "A $11.25 de recargo de vacaciones y $37.50 de aguinaldo cada una."
+  },
+  {
+   "elemento": 1979,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "(tabla LXIX)."
+  },
+  {
+   "elemento": 1980,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "Esa misma base de 10 meses completos rige las horas de Proyectos y Desarrollo de L.J."
+  },
+  {
+   "elemento": 1981,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "210704 = $7,950.00 (A)."
+  },
+  {
+   "elemento": 1982,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "210803 = $2,000.00 (P), honorarios de octubre pendientes de factura del contador externo y del asesor legal."
+  },
+  {
+   "elemento": 1983,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "220101 = $9,800.00 (P); con gastos financieros de $1,200.00 en diez meses, la tasa anual implícita sobre ese saldo es:"
+  },
+  {
+   "elemento": 1985,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "Capital:"
+  },
+  {
+   "elemento": 1987,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "(tabla I)."
+  },
+  {
+   "elemento": 1988,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "Reserva legal:"
+  },
+  {
+   "elemento": 1990,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "Utilidades acumuladas:"
+  },
+  {
+   "elemento": 1992,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "Ingresos (P, acumulados enero-octubre; promedio mensual = acumulado ÷ 10)."
+  },
+  {
+   "elemento": 1993,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "410101 = $214,600.00, $21,460.00 por mes, 60.28 % de las ventas, de las cuales el hito de DI-1 aporta 3.91 % ($8,400.00)."
+  },
+  {
+   "elemento": 1994,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "410201 = $33,400.00, $3,340.00 por mes."
+  },
+  {
+   "elemento": 1995,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "410301 = $12,800.00, $1,280.00 por mes."
+  },
+  {
+   "elemento": 1996,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "410402 = $71,200.00, $7,120.00 por mes, equivalentes a 142.4 usuarios-mes mensuales ($7,120.00 ÷ $50.00)."
+  },
+  {
+   "elemento": 1997,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "410602 = $24,000.00, $2,400.00 por mes, de los cuales $3,900.00 son de octubre (DI-4 y DI-6, 15 × $260.00)."
+  },
+  {
+   "elemento": 1998,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "Suma = $356,000.00."
+  },
+  {
+   "elemento": 1999,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "Costos y gastos (D donde se indica L.J; P en los demás)."
+  },
+  {
+   "elemento": 2000,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "5101 = $122,190.00 (D, L.J, tabla XC: mano de obra directa $72,000.00 en 510101 + servicios directos $32,190.00 en 510102 + CIF aplicado $18,000.00 en 510103) = 56.94 % de los ingresos de desarrollo"
+  },
+  {
+   "elemento": 2003,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "(VI.L)."
+  },
+  {
+   "elemento": 2004,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "5102 = $25,105.78 (D, L.J, tabla XCI: alojamiento $12,000.00 en 510201 + soporte $6,705.78 en 510202 + infraestructura compartida $6,400.00 en 510203) ÷ 1,424 usuarios-mes ($71,200.00 ÷ $50.00) = $17.63 por usuario-mes frente al estándar de $25.00 (tabla XXVIII)."
+  },
+  {
+   "elemento": 2005,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "Desviación favorable:"
+  },
+  {
+   "elemento": 2007,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "Que se conserva visible y no corrige el mayor."
+  },
+  {
+   "elemento": 2009,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "(D, tabla LXXIX; composición por elemento en L.J, tabla XCII)."
+  },
+  {
+   "elemento": 2010,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "510401 = $26,339.22 (D, L.J, tabla XCIII: planilla real de $33,045.00 de jefe de implementación, capacitador y técnico de soporte − $6,705.78 cargados a saas)."
+  },
+  {
+   "elemento": 2013,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "De la planilla de las cinco personas de Administración y Gerencia ($6,080.62 de salarios y cargas de DI-5 + $284.38 de prestaciones; salarios $5,250.00, ISSS patronal $318.75, previsional $459.38, INCAF $52.50), 17.88 % de las ventas."
+  },
+  {
+   "elemento": 2015,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "610103 = $9,300.00, $930.00 por mes, 62.00 % de los $15,000.00 de profesionales y gobierno presupuestados a diez meses ($18,000.00 × 10 ÷ 12)."
+  },
+  {
+   "elemento": 2016,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "610104 = $5,757.50, 7.31 cuotas de $787.50."
+  },
+  {
+   "elemento": 2017,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "610105 = $1,800.00 (= 120401)."
+  },
+  {
+   "elemento": 2018,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "610106 = $6,700.00, $670.00 por mes."
+  },
+  {
+   "elemento": 2019,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "610201 = $21,492.50, 6.04 % de las ventas y 10.51 veces la partida de octubre ($2,044.38), por incluir comisiones."
+  },
+  {
+   "elemento": 2020,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "610202 = $4,200.00, $420.00 por mes."
+  },
+  {
+   "elemento": 2021,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "610203 = $2,100.00, $210.00 por mes."
+  },
+  {
+   "elemento": 2022,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "610204 = $1,300.00, $130.00 por mes."
+  },
+  {
+   "elemento": 2023,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "610303 = $2,800.00, $280.00 por mes."
+  },
+  {
+   "elemento": 2024,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "710102 = $1,200.00, $120.00 por mes."
+  },
+  {
+   "elemento": 2026,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "Los saldos (P) provienen del diario de enero a septiembre más octubre; su detalle por asiento no se reproduce y se sustenta en el sistema."
+  },
+  {
+   "elemento": 2027,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "Verificación:"
+  },
+  {
+   "elemento": 2029,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "Igual al Haber."
+  },
+  {
+   "elemento": 2030,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "ISR."
+  },
+  {
+   "elemento": 2031,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "La provisión es la utilidad antes de ISR de $40,446.25 × 30 % = $12,133.88 (tabla LXXXIV)."
+  },
+  {
+   "elemento": 2032,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "Los créditos acumulados al corte suman $8,350.00: pagos a cuenta de 1.75 % sobre los ingresos de $356,000.00 = $6,230.00 (110302, con sus comprobantes de pago) y retenciones sufridas por $2,120.00 (110303; 0.60 % de las ventas), las únicas que tienen constancia de clientes agentes de retención."
+  },
+  {
+   "elemento": 2033,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "AJ-2026-000004 aplica los $8,350.00 completos: $6,230.00 de pagos a cuenta y $2,120.00 de retenciones."
+  },
+  {
+   "elemento": 2034,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "No se registran créditos sin constancia: ni las reglas del informe (tablas XV y XVI, IX.C.3) ni documento alguno los sustentan."
+  },
+  {
+   "elemento": 2035,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "El ISR por pagar es:"
+  },
+  {
+   "elemento": 2037,
+   "seccion": "G. Balanza de comprobación ajustada",
+   "texto": "Con ello Debe = Haber en la balanza ($529,100.66) y A = P + C ($183,286.78)."
+  },
+  {
+   "elemento": 2041,
+   "seccion": "H. Estados financieros internos",
+   "texto": "Trazabilidad de los valores."
+  },
+  {
+   "elemento": 2045,
+   "seccion": "H. Estados financieros internos",
+   "texto": "(48.55 %)."
+  },
+  {
+   "elemento": 2048,
+   "seccion": "H. Estados financieros internos",
+   "texto": "Otros = $2,800.00"
+  },
+  {
+   "elemento": 2050,
+   "seccion": "H. Estados financieros internos",
+   "texto": "Resultado financiero = −$1,200.00; utilidad antes de ISR = $40,446.25; ISR = $12,133.88 (30.00 %); utilidad neta = $28,312.37 (7.95 %)."
+  },
+  {
+   "elemento": 2053,
+   "seccion": "H. Estados financieros internos",
+   "texto": "Trazabilidad de los valores."
+  },
+  {
+   "elemento": 2056,
+   "seccion": "H. Estados financieros internos",
+   "texto": "Total = $183,286.78."
+  },
+  {
+   "elemento": 2058,
+   "seccion": "H. Estados financieros internos",
+   "texto": "Deuda de largo plazo $9,800.00."
+  },
+  {
+   "elemento": 2064,
+   "seccion": "H. Estados financieros internos",
+   "texto": "Trazabilidad de los valores."
+  },
+  {
+   "elemento": 2067,
+   "seccion": "H. Estados financieros internos",
+   "texto": "Igual al patrimonio de la tabla LXXXV. No hay aportes ni dividendos en 2026."
+  },
+  {
+   "elemento": 2070,
+   "seccion": "H. Estados financieros internos",
+   "texto": "Trazabilidad de los valores."
+  },
+  {
+   "elemento": 2072,
+   "seccion": "H. Estados financieros internos",
+   "texto": "Pagos: planilla $13,171.25; aportes $4,052.50; proveedores:"
+  },
+  {
+   "elemento": 2075,
+   "seccion": "H. Estados financieros internos",
+   "texto": "Igual a la columna Haber menos Debe de 110102 ($19,935.75 − $11,356.50)."
+  },
+  {
+   "elemento": 2076,
+   "seccion": "H. Estados financieros internos",
+   "texto": "El flujo se calcula sólo con el movimiento de 110102 del extracto de octubre: el efectivo inicial es:"
+  },
+  {
+   "elemento": 2078,
+   "seccion": "H. Estados financieros internos",
+   "texto": "Igual al saldo inicial de Bancos del mayor. Caja chica no tiene saldo en la balanza."
+  },
+  {
+   "elemento": 2079,
+   "seccion": "H. Estados financieros internos",
+   "texto": "El flujo acumulado de enero a septiembre no se presenta porque el diario previo no forma parte del caso; el estado se limita a octubre y a la cuenta Bancos."
+  },
+  {
+   "elemento": 2083,
+   "seccion": "I. Conciliaciones y control de cierre",
+   "texto": "Trazabilidad de los valores."
+  },
+  {
+   "elemento": 2084,
+   "seccion": "I. Conciliaciones y control de cierre",
+   "texto": "Cada saldo de la matriz es el de su tabla de origen: Bancos $92,335.00 (LXXXII), Clientes $42,923.78 (LXXXIII), servicios en proceso $15,614.25 (LXXXI), inventario digital $1,680.00 (LXXIX), anticipos de soporte $7,950.00 (LXXXI), IVA por pagar $1,844.70 y ISR por pagar $3,783.88 (LXXXIII, notas de IVA e ISR)."
+  },
+  {
+   "elemento": 2085,
+   "seccion": "I. Conciliaciones y control de cierre",
+   "texto": "La planilla no deja sueldo neto pendiente: $13,171.25 de DI-2026-000005 menos $13,171.25 pagados en EG-2026-000001."
+  },
+  {
+   "elemento": 2086,
+   "seccion": "I. Conciliaciones y control de cierre",
+   "texto": "El expediente de cierre debe ser preparado por Contabilidad, revisado por Gerencia y autorizado por el Administrador Único conforme a sus facultades. Las firmas se mantienen como campos institucionales para no atribuir identidades reales a una empresa ficticia."
+  },
+  {
+   "elemento": 2087,
+   "seccion": "I. Conciliaciones y control de cierre",
+   "texto": "Antes de emitir estados finales, el contador debe actualizar tasas, topes, obligaciones tributarias y documentos electrónicos aplicables al período real de operación."
+  },
+  {
+   "elemento": 2089,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "Esta sección explica de dónde salen los costos de ventas acumulados de enero a octubre de 2026 que muestran la balanza (tabla LXXXIII) y el estado de resultados (tabla LXXXIV)."
+  },
+  {
+   "elemento": 2090,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "Cada costo se descompone en los tres elementos de la ecuación (26) del anexo K:"
+  },
+  {
+   "elemento": 2091,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "MPD (materiales o recursos directos): en Colibrí, los servicios y recursos digitales exclusivos de una orden, de un lote o del alojamiento."
+  },
+  {
+   "elemento": 2092,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "MOD (mano de obra directa): planilla de los puestos que trabajan en la orden, el lote o el servicio."
+  },
+  {
+   "elemento": 2093,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "CIF (costos indirectos de fabricación): infraestructura y depreciación aplicadas con la tasa de la tabla XXII o asignadas por ingresos."
+  },
+  {
+   "elemento": 2094,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "Así ningún importe aparece sin su base, su tarifa y su resultado. Las cifras de octubre del diario (L.E) y las acumuladas de esta sección usan las mismas tarifas de la tabla XXII."
+  },
+  {
+   "elemento": 2097,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "Trazabilidad de los valores."
+  },
+  {
+   "elemento": 2099,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "De ellas, 3 × 120 × 10 = 3,600 son las horas de capacidad de programación de VI.L."
+  },
+  {
+   "elemento": 2101,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "A la misma razón que el presupuesto ($36,000.00 ÷ $240,000.00 = 15.00 %, tabla XXXVI)."
+  },
+  {
+   "elemento": 2102,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "Planilla real de Implementación y Soporte por mes:"
+  },
+  {
+   "elemento": 2105,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "Técnico de soporte $981.33"
+  },
+  {
+   "elemento": 2106,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "Total $3,304.50 por mes (sin redondear cada puesto) y $33,045.00 en 10 meses, con salario, ISSS patronal de 7.5 % con tope de $1,000.00, previsional de 8.75 %, INCAF de 1 % y prestaciones de $48.75 por cada $900.00."
+  },
+  {
+   "elemento": 2107,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "Soporte técnico de saas:"
+  },
+  {
+   "elemento": 2109,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "Redondeadas a 82 h."
+  },
+  {
+   "elemento": 2111,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "($8.18 por hora)."
+  },
+  {
+   "elemento": 2113,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "Infraestructura de saas:"
+  },
+  {
+   "elemento": 2115,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "Mensuales de infraestructura y depreciación no asignados a proyectos (tabla XXII)."
+  },
+  {
+   "elemento": 2118,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "Las condiciones marcadas (P), como el reparto de las 79 licencias previas, son datos del caso que en un sistema en producción saldrían de facturas y partes de horas del diario de enero a septiembre"
+  },
+  {
+   "elemento": 2119,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "Aquí se fijan para que cada costo tenga base, tarifa y resultado verificables."
+  },
+  {
+   "elemento": 2122,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "Trazabilidad de los valores."
+  },
+  {
+   "elemento": 2127,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "Igual a la balanza."
+  },
+  {
+   "elemento": 2128,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "Porcentajes: 58.92 %, 26.34 % y 14.73 % (el redondeo deja 99.99 %)."
+  },
+  {
+   "elemento": 2131,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "(ecs. 27 y 28)."
+  },
+  {
+   "elemento": 2133,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "Que se redondea a $20.37 ($122,190.00 ÷ 6,000 h)"
+  },
+  {
+   "elemento": 2135,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "Porque cada hora de programación arrastra 6,000 ÷ 3,600 = 1.67 horas directas."
+  },
+  {
+   "elemento": 2136,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "Razonabilidad: los servicios directos son 15.00 % de los ingresos de desarrollo ($32,190.00 ÷ $214,600.00), igual al 15.00 % presupuestado (tabla XXXVI) y 10.71 % en OS-2026-014 ($900.00 ÷ $8,400.00)."
+  },
+  {
+   "elemento": 2137,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "El costo laboral real de las cinco personas es $7,054.67 por mes:"
+  },
+  {
+   "elemento": 2139,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "Es decir $70,546.67 en 10 meses o $11.76 por hora"
+  },
+  {
+   "elemento": 2140,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "La MOD aplicada a $12.00 lo supera en $1,453.33 (2.06 %), diferencia menor que el 1 % de los costos de servicios ($1,736.35 = 1 % × $173,635.00, suma de 5101, 5102 y 5104) que se concilia al cierre según X.B."
+  },
+  {
+   "elemento": 2141,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "El CIF aplicado de $18,000.00 es igual al presupuestado (10 × $1,800.00); el único CIF real pendiente de aplicar es la depreciación técnica de octubre, $118.75 (520103)."
+  },
+  {
+   "elemento": 2144,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "Trazabilidad de los valores."
+  },
+  {
+   "elemento": 2146,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "(El mismo importe mensual de EG-2026-000003, sin IVA)"
+  },
+  {
+   "elemento": 2148,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "(La parte del técnico de soporte que atiende saas)"
+  },
+  {
+   "elemento": 2151,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "Igual a la balanza."
+  },
+  {
+   "elemento": 2152,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "Estándar por 1,424 usuarios-mes:"
+  },
+  {
+   "elemento": 2157,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "Desviaciones: −$3,456.00 en alojamiento (desfavorable: la factura es fija y no varía con los usuarios), +$10,382.22 en soporte y +$3,568.00 en infraestructura; neto +$10,494.22 favorable, igual a la desviación citada en la balanza."
+  },
+  {
+   "elemento": 2160,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "Frente a 50.00 % con el costo estándar."
+  },
+  {
+   "elemento": 2161,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "Las 82 h son 68.33 % de las 120 h del técnico; las 38 h restantes atienden contratos de soporte y mantenimiento y se cargan a 510401."
+  },
+  {
+   "elemento": 2162,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "El estándar de 1 hora por usuario-mes equivaldría a 1,424 h, más que las 1,200 h de capacidad del técnico en 10 meses; por eso la desviación favorable de soporte es amplia y el estándar de la tabla XXVIII debe revisarse."
+  },
+  {
+   "elemento": 2165,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "Trazabilidad de los valores."
+  },
+  {
+   "elemento": 2166,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "LI-2026-03:"
+  },
+  {
+   "elemento": 2171,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "LI-2026-04:"
+  },
+  {
+   "elemento": 2176,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "El costo unitario sube 15.00 % porque el costo del lote baja a 76.67 % ($1,380.00 ÷ $1,800.00) y las licencias a 66.67 % (12 ÷ 18):"
+  },
+  {
+   "elemento": 2178,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "Las 94 licencias acumuladas se valoran a $100.00 = $9,400.00; con la estructura del lote LI-2026-03 (MOD 2/3, servicios directos 1/6 y CIF 1/6 del costo unitario) son $6,266.67, $1,566.67 y $1,566.66."
+  },
+  {
+   "elemento": 2179,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "Las 79 licencias previas a octubre se distribuyeron a ese mismo costo unitario; su detalle por lote no se reproduce (P)."
+  },
+  {
+   "elemento": 2182,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "Trazabilidad de los valores."
+  },
+  {
+   "elemento": 2183,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "Totales por elemento:"
+  },
+  {
+   "elemento": 2188,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "Igual al costo de ventas de la tabla LXXXIV."
+  },
+  {
+   "elemento": 2189,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "Por columna:"
+  },
+  {
+   "elemento": 2191,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "Participación: MOD 60.77 %, MPD 24.98 % y CIF 14.24 % (el redondeo deja 99.99 %)."
+  },
+  {
+   "elemento": 2192,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "Criterios aplicados y límites. La tabla XCIV reúne los criterios con que se derivaron las cifras de L.G a L.J que no provienen de un documento del diario de octubre, y el límite que permanece en cada uno."
+  },
+  {
+   "elemento": 2195,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "Trazabilidad de los valores."
+  },
+  {
+   "elemento": 2196,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "Servicios directos:"
+  },
+  {
+   "elemento": 2198,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "(tabla XXXVI)."
+  },
+  {
+   "elemento": 2200,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "Soporte saas:"
+  },
+  {
+   "elemento": 2203,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "Redondeadas a 82 h."
+  },
+  {
+   "elemento": 2205,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "Infraestructura de saas:"
+  },
+  {
+   "elemento": 2207,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "Planilla de Implementación y Soporte:"
+  },
+  {
+   "elemento": 2210,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "Administración:"
+  },
+  {
+   "elemento": 2213,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "(tope de $1,000.00 por trabajador)."
+  },
+  {
+   "elemento": 2218,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "(Los $6,080.62 de DI-5 más $284.38 de prestaciones)"
+  },
+  {
+   "elemento": 2220,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "Retenciones:"
+  },
+  {
+   "elemento": 2223,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "Prestaciones:"
+  },
+  {
+   "elemento": 2226,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "Utilidad:"
+  },
+  {
+   "elemento": 2231,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "Cierre:"
+  },
+  {
+   "elemento": 2233,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "Con 110202 en $17,072.70 el activo sumaba $179,952.70, es decir $3,334.08 menos."
+  },
+  {
+   "elemento": 2234,
+   "seccion": "J. Derivación del costo de ventas por elemento",
+   "texto": "Cambiar cualquiera de estos criterios mueve a la vez la utilidad, el ISR y el cuadre de la balanza; por eso cada uno se documenta con su cálculo."
+  }
+ ]
+}

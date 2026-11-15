@@ -1,0 +1,760 @@
+/* Identidad visual y accesibilidad de Soluciones Empresariales Colibrí. */
+.root {
+    /* Tokens de marca y superficies: los únicos literales de color del tema. */
+    -colibri-navy: #0B1C2C;
+    -colibri-navy-soft: #102A44;
+    -colibri-navy-gradient-end: #0D2338;
+    -colibri-cyan: #00A8E8;
+    -colibri-cyan-accessible: #0077A3;
+    -colibri-cyan-bright: #00C2FF;
+    -colibri-lime: #A8E010;
+    -colibri-lime-bright: #C5F200;
+    -colibri-ink: #0F172A;
+    -colibri-muted: #55647A;
+    -colibri-surface: #FFFFFF;
+    -colibri-canvas: #F8FAFC;
+    -colibri-border: #CBD5E1;
+    -colibri-field-border: #64748B;
+    -colibri-line: #E2E8F0;
+    -colibri-subtle: #F1F5F9;
+    -colibri-row: #FBFCFE;
+    -colibri-cyan-tint: #E2F5FC;
+    -colibri-cyan-tint-strong: #EAF6FB;
+    -colibri-prompt: #64748B;
+    -colibri-error: #D1435B;
+    -colibri-error-bg: #FDECEF;
+    -colibri-error-border: #B4233C;
+    -colibri-success: #157A4E;
+    -colibri-success-hover: #12633F;
+    -colibri-success-bg: #E7F6EE;
+    -colibri-warning: #865900;
+    -colibri-warning-bg: #FFF4DC;
+    -colibri-login-start: #F4F9FC;
+    -colibri-login-end: #E8F3F7;
+    -colibri-focus: #0077A3;
+    -colibri-focus-faint: rgba(0,119,163,0.25);
+    -colibri-shadow: rgba(11,28,44,0.18);
+    -colibri-shadow-soft: rgba(15,23,42,0.06);
+    -colibri-shadow-strong: rgba(11,28,44,0.35);
+    -colibri-scroll-thumb: rgba(15,23,42,0.18);
+    -colibri-scroll-thumb-hover: rgba(15,23,42,0.30);
+    -colibri-on-navy: #FFFFFF;
+    -colibri-nav-text: rgba(255,255,255,0.80);
+    -colibri-nav-subtle: rgba(255,255,255,0.56);
+    -colibri-nav-divider: rgba(255,255,255,0.12);
+    -colibri-nav-hover: rgba(255,255,255,0.08);
+    -colibri-nav-toggle-hover: rgba(255,255,255,0.10);
+    -colibri-nav-active: rgba(0,194,255,0.14);
+    -colibri-transparent: transparent;
+
+    -fx-font-family: "Segoe UI";
+    -fx-font-size: 14px;
+    -fx-text-fill: -colibri-ink;
+    -fx-background-color: -colibri-canvas;
+    -fx-focus-color: -colibri-focus;
+    -fx-faint-focus-color: -colibri-focus-faint;
+}
+
+.label { -fx-text-fill: -colibri-ink; }
+
+/* Contenedores y desplazamiento. */
+.app-shell, .content-host { -fx-background-color: -colibri-canvas; }
+.section-scroll-pane, .menu-scroll-pane {
+    -fx-background-color: -colibri-transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+    -fx-border-color: -colibri-transparent;
+}
+.section-scroll-pane > .viewport { -fx-background-color: -colibri-canvas; }
+.menu-scroll-pane {
+    -fx-background-color: linear-gradient(to bottom, -colibri-navy 0%, -colibri-navy-gradient-end 100%);
+}
+.menu-scroll-pane > .viewport { -fx-background-color: -colibri-transparent; }
+.content-view {
+    -fx-background-color: -colibri-surface;
+    -fx-background-radius: 16;
+    -fx-border-color: -colibri-border;
+    -fx-border-radius: 16;
+    -fx-padding: 28 32 32 32;
+    -fx-spacing: 20;
+    -fx-effect: dropshadow(gaussian, -colibri-shadow-soft, 14, 0.08, 0, 3);
+}
+
+.scroll-bar:vertical { -fx-background-color: -colibri-transparent; -fx-pref-width: 8; }
+.scroll-bar:horizontal { -fx-background-color: -colibri-transparent; -fx-pref-height: 8; }
+.scroll-bar .track { -fx-background-color: -colibri-transparent; -fx-border-color: -colibri-transparent; }
+.scroll-bar .thumb { -fx-background-color: -colibri-scroll-thumb; -fx-background-radius: 8; }
+.scroll-bar .thumb:hover { -fx-background-color: -colibri-scroll-thumb-hover; }
+.menu-scroll-pane .scroll-bar .thumb { -fx-background-color: -colibri-nav-subtle; }
+.menu-scroll-pane .scroll-bar .thumb:hover { -fx-background-color: -colibri-cyan-bright; }
+.scroll-bar .increment-button, .scroll-bar .decrement-button,
+.scroll-bar .increment-arrow, .scroll-bar .decrement-arrow {
+    -fx-opacity: 0;
+    -fx-padding: 0;
+}
+
+/* Tipografía. La escala hereda del tamaño base de .root. */
+.display-header, .view-title {
+    -fx-font-size: 1.8em;
+    -fx-font-weight: 700;
+    -fx-text-fill: -colibri-ink;
+    -fx-padding: 0 0 4 0;
+}
+.section-title, .section-heading {
+    -fx-font-size: 1.1em;
+    -fx-font-weight: 700;
+    -fx-text-fill: -colibri-ink;
+}
+.data-label, .metric-label, .form-field > .label {
+    -fx-font-size: 0.86em;
+    -fx-font-weight: 600;
+    -fx-text-fill: -colibri-muted;
+}
+.muted-caption, .view-subtitle, .section-note, .muted-label {
+    -fx-font-size: 0.93em;
+    -fx-text-fill: -colibri-muted;
+}
+.view-subtitle { -fx-padding: 0 0 8 0; }
+.numeric-cell, .numeric-cell.table-cell { -fx-alignment: center-right; }
+
+/* Superficies. -colibri-border es decorativo; campos usan borde accesible propio. */
+.card, .form-card, .surface-card, .section-card {
+    -fx-background-color: -colibri-surface;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-border-color: -colibri-border;
+    -fx-border-width: 1;
+    -fx-padding: 20;
+    -fx-spacing: 12;
+    -fx-effect: dropshadow(three-pass-box, -colibri-shadow-soft, 8, 0, 0, 2);
+}
+.section-card {
+    -fx-padding: 18 20 20 20;
+    -fx-spacing: 14;
+}
+.section-card .section-heading {
+    -fx-padding: 0 0 2 0;
+}
+.section-divider {
+    -fx-padding: 2 0 2 0;
+}
+.section-divider .line { -fx-border-color: -colibri-line; -fx-border-width: 1 0 0 0; }
+.metric-card {
+    -fx-background-color: -colibri-subtle;
+    -fx-background-radius: 12;
+    -fx-border-color: -colibri-line;
+    -fx-border-radius: 12;
+    -fx-padding: 16 18;
+    -fx-min-width: 175;
+    -fx-pref-width: 220;
+}
+.result-panel {
+    -fx-background-color: -colibri-cyan-tint-strong;
+    -fx-background-radius: 10;
+    -fx-border-color: -colibri-cyan;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-padding: 12 16;
+    -fx-spacing: 6;
+}
+.result-panel .section-note, .result-panel .data-label { -fx-text-fill: -colibri-navy; }
+.dashboard-chart { -fx-padding: 6 4; }
+.metric-value { -fx-text-fill: -colibri-ink; -fx-font-size: 1.58em; -fx-font-weight: 700; }
+.metrics-row { -fx-spacing: 16; }
+
+/* Inicio: una jerarquía de lectura editorial en vez de una cuadrícula de KPIs repetidos. */
+.dashboard-header {
+    -fx-background-color: linear-gradient(to right, -colibri-cyan-tint-strong, -colibri-surface);
+    -fx-background-radius: 14;
+    -fx-border-color: -colibri-line;
+    -fx-border-radius: 14;
+    -fx-padding: 22 24;
+}
+.dashboard-header .view-title { -fx-font-size: 1.95em; }
+.dashboard-header .view-subtitle { -fx-padding: 0; }
+.dashboard-period {
+    -fx-background-color: -colibri-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -colibri-border;
+    -fx-border-radius: 10;
+    -fx-padding: 10 14;
+    -fx-pref-width: 245;
+    -fx-max-width: 245;
+}
+.dashboard-period-label {
+    -fx-font-size: 0.82em;
+    -fx-font-weight: 700;
+    -fx-text-fill: -colibri-cyan-accessible;
+    -fx-text-overrun: ellipsis;
+}
+.dashboard-period-value {
+    -fx-font-size: 1.13em;
+    -fx-font-weight: 700;
+    -fx-text-fill: -colibri-navy;
+}
+.dashboard-period-note { -fx-font-size: 0.82em; -fx-text-fill: -colibri-muted; }
+.dashboard-overview {
+    -fx-background-color: -colibri-navy;
+    -fx-background-radius: 14;
+    -fx-padding: 22 24;
+    -fx-spacing: 8;
+}
+.dashboard-overview .section-heading { -fx-text-fill: -colibri-on-navy; }
+.dashboard-overview .muted-caption { -fx-text-fill: -colibri-nav-text; }
+.financial-metric { -fx-padding: 10 18 8 0; -fx-min-width: 0; }
+.financial-label {
+    -fx-font-size: 0.84em;
+    -fx-font-weight: 700;
+    -fx-text-fill: -colibri-nav-text;
+}
+.financial-value { -fx-font-size: 1.75em; -fx-font-weight: 700; }
+.financial-positive, .financial-neutral { -fx-text-fill: -colibri-on-navy; }
+.financial-negative, .financial-attention { -fx-text-fill: -colibri-lime-bright; }
+.financial-note { -fx-font-size: 0.82em; -fx-text-fill: -colibri-muted; }
+.dashboard-overview .financial-note { -fx-text-fill: -colibri-nav-subtle; }
+.financial-divider { -fx-padding: 0 18; }
+.financial-divider .line { -fx-border-color: -colibri-nav-divider; -fx-border-width: 0 0 0 1; }
+.operational-summary, .commercial-summary { -fx-padding: 20 22; }
+.operational-row {
+    -fx-padding: 9 0;
+    -fx-border-color: -colibri-line;
+    -fx-border-width: 0 0 1 0;
+}
+.operational-row:last-child { -fx-border-width: 0; }
+.operational-key { -fx-font-size: 0.82em; -fx-font-weight: 700; -fx-text-fill: -colibri-muted; }
+.operational-value { -fx-font-size: 1em; -fx-font-weight: 600; -fx-text-fill: -colibri-ink; -fx-text-overrun: ellipsis; }
+.commercial-row { -fx-padding: 7 0 9 0; -fx-border-color: -colibri-line; -fx-border-width: 0 0 1 0; }
+.commercial-row:last-child { -fx-border-width: 0; }
+.commercial-value { -fx-font-size: 1.12em; -fx-font-weight: 700; -fx-text-fill: -colibri-navy; -fx-text-overrun: ellipsis; }
+.dashboard-actions { -fx-padding: 7 0 0 0; -fx-background-color: -colibri-transparent; }
+.dashboard-chart-card { -fx-padding: 20 20 16 20; }
+.dashboard-income-chart .chart-plot-background { -fx-background-color: -colibri-subtle; }
+.dashboard-income-chart .chart-vertical-grid-lines,
+.dashboard-income-chart .chart-horizontal-grid-lines { -fx-stroke: -colibri-border; -fx-stroke-dash-array: 3 4; }
+.dashboard-income-chart .default-color0.chart-bar { -fx-bar-fill: -colibri-cyan-accessible; }
+.dashboard-income-chart .default-color1.chart-bar { -fx-bar-fill: -colibri-lime; }
+.dashboard-income-chart .default-color0.chart-legend-item-symbol { -fx-background-color: -colibri-cyan-accessible; }
+.dashboard-income-chart .default-color1.chart-legend-item-symbol { -fx-background-color: -colibri-lime; }
+.dashboard-income-chart .axis-tick-mark, .dashboard-income-chart .axis-minor-tick-mark {
+    -fx-stroke: -colibri-border;
+}
+.chart-outlier-note {
+    -fx-background-color: -colibri-warning-bg;
+    -fx-background-radius: 8;
+    -fx-padding: 8 10;
+    -fx-text-fill: -colibri-warning;
+    -fx-font-size: 0.84em;
+}
+.chart-monthly-summary { -fx-padding: 4 0 0 0; }
+.chart-monthly-item {
+    -fx-background-color: -colibri-subtle;
+    -fx-background-radius: 7;
+    -fx-padding: 6 8;
+    -fx-text-fill: -colibri-muted;
+    -fx-font-size: 0.82em;
+    -fx-text-overrun: ellipsis;
+}
+.customer-ranking { -fx-spacing: 10; }
+.customer-total { -fx-text-fill: -colibri-muted; -fx-font-size: 0.88em; }
+.customer-ranking-row { -fx-padding: 5 0; }
+.customer-rank {
+    -fx-background-color: -colibri-cyan-tint;
+    -fx-background-radius: 999;
+    -fx-min-width: 22;
+    -fx-alignment: center;
+    -fx-padding: 3 6;
+    -fx-font-size: 0.82em;
+    -fx-font-weight: 700;
+    -fx-text-fill: -colibri-cyan-accessible;
+}
+.customer-name { -fx-font-size: 0.87em; -fx-font-weight: 600; -fx-text-fill: -colibri-ink; }
+.customer-amount { -fx-font-size: 0.85em; -fx-font-weight: 700; -fx-text-fill: -colibri-navy; }
+.customer-progress { -fx-pref-height: 7; }
+.customer-progress > .track { -fx-background-color: -colibri-line; -fx-background-radius: 999; }
+.customer-progress > .bar { -fx-background-color: -colibri-cyan; -fx-background-radius: 999; -fx-padding: 0.22em; }
+.dashboard-data-card { -fx-min-height: 150; }
+.dashboard-data-table { -fx-min-height: 108; }
+.dashboard-empty-state {
+    -fx-min-height: 82;
+    -fx-alignment: center-left;
+    -fx-padding: 10 0;
+}
+.empty-state-title { -fx-font-weight: 700; -fx-text-fill: -colibri-ink; }
+.empty-state-note { -fx-text-fill: -colibri-muted; -fx-font-size: 0.88em; }
+.status-pill {
+    -fx-background-color: -colibri-success-bg;
+    -fx-background-radius: 999;
+    -fx-padding: 5 12;
+    -fx-text-fill: -colibri-success;
+    -fx-font-size: 0.86em;
+    -fx-font-weight: 700;
+}
+.warning-pill {
+    -fx-background-color: -colibri-warning-bg;
+    -fx-background-radius: 999;
+    -fx-padding: 5 12;
+    -fx-text-fill: -colibri-warning;
+    -fx-font-size: 0.86em;
+    -fx-font-weight: 700;
+}
+.closed-pill {
+    -fx-background-color: -colibri-error-bg;
+    -fx-background-radius: 999;
+    -fx-padding: 5 12;
+    -fx-text-fill: -colibri-error-border;
+    -fx-font-size: 0.86em;
+    -fx-font-weight: 700;
+}
+.balance-error { -fx-text-fill: -colibri-error-border; -fx-font-weight: 700; }
+.balance-ok { -fx-text-fill: -colibri-success; -fx-font-weight: 700; }
+.table-row-cell.linea-error { -fx-background-color: -colibri-error-bg; }
+.table-row-cell.linea-error:odd { -fx-background-color: -colibri-error-bg; }
+.table-row-cell.linea-error:selected { -fx-background-color: -colibri-error-bg; }
+.linea-error .table-cell { -fx-text-fill: -colibri-error-border; }
+.toolbar {
+    -fx-background-color: -colibri-surface;
+    -fx-background-radius: 12;
+    -fx-border-color: -colibri-border;
+    -fx-border-radius: 12;
+    -fx-padding: 14 16;
+    -fx-effect: dropshadow(gaussian, -colibri-shadow-soft, 14, 0.06, 0, 3);
+}
+
+/* Barra superior y navegación. */
+.top-bar {
+    -fx-background-color: -colibri-surface;
+    -fx-padding: 14 28;
+    -fx-border-color: -colibri-transparent -colibri-transparent -colibri-line -colibri-transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-alignment: center-left;
+}
+.top-context { -fx-font-size: 1em; -fx-font-weight: 600; -fx-text-fill: -colibri-ink; }
+.breadcrumb-bar { -fx-spacing: 6; -fx-alignment: center-left; }
+.breadcrumb-sep { -fx-text-fill: -colibri-muted; }
+.breadcrumb-current { -fx-font-weight: 700; -fx-text-overrun: ellipsis; }
+.zoom-controls {
+    -fx-alignment: center-right;
+    -fx-spacing: 6;
+}
+.zoom-button {
+    -fx-min-width: 34;
+    -fx-min-height: 34;
+    -fx-padding: 6;
+}
+.zoom-pill {
+    -fx-background-color: -colibri-cyan-tint-strong;
+    -fx-background-radius: 999;
+    -fx-padding: 6 10;
+    -fx-text-fill: -colibri-navy;
+    -fx-font-size: 0.86em;
+    -fx-font-weight: 700;
+}
+.user-pill {
+    -fx-background-color: -colibri-cyan-tint-strong;
+    -fx-background-radius: 999;
+    -fx-padding: 7 14;
+    -fx-text-fill: -colibri-navy;
+    -fx-font-size: 0.93em;
+    -fx-font-weight: 600;
+    -fx-text-overrun: ellipsis;
+}
+.side-menu { -fx-background-color: -colibri-transparent; -fx-padding: 20 14 20 14; -fx-spacing: 6; }
+.side-brand { -fx-padding: 2 2 16 2; -fx-spacing: 9; -fx-alignment: center-left; }
+.side-logo { -fx-alignment: center; }
+.brand-logo-badge {
+    -fx-background-color: -colibri-surface;
+    -fx-background-radius: 16;
+    -fx-effect: dropshadow(gaussian, -colibri-shadow-strong, 16, 0.18, 0, 5);
+}
+.side-logo .brand-logo-badge { -fx-background-radius: 9; -fx-effect: none; }
+.side-brand-text { -fx-alignment: center-left; }
+.side-brand-name { -fx-font-size: 1.36em; -fx-font-weight: 700; -fx-text-fill: -colibri-on-navy; }
+.side-brand-subtitle {
+    -fx-font-size: 0.82em;
+    -fx-font-weight: 700;
+    -fx-text-fill: -colibri-cyan-bright;
+    -fx-text-overrun: ellipsis;
+}
+.side-menu .separator { -fx-padding: 4 2; }
+.side-menu .separator .line { -fx-border-color: -colibri-nav-divider; -fx-border-width: 1 0 0 0; }
+.side-menu .nav-divider { -fx-padding: 8 4; }
+.side-menu .nav-divider .line { -fx-border-color: -colibri-nav-divider; -fx-border-width: 1 0 0 0; }
+.menu-toggle {
+    -fx-background-color: -colibri-transparent;
+    -fx-border-color: -colibri-transparent;
+    -fx-background-radius: 8;
+    -fx-padding: 6;
+    -fx-min-width: 32;
+    -fx-min-height: 32;
+    -fx-cursor: hand;
+}
+.menu-toggle .brand-icon-shape { -fx-fill: -colibri-nav-text; }
+.menu-toggle:hover { -fx-background-color: -colibri-nav-toggle-hover; -fx-effect: none; }
+.menu-toggle:hover .brand-icon-shape { -fx-fill: -colibri-cyan-bright; }
+
+.side-nav {
+    -fx-pref-width: 264;
+    -fx-min-width: 264;
+    -fx-max-width: 264;
+    -fx-background-color: linear-gradient(to bottom, -colibri-navy 0%, -colibri-navy-gradient-end 100%);
+}
+.side-nav:colapsado {
+    -fx-pref-width: 78;
+    -fx-min-width: 78;
+    -fx-max-width: 78;
+}
+.side-nav:colapsado .side-menu { -fx-padding: 20 8 20 8; }
+.side-nav:colapsado .side-brand { -fx-alignment: center; -fx-padding: 2 0 18 0; }
+.side-nav:colapsado .nav-button { -fx-alignment: center; -fx-padding: 12 0; }
+.side-nav:colapsado .nav-content { -fx-spacing: 0; }
+.side-nav:colapsado .nav-divider { -fx-padding: 8 0; }
+
+.nav-entry { -fx-spacing: 3; }
+.nav-children { -fx-padding: 0 0 6 30; -fx-spacing: 2; }
+.nav-content { -fx-spacing: 10; -fx-alignment: center-left; }
+.nav-label { -fx-text-fill: -colibri-nav-text; }
+.nav-chevron .brand-icon-shape { -fx-fill: -colibri-nav-subtle; }
+.nav-button:hover .nav-label { -fx-text-fill: -colibri-on-navy; }
+.nav-button-active .nav-label, .nav-group-active .nav-label {
+    -fx-text-fill: -colibri-on-navy;
+    -fx-font-weight: 600;
+}
+.nav-child-button { -fx-padding: 8 12 8 36; -fx-font-size: 12px; }
+.nav-group-button { -fx-font-weight: 600; }
+.nav-group-active {
+    -fx-background-color: -colibri-nav-active;
+    -fx-border-color: -colibri-transparent -colibri-transparent -colibri-transparent -colibri-lime;
+    -fx-border-width: 0 0 0 3;
+}
+
+.nav-button {
+    -fx-background-color: -colibri-transparent;
+    -fx-border-color: -colibri-transparent;
+    -fx-background-radius: 9;
+    -fx-border-radius: 9;
+    -fx-text-fill: -colibri-nav-text;
+    -fx-font-weight: 500;
+    -fx-font-size: 0.97em;
+    -fx-alignment: center-left;
+    -fx-graphic-text-gap: 12;
+    -fx-padding: 10 16;
+    -fx-min-height: 36;
+}
+.nav-button .brand-icon-shape { -fx-fill: -colibri-cyan; }
+.nav-button:hover { -fx-background-color: -colibri-nav-hover; -fx-text-fill: -colibri-on-navy; -fx-effect: none; }
+.nav-button:hover .brand-icon-shape { -fx-fill: -colibri-cyan-bright; }
+.nav-button:selected, .nav-button-active {
+    -fx-background-color: -colibri-nav-active;
+    -fx-border-color: -colibri-transparent -colibri-transparent -colibri-transparent -colibri-lime;
+    -fx-border-width: 0 0 0 3;
+    -fx-text-fill: -colibri-on-navy;
+    -fx-font-weight: 600;
+}
+.nav-button-active .brand-icon-shape { -fx-fill: -colibri-lime-bright; }
+.menu-colapsado .side-menu { -fx-padding: 20 8 20 8; }
+.menu-colapsado .side-brand { -fx-alignment: center; -fx-padding: 2 0 18 0; }
+.menu-colapsado .nav-button { -fx-alignment: center; -fx-graphic-text-gap: 0; -fx-padding: 12 0; }
+
+/* La regla genérica .button aparece más abajo en la hoja. Estos selectores
+   incluyen .side-nav para tener mayor especificidad y evitar que la
+   navegación herede botones blancos o bordes de formularios. */
+.side-nav .nav-button {
+    -fx-background-color: -colibri-transparent;
+    -fx-border-color: -colibri-transparent;
+    -fx-text-fill: -colibri-nav-text;
+    -fx-effect: none;
+}
+.side-nav .nav-button .brand-icon-shape { -fx-fill: -colibri-cyan; }
+.side-nav .nav-button:hover {
+    -fx-background-color: -colibri-nav-hover;
+    -fx-border-color: -colibri-transparent;
+    -fx-text-fill: -colibri-on-navy;
+    -fx-effect: none;
+}
+.side-nav .nav-button:hover .nav-label { -fx-text-fill: -colibri-on-navy; }
+.side-nav .nav-button:hover .brand-icon-shape { -fx-fill: -colibri-cyan-bright; }
+.side-nav .nav-button-active,
+.side-nav .nav-group-active {
+    -fx-background-color: -colibri-nav-active;
+    -fx-border-color: -colibri-transparent -colibri-transparent -colibri-transparent -colibri-lime;
+    -fx-border-width: 0 0 0 3;
+    -fx-text-fill: -colibri-on-navy;
+    -fx-effect: none;
+}
+.side-nav .nav-button-active .nav-label,
+.side-nav .nav-group-active .nav-label {
+    -fx-text-fill: -colibri-on-navy;
+    -fx-font-weight: 600;
+}
+.side-nav .nav-button-active .brand-icon-shape { -fx-fill: -colibri-lime-bright; }
+
+/* Botones y foco. El botón primario conserva lima con texto navy. */
+.button {
+    -fx-cursor: hand;
+    -fx-background-color: -colibri-surface;
+    -fx-border-color: -colibri-field-border;
+    -fx-text-fill: -colibri-ink;
+    -fx-background-radius: 9;
+    -fx-border-radius: 9;
+    -fx-padding: 8 16;
+    -fx-min-height: 32;
+    -fx-font-weight: 600;
+    -fx-font-size: 0.97em;
+    -fx-graphic-text-gap: 8;
+    -fx-background-insets: 0;
+    -fx-border-width: 1;
+}
+.button:hover { -fx-background-color: -colibri-cyan-tint-strong; -fx-border-color: -colibri-cyan-accessible; -fx-effect: dropshadow(gaussian, -colibri-shadow, 10, 0.14, 0, 2); }
+.button:pressed { -fx-effect: none; }
+.button:disabled { -fx-opacity: 0.45; -fx-cursor: default; }
+.primary-button {
+    -fx-background-color: -colibri-lime;
+    -fx-border-color: -colibri-lime;
+    -fx-text-fill: -colibri-navy;
+}
+.primary-button:hover { -fx-background-color: -colibri-lime-bright; -fx-border-color: -colibri-lime-bright; }
+.secondary-button {
+    -fx-background-color: -colibri-surface;
+    -fx-border-color: -colibri-field-border;
+    -fx-text-fill: -colibri-ink;
+}
+.secondary-button:hover { -fx-background-color: -colibri-cyan-tint-strong; -fx-border-color: -colibri-cyan-accessible; }
+.success-button {
+    -fx-background-color: -colibri-success;
+    -fx-border-color: -colibri-success;
+    -fx-text-fill: -colibri-on-navy;
+}
+.success-button:hover { -fx-background-color: -colibri-success-hover; -fx-border-color: -colibri-success-hover; }
+.danger-button {
+    -fx-background-color: -colibri-error-bg;
+    -fx-border-color: -colibri-error-border;
+    -fx-text-fill: -colibri-error-border;
+}
+.danger-button:hover { -fx-background-color: -colibri-error-bg; -fx-border-color: -colibri-error; }
+.brand-icon-shape { -fx-fill: -colibri-ink; }
+.primary-button .brand-icon-shape { -fx-fill: -colibri-navy; }
+.success-button .brand-icon-shape { -fx-fill: -colibri-on-navy; }
+.danger-button .brand-icon-shape { -fx-fill: -colibri-error-border; }
+.menu-toggle {
+    -fx-background-color: -colibri-transparent;
+    -fx-border-color: -colibri-transparent;
+}
+.menu-toggle:hover {
+    -fx-background-color: -colibri-nav-toggle-hover;
+    -fx-border-color: -colibri-transparent;
+}
+.button:focus-visible, .toggle-button:focus-visible, .hyperlink:focus-visible,
+.menu-toggle:focus-visible, .nav-button:focus-visible, .tab:focus-visible {
+    -fx-border-color: -colibri-focus;
+    -fx-border-width: 2;
+    -fx-effect: dropshadow(gaussian, -colibri-focus-faint, 8, 0.18, 0, 0);
+}
+.primary-button:focus-visible {
+    -fx-border-color: -colibri-navy;
+    -fx-effect: dropshadow(gaussian, -colibri-navy, 8, 0.18, 0, 0);
+}
+
+/* Formularios y validación visual. */
+.text-field, .password-field, .combo-box, .date-picker, .text-area {
+    -fx-background-color: -colibri-surface;
+    -fx-background-radius: 8;
+    -fx-border-color: -colibri-field-border;
+    -fx-border-radius: 8;
+    -fx-padding: 8 11;
+    -fx-prompt-text-fill: -colibri-prompt;
+    -fx-min-height: 32;
+}
+.text-field:hover, .password-field:hover, .combo-box:hover, .date-picker:hover, .text-area:hover {
+    -fx-border-color: -colibri-cyan-accessible;
+}
+.text-field:focused, .password-field:focused, .combo-box:focused, .date-picker:focused, .text-area:focused {
+    -fx-border-color: -colibri-focus;
+    -fx-border-width: 2;
+    -fx-effect: dropshadow(gaussian, -colibri-focus-faint, 8, 0.18, 0, 0);
+}
+.text-field:error, .password-field:error, .combo-box:error, .date-picker:error, .text-area:error {
+    -fx-border-color: -colibri-error-border;
+    -fx-border-width: 2;
+}
+.error-label, .error-caption { -fx-text-fill: -colibri-error-border; -fx-font-size: 0.86em; -fx-font-weight: 600; }
+.combo-box .list-cell { -fx-text-fill: -colibri-ink; }
+.check-box .box {
+    -fx-background-color: -colibri-surface;
+    -fx-border-color: -colibri-field-border;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+.check-box:selected .box { -fx-background-color: -colibri-navy; -fx-border-color: -colibri-navy; }
+.check-box:selected .mark { -fx-background-color: -colibri-on-navy; }
+.check-box:focus-visible .box {
+    -fx-border-color: -colibri-focus;
+    -fx-border-width: 2;
+}
+
+/* Tablas, listas, enlaces y pestañas. */
+.table-view, .list-view {
+    -fx-background-color: -colibri-surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -colibri-border;
+    -fx-border-radius: 10;
+    -fx-padding: 1;
+}
+.table-view:focus-visible, .list-view:focus-visible {
+    -fx-border-color: -colibri-focus;
+    -fx-border-width: 2;
+}
+.table-view .placeholder .label, .list-view .placeholder .label {
+    -fx-text-fill: -colibri-muted;
+    -fx-padding: 22;
+}
+.table-view .table-row-cell {
+    -fx-cell-size: 44;
+    -fx-background-color: -colibri-surface;
+    -fx-border-color: -colibri-transparent -colibri-transparent -colibri-line -colibri-transparent;
+}
+.table-view .table-row-cell:odd { -fx-background-color: -colibri-row; }
+.table-view .table-row-cell:selected, .list-view .list-cell:selected {
+    -fx-background-color: -colibri-cyan-tint;
+    -fx-text-fill: -colibri-navy;
+}
+.table-view .table-row-cell:selected .table-cell { -fx-text-fill: -colibri-navy; }
+.list-view .list-cell:selected .label { -fx-text-fill: -colibri-navy; }
+.table-view .table-cell {
+    -fx-padding: 10 14;
+    -fx-text-fill: -colibri-ink;
+    -fx-font-size: 0.93em;
+    -fx-alignment: center-left;
+}
+.table-view .column-header-background {
+    -fx-background-color: -colibri-subtle;
+    -fx-background-radius: 9 9 0 0;
+}
+.table-view .column-header { -fx-background-color: -colibri-transparent; -fx-size: 40; -fx-padding: 10 8; }
+.table-view .column-header .label {
+    -fx-text-fill: -colibri-navy-soft;
+    -fx-font-weight: 700;
+    -fx-font-size: 0.86em;
+    -fx-alignment: center-left;
+}
+.table-view .filler { -fx-background-color: -colibri-transparent; }
+.list-view .list-cell { -fx-padding: 10 12; -fx-background-color: -colibri-surface; -fx-text-fill: -colibri-ink; }
+.list-view .list-cell:odd { -fx-background-color: -colibri-row; }
+.list-view .list-cell .label { -fx-text-fill: -colibri-ink; }
+.list-view .list-cell:hover { -fx-background-color: -colibri-cyan-tint-strong; }
+
+/* Inventario: evita catálogos aparentemente vacíos y concentra la comparación de valoración. */
+.inventory-plan-table { -fx-min-height: 136; -fx-pref-height: 188; -fx-max-height: 220; }
+.inventory-lot-list { -fx-min-height: 118; -fx-pref-height: 164; -fx-max-height: 200; }
+.valuation-grid {
+    -fx-background-color: -colibri-surface;
+    -fx-background-radius: 9;
+    -fx-border-color: -colibri-border;
+    -fx-border-radius: 9;
+    -fx-padding: 1;
+}
+.valuation-header {
+    -fx-background-color: -colibri-subtle;
+    -fx-text-fill: -colibri-navy-soft;
+    -fx-font-size: 0.86em;
+    -fx-font-weight: 700;
+    -fx-padding: 10 14;
+}
+.valuation-method, .valuation-value {
+    -fx-border-color: -colibri-transparent -colibri-transparent -colibri-line -colibri-transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 10 14;
+}
+.valuation-method { -fx-text-fill: -colibri-ink; -fx-font-weight: 600; }
+.valuation-value { -fx-text-fill: -colibri-navy; -fx-font-weight: 700; }
+.hyperlink { -fx-text-fill: -colibri-cyan-accessible; -fx-border-color: -colibri-transparent; -fx-underline: false; }
+.hyperlink:hover, .hyperlink:visited { -fx-text-fill: -colibri-navy; -fx-underline: true; }
+.separator .line { -fx-border-color: -colibri-line; -fx-border-width: 1 0 0 0; }
+.tab-pane { -fx-background-color: -colibri-transparent; -fx-tab-min-height: 38; }
+.tab-pane > .tab-content-area { -fx-background-color: -colibri-transparent; }
+.tab-pane .tab-header-area { -fx-padding: 0 0 4 0; }
+.tab-pane .tab-header-area .tab-header-background { -fx-background-color: -colibri-transparent; }
+.tab-pane .tab { -fx-background-color: -colibri-transparent; -fx-padding: 9 18; -fx-background-radius: 8 8 0 0; }
+.tab-pane .tab:selected { -fx-background-color: -colibri-cyan-tint-strong; }
+.tab-pane .tab-label { -fx-text-fill: -colibri-muted; -fx-font-weight: 700; }
+.tab-pane .tab:selected .tab-label { -fx-text-fill: -colibri-navy; }
+.topic-tabs { -fx-tab-min-height: 42; }
+.topic-tabs .tab { -fx-padding: 9 14; }
+.topic-tabs .tab-label { -fx-text-overrun: ellipsis; }
+.topic-tabs .tab-content-area { -fx-padding: 14 0 0 0; }
+
+/* Inicio de sesión y diálogos. */
+.login-root {
+    -fx-background-color: linear-gradient(to bottom right, -colibri-login-start 0%, -colibri-login-end 100%);
+    -fx-padding: 40;
+}
+.login-card {
+    -fx-background-color: -colibri-surface;
+    -fx-background-radius: 18;
+    -fx-border-radius: 18;
+    -fx-effect: dropshadow(gaussian, -colibri-shadow, 34, 0.16, 0, 10);
+    -fx-max-width: 840;
+}
+.login-brand-panel {
+    -fx-background-color: linear-gradient(to bottom right, -colibri-navy 0%, -colibri-navy-soft 78%, -colibri-navy-gradient-end 100%);
+    -fx-background-radius: 18 0 0 18;
+    -fx-padding: 40 34;
+    -fx-spacing: 16;
+    -fx-alignment: center;
+}
+.login-logo { -fx-alignment: center; }
+.login-company {
+    -fx-font-size: 1.5em;
+    -fx-font-weight: 700;
+    -fx-text-fill: -colibri-on-navy;
+    -fx-text-alignment: center;
+    -fx-line-spacing: 2;
+}
+.login-tagline { -fx-font-size: 0.93em; -fx-text-fill: -colibri-nav-text; -fx-text-alignment: center; }
+.login-brand-panel .label { -fx-alignment: center; }
+.login-form { -fx-padding: 50 52; -fx-spacing: 13; -fx-alignment: center-left; }
+.login-title { -fx-font-size: 2em; -fx-font-weight: 700; -fx-text-fill: -colibri-ink; }
+.login-subtitle { -fx-text-fill: -colibri-muted; -fx-font-size: 0.97em; -fx-padding: 0 0 14 0; }
+.login-form .field-label { -fx-font-size: 0.9em; -fx-font-weight: 600; -fx-text-fill: -colibri-navy-soft; }
+.login-form .text-field, .login-form .password-field { -fx-min-height: 42; }
+.login-form .primary-button { -fx-min-height: 44; -fx-font-size: 1em; }
+.login-card-compact { -fx-padding: 22; }
+.login-card-compact .login-form { -fx-padding: 22 30; -fx-spacing: 10; }
+.login-card-compact .login-title { -fx-font-size: 1.64em; }
+.login-card-compact .login-subtitle { -fx-padding: 0 0 6 0; }
+
+/* Salidas de cálculo: no heredan la altura de un campo de una sola línea. */
+.text-area.process-result-output {
+    -fx-min-height: 280px;
+    -fx-pref-height: 300px;
+    -fx-max-height: 320px;
+}
+.text-area.estimation-method-output {
+    -fx-min-height: 210px;
+    -fx-pref-height: 230px;
+    -fx-max-height: 250px;
+    -fx-font-family: "Cascadia Mono", "Consolas", monospace;
+}
+.result-message {
+    -fx-min-height: 54px;
+}
+.colibri-dialog { -fx-background-color: -colibri-canvas; }
+.dialog-pane .header-panel { -fx-background-color: -colibri-surface; }
+.dialog-pane .header-panel .label { -fx-text-fill: -colibri-ink; -fx-font-size: 1.14em; -fx-font-weight: 700; }
+.dialog-pane .button-bar { -fx-background-color: -colibri-surface; -fx-padding: 12 16; }
+.dialog-pane { -fx-background-color: -colibri-surface; }
+
+/* Splash y banner de inicio. */
+.splash-root {
+    -fx-background-color: -colibri-surface;
+    -fx-background-radius: 18;
+    -fx-padding: 10;
+    -fx-effect: dropshadow(gaussian, -colibri-shadow-strong, 30, 0.22, 0, 10);
+}
+.brand-hero {
+    -fx-background-color: -colibri-surface;
+    -fx-background-radius: 12;
+    -fx-border-color: -colibri-border;
+    -fx-border-radius: 12;
+    -fx-padding: 18 24;
+    -fx-effect: dropshadow(gaussian, -colibri-shadow-soft, 14, 0.06, 0, 3);
+}

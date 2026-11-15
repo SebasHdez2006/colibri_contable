@@ -1,0 +1,50 @@
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+*.swp
+*~
+.project
+.classpath
+.settings/
+.factorypath
+nbproject/
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Configuración local y secretos (H09.04)
+application.local.properties
+**/.colibri/
+*.local.properties
+
+# Logs y temporales
+*.log
+logs/
+tmp/
+*.tmp
+hs_err_pid*
+
+# Respaldos locales
+backups/
+*.backup
+*.dump
+
+# Lock de instancia
+*.lock
+colibri.instance.lock
