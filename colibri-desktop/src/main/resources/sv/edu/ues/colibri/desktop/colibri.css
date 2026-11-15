@@ -185,7 +185,7 @@
     -fx-background-radius: 10;
     -fx-border-color: -colibri-border;
     -fx-border-radius: 10;
-    -fx-padding: 10 14;
+    -fx-padding: 12 16;
     -fx-pref-width: 245;
     -fx-max-width: 245;
 }
@@ -209,7 +209,7 @@
 }
 .dashboard-overview .section-heading { -fx-text-fill: -colibri-on-navy; }
 .dashboard-overview .muted-caption { -fx-text-fill: -colibri-nav-text; }
-.financial-metric { -fx-padding: 10 18 8 0; -fx-min-width: 0; }
+.financial-metric { -fx-padding: 14 18; -fx-min-width: 0; }
 .financial-label {
     -fx-font-size: 0.84em;
     -fx-font-weight: 700;
@@ -420,7 +420,7 @@
 .side-nav:colapsado .side-menu { -fx-padding: 20 8 20 8; }
 .side-nav:colapsado .side-brand { -fx-alignment: center; -fx-padding: 2 0 18 0; }
 .side-nav:colapsado .nav-button { -fx-alignment: center; -fx-padding: 12 0; }
-.side-nav:colapsado .nav-content { -fx-spacing: 0; }
+.side-nav:colapsado .nav-content { -fx-spacing: 0; -fx-alignment: center; }
 .side-nav:colapsado .nav-divider { -fx-padding: 8 0; }
 
 .nav-entry { -fx-spacing: 3; }
