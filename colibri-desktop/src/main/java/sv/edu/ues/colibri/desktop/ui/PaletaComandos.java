@@ -75,7 +75,7 @@ public final class PaletaComandos extends StackPane {
                 BrandIcon.Symbol.LOGOUT, null, true));
 
         campo.getStyleClass().add("palette-field");
-        campo.setPromptText("Buscar sección o acción…");
+        campo.setPromptText("Buscar sección o acción");
         campo.setOnAction(e -> abrirSeleccion());
         campo.textProperty().addListener((o, anterior, nuevo) -> filtrar(nuevo));
         campo.addEventFilter(KeyEvent.KEY_PRESSED, this::teclaCampo);

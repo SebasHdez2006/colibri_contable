@@ -184,7 +184,7 @@ public class PlantillasView extends VBox {
         List<Cuenta> cuentas = cuentasMovimiento();
         CatalogoCombo<Cuenta> cuenta = new CatalogoCombo<>(cuentas, conversorCuenta(),
                 Cuenta::getCodigo, this::buscarCuentasPlantilla);
-        cuenta.getEditor().setPromptText("Código o nombre de la cuenta…");
+        cuenta.getEditor().setPromptText("Código o nombre de la cuenta");
         TextField debe = new TextField("0");
         TextField haber = new TextField("0");
         Button agregar = new Button("Agregar línea");

@@ -443,7 +443,7 @@ public class ReportesView extends VBox {
         Task<Void> tarea = new Task<>() {
             @Override
             protected Void call() throws Exception {
-                updateMessage("Generando " + nombreBase + "." + extension + "…");
+                updateMessage("Generando " + nombreBase + "." + extension);
                 String entidad = context.periodos().empresa()
                         .map(e -> e.getRazonSocial()).orElse("Colibrí");
                 String periodoConEntidad = entidad + " · " + periodoReporte;
@@ -513,7 +513,7 @@ public class ReportesView extends VBox {
             }
         };
         conProgreso("Paquete de reportes",
-                "Generando " + LIBROS_PAQUETE.size() + " libros en PDF y Excel…",
+                "Generando " + LIBROS_PAQUETE.size() + " libros en PDF y Excel",
                 tarea, () -> UiDialogs.info("Paquete ZIP",
                         "Se generó " + archivo.getFileName()));
     }
@@ -537,7 +537,7 @@ public class ReportesView extends VBox {
 
         ProgressBar barra = new ProgressBar();
         barra.setProgress(ProgressBar.INDETERMINATE_PROGRESS);
-        Label estado = new Label("Iniciando exportación…");
+        Label estado = new Label("Iniciando exportación");
         estado.setWrapText(true);
         VBox contenido = new VBox(10, barra, estado);
         contenido.setPadding(new Insets(16));

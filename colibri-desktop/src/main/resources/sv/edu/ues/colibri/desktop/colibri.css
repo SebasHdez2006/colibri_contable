@@ -80,18 +80,18 @@
 .menu-scroll-pane > .viewport { -fx-background-color: -colibri-transparent; }
 .content-view {
     -fx-background-color: -colibri-surface;
-    -fx-background-radius: 16;
+    -fx-background-radius: 1.14em;
     -fx-border-color: -colibri-border;
-    -fx-border-radius: 16;
-    -fx-padding: 28 32 32 32;
-    -fx-spacing: 20;
+    -fx-border-radius: 1.14em;
+    -fx-padding: 2.0em 2.29em 2.29em 2.29em;
+    -fx-spacing: 1.43em;
     -fx-effect: dropshadow(gaussian, -colibri-shadow-soft, 14, 0.08, 0, 3);
 }
 
-.scroll-bar:vertical { -fx-background-color: -colibri-transparent; -fx-pref-width: 8; }
-.scroll-bar:horizontal { -fx-background-color: -colibri-transparent; -fx-pref-height: 8; }
+.scroll-bar:vertical { -fx-background-color: -colibri-transparent; -fx-pref-width: 0.57em; }
+.scroll-bar:horizontal { -fx-background-color: -colibri-transparent; -fx-pref-height: 0.57em; }
 .scroll-bar .track { -fx-background-color: -colibri-transparent; -fx-border-color: -colibri-transparent; }
-.scroll-bar .thumb { -fx-background-color: -colibri-scroll-thumb; -fx-background-radius: 8; }
+.scroll-bar .thumb { -fx-background-color: -colibri-scroll-thumb; -fx-background-radius: 0.57em; }
 .scroll-bar .thumb:hover { -fx-background-color: -colibri-scroll-thumb-hover; }
 .menu-scroll-pane .scroll-bar .thumb { -fx-background-color: -colibri-nav-subtle; }
 .menu-scroll-pane .scroll-bar .thumb:hover { -fx-background-color: -colibri-cyan-bright; }
@@ -106,7 +106,7 @@
     -fx-font-size: 1.8em;
     -fx-font-weight: 700;
     -fx-text-fill: -colibri-ink;
-    -fx-padding: 0 0 4 0;
+    -fx-padding: 0 0 0.16em 0;
 }
 .section-title, .section-heading {
     -fx-font-size: 1.1em;
@@ -122,72 +122,72 @@
     -fx-font-size: 0.93em;
     -fx-text-fill: -colibri-muted;
 }
-.view-subtitle { -fx-padding: 0 0 8 0; }
+.view-subtitle { -fx-padding: 0 0 0.57em 0; }
 .numeric-cell, .numeric-cell.table-cell { -fx-alignment: center-right; }
 
 /* Superficies. -colibri-border es decorativo; campos usan borde accesible propio. */
 .card, .form-card, .surface-card, .section-card {
     -fx-background-color: -colibri-surface;
-    -fx-background-radius: 12;
-    -fx-border-radius: 12;
+    -fx-background-radius: 0.86em;
+    -fx-border-radius: 0.86em;
     -fx-border-color: -colibri-border;
-    -fx-border-width: 1;
-    -fx-padding: 20;
-    -fx-spacing: 12;
+    -fx-border-width: 0.07em;
+    -fx-padding: 1.43em;
+    -fx-spacing: 0.86em;
     -fx-effect: dropshadow(three-pass-box, -colibri-shadow-soft, 8, 0, 0, 2);
 }
 .section-card {
-    -fx-padding: 18 20 20 20;
-    -fx-spacing: 14;
+    -fx-padding: 1.29em 1.43em 1.43em 1.43em;
+    -fx-spacing: 1.0em;
 }
 .section-card .section-heading {
-    -fx-padding: 0 0 2 0;
+    -fx-padding: 0 0 0.14em 0;
 }
 .section-divider {
-    -fx-padding: 2 0 2 0;
+    -fx-padding: 0.14em 0 0.14em 0;
 }
-.section-divider .line { -fx-border-color: -colibri-line; -fx-border-width: 1 0 0 0; }
+.section-divider .line { -fx-border-color: -colibri-line; -fx-border-width: 0.07em 0 0 0; }
 .metric-card {
     -fx-background-color: -colibri-subtle;
-    -fx-background-radius: 12;
+    -fx-background-radius: 0.86em;
     -fx-border-color: -colibri-line;
-    -fx-border-radius: 12;
-    -fx-padding: 16 18;
-    -fx-min-width: 175;
-    -fx-pref-width: 220;
+    -fx-border-radius: 0.86em;
+    -fx-padding: 1.14em 1.29em;
+    -fx-min-width: 12.5em;
+    -fx-pref-width: 15.71em;
 }
 .result-panel {
     -fx-background-color: -colibri-cyan-tint-strong;
-    -fx-background-radius: 10;
+    -fx-background-radius: 0.71em;
     -fx-border-color: -colibri-cyan;
-    -fx-border-radius: 10;
-    -fx-border-width: 1;
-    -fx-padding: 12 16;
-    -fx-spacing: 6;
+    -fx-border-radius: 0.71em;
+    -fx-border-width: 0.07em;
+    -fx-padding: 0.86em 1.14em;
+    -fx-spacing: 0.43em;
 }
 .result-panel .section-note, .result-panel .data-label { -fx-text-fill: -color-fg; }
-.dashboard-chart { -fx-padding: 6 4; }
+.dashboard-chart { -fx-padding: 0.43em 0.29em; }
 .metric-value { -fx-text-fill: -colibri-ink; -fx-font-size: 1.58em; -fx-font-weight: 700; }
-.metrics-row { -fx-spacing: 16; }
+.metrics-row { -fx-spacing: 1.14em; }
 
 /* Inicio: una jerarquía de lectura editorial en vez de una cuadrícula de KPIs repetidos. */
 .dashboard-header {
     -fx-background-color: linear-gradient(to right, -colibri-cyan-tint-strong, -colibri-surface);
-    -fx-background-radius: 14;
+    -fx-background-radius: 1.0em;
     -fx-border-color: -colibri-line;
-    -fx-border-radius: 14;
-    -fx-padding: 22 24;
+    -fx-border-radius: 1.0em;
+    -fx-padding: 1.57em 1.71em;
 }
 .dashboard-header .view-title { -fx-font-size: 1.95em; }
 .dashboard-header .view-subtitle { -fx-padding: 0; }
 .dashboard-period {
     -fx-background-color: -colibri-surface;
-    -fx-background-radius: 10;
+    -fx-background-radius: 0.71em;
     -fx-border-color: -colibri-border;
-    -fx-border-radius: 10;
-    -fx-padding: 12 16;
-    -fx-pref-width: 245;
-    -fx-max-width: 245;
+    -fx-border-radius: 0.71em;
+    -fx-padding: 0.86em 1.14em;
+    -fx-pref-width: 17.5em;
+    -fx-max-width: 17.5em;
 }
 .dashboard-period-label {
     -fx-font-size: 0.82em;
@@ -203,13 +203,13 @@
 .dashboard-period-note { -fx-font-size: 0.82em; -fx-text-fill: -colibri-muted; }
 .dashboard-overview {
     -fx-background-color: -colibri-navy;
-    -fx-background-radius: 14;
-    -fx-padding: 22 24;
-    -fx-spacing: 8;
+    -fx-background-radius: 1.0em;
+    -fx-padding: 1.57em 1.71em;
+    -fx-spacing: 0.57em;
 }
 .dashboard-overview .section-heading { -fx-text-fill: -colibri-on-navy; }
 .dashboard-overview .muted-caption { -fx-text-fill: -colibri-nav-text; }
-.financial-metric { -fx-padding: 14 18; -fx-min-width: 0; }
+.financial-metric { -fx-padding: 1.0em 1.29em; -fx-min-width: 0; }
 .financial-label {
     -fx-font-size: 0.84em;
     -fx-font-weight: 700;
@@ -221,22 +221,22 @@
 .financial-attention { -fx-text-fill: -color-warning; }
 .financial-note { -fx-font-size: 0.82em; -fx-text-fill: -colibri-muted; }
 .dashboard-overview .financial-note { -fx-text-fill: -colibri-nav-subtle; }
-.financial-divider { -fx-padding: 0 18; }
-.financial-divider .line { -fx-border-color: -colibri-nav-divider; -fx-border-width: 0 0 0 1; }
-.operational-summary, .commercial-summary { -fx-padding: 20 22; }
+.financial-divider { -fx-padding: 0 1.29em; }
+.financial-divider .line { -fx-border-color: -colibri-nav-divider; -fx-border-width: 0 0 0 0.07em; }
+.operational-summary, .commercial-summary { -fx-padding: 1.43em 1.57em; }
 .operational-row {
-    -fx-padding: 9 0;
+    -fx-padding: 0.64em 0;
     -fx-border-color: -colibri-line;
-    -fx-border-width: 0 0 1 0;
+    -fx-border-width: 0 0 0.07em 0;
 }
 .operational-row:last-child { -fx-border-width: 0; }
 .operational-key { -fx-font-size: 0.82em; -fx-font-weight: 700; -fx-text-fill: -colibri-muted; }
 .operational-value { -fx-font-size: 1em; -fx-font-weight: 600; -fx-text-fill: -colibri-ink; -fx-text-overrun: ellipsis; }
-.commercial-row { -fx-padding: 7 0 9 0; -fx-border-color: -colibri-line; -fx-border-width: 0 0 1 0; }
+.commercial-row { -fx-padding: 0.5em 0 0.64em 0; -fx-border-color: -colibri-line; -fx-border-width: 0 0 0.07em 0; }
 .commercial-row:last-child { -fx-border-width: 0; }
 .commercial-value { -fx-font-size: 1.12em; -fx-font-weight: 700; -fx-text-fill: -color-fg; -fx-text-overrun: ellipsis; }
-.dashboard-actions { -fx-padding: 7 0 0 0; -fx-background-color: -colibri-transparent; }
-.dashboard-chart-card { -fx-padding: 20 20 16 20; }
+.dashboard-actions { -fx-padding: 0.5em 0 0 0; -fx-background-color: -colibri-transparent; }
+.dashboard-chart-card { -fx-padding: 1.43em 1.43em 1.14em 1.43em; }
 .dashboard-income-chart .chart-plot-background { -fx-background-color: -colibri-subtle; }
 .dashboard-income-chart .chart-vertical-grid-lines,
 .dashboard-income-chart .chart-horizontal-grid-lines { -fx-stroke: -colibri-border; -fx-stroke-dash-array: 3 4; }
@@ -249,67 +249,67 @@
 }
 .chart-outlier-note {
     -fx-background-color: -colibri-warning-bg;
-    -fx-background-radius: 8;
-    -fx-padding: 8 10;
+    -fx-background-radius: 0.68em;
+    -fx-padding: 0.68em 0.85em;
     -fx-text-fill: -colibri-warning;
     -fx-font-size: 0.84em;
 }
-.chart-monthly-summary { -fx-padding: 4 0 0 0; }
+.chart-monthly-summary { -fx-padding: 0.29em 0 0 0; }
 .chart-monthly-item {
     -fx-background-color: -colibri-subtle;
-    -fx-background-radius: 7;
-    -fx-padding: 6 8;
+    -fx-background-radius: 0.61em;
+    -fx-padding: 0.52em 0.7em;
     -fx-text-fill: -colibri-muted;
     -fx-font-size: 0.82em;
     -fx-text-overrun: ellipsis;
 }
-.customer-ranking { -fx-spacing: 10; }
+.customer-ranking { -fx-spacing: 0.71em; }
 .customer-total { -fx-text-fill: -colibri-muted; -fx-font-size: 0.88em; }
-.customer-ranking-row { -fx-padding: 5 0; }
+.customer-ranking-row { -fx-padding: 0.36em 0; }
 .customer-rank {
     -fx-background-color: -colibri-cyan-tint;
-    -fx-background-radius: 999;
-    -fx-min-width: 22;
+    -fx-background-radius: 87.02em;
+    -fx-min-width: 1.92em;
     -fx-alignment: center;
-    -fx-padding: 3 6;
+    -fx-padding: 0.26em 0.52em;
     -fx-font-size: 0.82em;
     -fx-font-weight: 700;
     -fx-text-fill: -colibri-cyan-accessible;
 }
 .customer-name { -fx-font-size: 0.87em; -fx-font-weight: 600; -fx-text-fill: -colibri-ink; }
 .customer-amount { -fx-font-size: 0.85em; -fx-font-weight: 700; -fx-text-fill: -color-fg; }
-.customer-progress { -fx-pref-height: 7; }
-.customer-progress > .track { -fx-background-color: -colibri-line; -fx-background-radius: 999; }
-.customer-progress > .bar { -fx-background-color: -colibri-cyan; -fx-background-radius: 999; -fx-padding: 0.22em; }
-.dashboard-data-card { -fx-min-height: 150; }
-.dashboard-data-table { -fx-min-height: 108; }
+.customer-progress { -fx-pref-height: 0.5em; }
+.customer-progress > .track { -fx-background-color: -colibri-line; -fx-background-radius: 71.36em; }
+.customer-progress > .bar { -fx-background-color: -colibri-cyan; -fx-background-radius: 71.36em; -fx-padding: 0.22em; }
+.dashboard-data-card { -fx-min-height: 10.71em; }
+.dashboard-data-table { -fx-min-height: 7.71em; }
 .dashboard-empty-state {
-    -fx-min-height: 82;
+    -fx-min-height: 5.86em;
     -fx-alignment: center-left;
-    -fx-padding: 10 0;
+    -fx-padding: 0.71em 0;
 }
 .empty-state-title { -fx-font-weight: 700; -fx-text-fill: -colibri-ink; }
 .empty-state-note { -fx-text-fill: -colibri-muted; -fx-font-size: 0.88em; }
 .status-pill {
     -fx-background-color: -colibri-success-bg;
-    -fx-background-radius: 999;
-    -fx-padding: 5 12;
+    -fx-background-radius: 82.97em;
+    -fx-padding: 0.42em 1.0em;
     -fx-text-fill: -colibri-success;
     -fx-font-size: 0.86em;
     -fx-font-weight: 700;
 }
 .warning-pill {
     -fx-background-color: -colibri-warning-bg;
-    -fx-background-radius: 999;
-    -fx-padding: 5 12;
+    -fx-background-radius: 82.97em;
+    -fx-padding: 0.42em 1.0em;
     -fx-text-fill: -colibri-warning;
     -fx-font-size: 0.86em;
     -fx-font-weight: 700;
 }
 .closed-pill {
     -fx-background-color: -colibri-error-bg;
-    -fx-background-radius: 999;
-    -fx-padding: 5 12;
+    -fx-background-radius: 82.97em;
+    -fx-padding: 0.42em 1.0em;
     -fx-text-fill: -colibri-error-border;
     -fx-font-size: 0.86em;
     -fx-font-weight: 700;
@@ -322,63 +322,63 @@
 .linea-error .table-cell { -fx-text-fill: -colibri-error-border; }
 .toolbar {
     -fx-background-color: -colibri-surface;
-    -fx-background-radius: 12;
+    -fx-background-radius: 0.86em;
     -fx-border-color: -colibri-border;
-    -fx-border-radius: 12;
-    -fx-padding: 14 16;
+    -fx-border-radius: 0.86em;
+    -fx-padding: 1.0em 1.14em;
     -fx-effect: dropshadow(gaussian, -colibri-shadow-soft, 14, 0.06, 0, 3);
 }
 
 /* Barra superior y navegación. */
 .top-bar {
     -fx-background-color: -colibri-surface;
-    -fx-padding: 14 28;
+    -fx-padding: 1.0em 2.0em;
     -fx-border-color: -colibri-transparent -colibri-transparent -colibri-line -colibri-transparent;
-    -fx-border-width: 0 0 1 0;
+    -fx-border-width: 0 0 0.07em 0;
     -fx-alignment: center-left;
 }
 .top-context { -fx-font-size: 1em; -fx-font-weight: 600; -fx-text-fill: -colibri-ink; }
-.breadcrumb-bar { -fx-spacing: 6; -fx-alignment: center-left; }
+.breadcrumb-bar { -fx-spacing: 0.43em; -fx-alignment: center-left; }
 .breadcrumb-sep { -fx-text-fill: -colibri-muted; }
 .breadcrumb-current { -fx-font-weight: 700; -fx-text-overrun: ellipsis; }
 .zoom-controls {
     -fx-alignment: center-right;
-    -fx-spacing: 6;
+    -fx-spacing: 0.43em;
 }
 .zoom-button {
-    -fx-min-width: 34;
-    -fx-min-height: 34;
-    -fx-padding: 6;
+    -fx-min-width: 2.43em;
+    -fx-min-height: 2.43em;
+    -fx-padding: 0.43em;
 }
 .zoom-pill {
     -fx-background-color: -colibri-cyan-tint-strong;
-    -fx-background-radius: 999;
-    -fx-padding: 6 10;
+    -fx-background-radius: 82.97em;
+    -fx-padding: 0.5em 0.83em;
     -fx-text-fill: -color-fg;
     -fx-font-size: 0.86em;
     -fx-font-weight: 700;
 }
 .user-pill {
     -fx-background-color: -colibri-cyan-tint-strong;
-    -fx-background-radius: 999;
-    -fx-padding: 7 14;
+    -fx-background-radius: 76.73em;
+    -fx-padding: 0.54em 1.08em;
     -fx-text-fill: -color-fg;
     -fx-font-size: 0.93em;
     -fx-font-weight: 600;
     -fx-text-overrun: ellipsis;
 }
-.side-menu { -fx-background-color: -colibri-transparent; -fx-padding: 20 10 20 10; -fx-spacing: 6; }
-.side-brand { -fx-padding: 2 2 16 2; -fx-spacing: 9; -fx-alignment: center-left; }
+.side-menu { -fx-background-color: -colibri-transparent; -fx-padding: 1.43em 0.71em 1.43em 0.71em; -fx-spacing: 0.43em; }
+.side-brand { -fx-padding: 0.14em 0.14em 1.14em 0.14em; -fx-spacing: 0.64em; -fx-alignment: center-left; }
 .side-logo { -fx-alignment: center; }
 .brand-logo-badge {
     -fx-background-color: -color-paper-bg;
-    -fx-background-radius: 16;
+    -fx-background-radius: 1.14em;
     -fx-border-color: -color-border;
-    -fx-border-width: 1;
-    -fx-border-radius: 16;
+    -fx-border-width: 0.07em;
+    -fx-border-radius: 1.14em;
     -fx-effect: dropshadow(gaussian, -colibri-shadow-strong, 16, 0.18, 0, 5);
 }
-.side-logo .brand-logo-badge { -fx-background-radius: 9; -fx-border-radius: 9; -fx-effect: none; }
+.side-logo .brand-logo-badge { -fx-background-radius: 0.64em; -fx-border-radius: 0.64em; -fx-effect: none; }
 .side-brand-text { -fx-alignment: center-left; }
 .side-brand-name { -fx-font-size: 1.36em; -fx-font-weight: 700; -fx-text-fill: -colibri-on-navy; }
 .side-brand-subtitle {
@@ -387,17 +387,17 @@
     -fx-text-fill: -colibri-cyan-bright;
     -fx-text-overrun: ellipsis;
 }
-.side-menu .separator { -fx-padding: 4 2; }
-.side-menu .separator .line { -fx-border-color: -colibri-nav-divider; -fx-border-width: 1 0 0 0; }
-.side-menu .nav-divider { -fx-padding: 8 4; }
-.side-menu .nav-divider .line { -fx-border-color: -colibri-nav-divider; -fx-border-width: 1 0 0 0; }
+.side-menu .separator { -fx-padding: 0.29em 0.14em; }
+.side-menu .separator .line { -fx-border-color: -colibri-nav-divider; -fx-border-width: 0.07em 0 0 0; }
+.side-menu .nav-divider { -fx-padding: 0.57em 0.29em; }
+.side-menu .nav-divider .line { -fx-border-color: -colibri-nav-divider; -fx-border-width: 0.07em 0 0 0; }
 .menu-toggle {
     -fx-background-color: -colibri-transparent;
     -fx-border-color: -colibri-transparent;
-    -fx-background-radius: 8;
-    -fx-padding: 6;
-    -fx-min-width: 32;
-    -fx-min-height: 32;
+    -fx-background-radius: 0.57em;
+    -fx-padding: 0.43em;
+    -fx-min-width: 2.29em;
+    -fx-min-height: 2.29em;
     -fx-cursor: hand;
 }
 .menu-toggle .brand-icon-shape { -fx-fill: -colibri-nav-text; }
@@ -405,27 +405,27 @@
 .menu-toggle:hover .brand-icon-shape { -fx-fill: -colibri-cyan-bright; }
 
 .side-nav {
-    -fx-pref-width: 288;
-    -fx-min-width: 288;
-    -fx-max-width: 288;
+    -fx-pref-width: 20.57em;
+    -fx-min-width: 20.57em;
+    -fx-max-width: 20.57em;
     -fx-background-color: linear-gradient(to bottom, -colibri-navy 0%, -colibri-navy-gradient-end 100%);
     -fx-transition-property: -fx-pref-width;
     -fx-transition-duration: 220ms;
 }
 .side-nav:colapsado {
-    -fx-pref-width: 78;
-    -fx-min-width: 78;
-    -fx-max-width: 78;
+    -fx-pref-width: 5.57em;
+    -fx-min-width: 5.57em;
+    -fx-max-width: 5.57em;
 }
-.side-nav:colapsado .side-menu { -fx-padding: 20 8 20 8; }
-.side-nav:colapsado .side-brand { -fx-alignment: center; -fx-padding: 2 0 18 0; }
-.side-nav:colapsado .nav-button { -fx-alignment: center; -fx-padding: 12 0; }
+.side-nav:colapsado .side-menu { -fx-padding: 1.43em 0.57em 1.43em 0.57em; }
+.side-nav:colapsado .side-brand { -fx-alignment: center; -fx-padding: 0.14em 0 1.29em 0; }
+.side-nav:colapsado .nav-button { -fx-alignment: center; -fx-padding: 0.86em 0; }
 .side-nav:colapsado .nav-content { -fx-spacing: 0; -fx-alignment: center; }
-.side-nav:colapsado .nav-divider { -fx-padding: 8 0; }
+.side-nav:colapsado .nav-divider { -fx-padding: 0.57em 0; }
 
-.nav-entry { -fx-spacing: 3; }
-.nav-children { -fx-padding: 0 0 6 26; -fx-spacing: 2; }
-.nav-content { -fx-spacing: 9; -fx-alignment: center-left; }
+.nav-entry { -fx-spacing: 0.21em; }
+.nav-children { -fx-padding: 0 0 0.43em 1.86em; -fx-spacing: 0.14em; }
+.nav-content { -fx-spacing: 0.64em; -fx-alignment: center-left; }
 .nav-label { -fx-text-fill: -colibri-nav-text; }
 .nav-chevron .brand-icon-shape { -fx-fill: -colibri-nav-subtle; }
 .nav-button:hover .nav-label { -fx-text-fill: -colibri-on-navy; }
@@ -433,26 +433,26 @@
     -fx-text-fill: -colibri-on-navy;
     -fx-font-weight: 600;
 }
-.nav-child-button { -fx-padding: 8 12 8 36; -fx-font-size: 12px; }
+.nav-child-button { -fx-padding: 0.67em 1.0em 0.67em 3.0em; -fx-font-size: 12px; }
 .nav-group-button { -fx-font-weight: 600; }
 .nav-group-active {
     -fx-background-color: -colibri-nav-active;
     -fx-border-color: -colibri-transparent -colibri-transparent -colibri-transparent -colibri-lime;
-    -fx-border-width: 0 0 0 3;
+    -fx-border-width: 0 0 0 0.21em;
 }
 
 .nav-button {
     -fx-background-color: -colibri-transparent;
     -fx-border-color: -colibri-transparent;
-    -fx-background-radius: 9;
-    -fx-border-radius: 9;
+    -fx-background-radius: 0.68em;
+    -fx-border-radius: 0.68em;
     -fx-text-fill: -colibri-nav-text;
     -fx-font-weight: 500;
     -fx-font-size: 0.95em;
     -fx-alignment: center-left;
     -fx-graphic-text-gap: 10;
-    -fx-padding: 10 12;
-    -fx-min-height: 36;
+    -fx-padding: 0.75em 0.9em;
+    -fx-min-height: 2.71em;
 }
 .nav-button .brand-icon-shape { -fx-fill: -colibri-cyan; }
 .nav-button:hover { -fx-background-color: -colibri-nav-hover; -fx-text-fill: -colibri-on-navy; -fx-effect: none; }
@@ -460,14 +460,14 @@
 .nav-button:selected, .nav-button-active {
     -fx-background-color: -colibri-nav-active;
     -fx-border-color: -colibri-transparent -colibri-transparent -colibri-transparent -colibri-lime;
-    -fx-border-width: 0 0 0 3;
+    -fx-border-width: 0 0 0 0.21em;
     -fx-text-fill: -colibri-on-navy;
     -fx-font-weight: 600;
 }
 .nav-button-active .brand-icon-shape { -fx-fill: -colibri-lime-bright; }
-.menu-colapsado .side-menu { -fx-padding: 20 8 20 8; }
-.menu-colapsado .side-brand { -fx-alignment: center; -fx-padding: 2 0 18 0; }
-.menu-colapsado .nav-button { -fx-alignment: center; -fx-graphic-text-gap: 0; -fx-padding: 12 0; }
+.menu-colapsado .side-menu { -fx-padding: 1.43em 0.57em 1.43em 0.57em; }
+.menu-colapsado .side-brand { -fx-alignment: center; -fx-padding: 0.14em 0 1.29em 0; }
+.menu-colapsado .nav-button { -fx-alignment: center; -fx-graphic-text-gap: 0; -fx-padding: 0.86em 0; }
 
 /* La regla genérica .button aparece más abajo en la hoja. Estos selectores
    incluyen .side-nav para tener mayor especificidad y evitar que la
@@ -491,7 +491,7 @@
 .side-nav .nav-group-active {
     -fx-background-color: -colibri-nav-active;
     -fx-border-color: -colibri-transparent -colibri-transparent -colibri-transparent -colibri-lime;
-    -fx-border-width: 0 0 0 3;
+    -fx-border-width: 0 0 0 0.21em;
     -fx-text-fill: -colibri-on-navy;
     -fx-effect: none;
 }
@@ -508,15 +508,15 @@
     -fx-background-color: -color-bg-raised;
     -fx-border-color: -colibri-field-border;
     -fx-text-fill: -colibri-ink;
-    -fx-background-radius: 9;
-    -fx-border-radius: 9;
-    -fx-padding: 8 16;
-    -fx-min-height: 32;
+    -fx-background-radius: 0.66em;
+    -fx-border-radius: 0.66em;
+    -fx-padding: 0.59em 1.18em;
+    -fx-min-height: 2.36em;
     -fx-font-weight: 600;
     -fx-font-size: 0.97em;
     -fx-graphic-text-gap: 8;
     -fx-background-insets: 0;
-    -fx-border-width: 1;
+    -fx-border-width: 0.07em;
 }
 .button:hover { -fx-background-color: -colibri-cyan-tint-strong; -fx-border-color: -colibri-cyan-accessible; -fx-effect: dropshadow(gaussian, -colibri-shadow, 10, 0.14, 0, 2); }
 .button:pressed { -fx-effect: none; }
@@ -560,7 +560,7 @@
 .button:focus-visible, .toggle-button:focus-visible, .hyperlink:focus-visible,
 .menu-toggle:focus-visible, .nav-button:focus-visible, .tab:focus-visible {
     -fx-border-color: -colibri-focus;
-    -fx-border-width: 2;
+    -fx-border-width: 0.14em;
     -fx-effect: dropshadow(gaussian, -colibri-focus-faint, 8, 0.18, 0, 0);
 }
 .primary-button:focus-visible {
@@ -579,55 +579,55 @@
 /* Formularios y validación visual. */
 .text-field, .password-field, .combo-box, .date-picker, .text-area {
     -fx-background-color: -color-bg-raised;
-    -fx-background-radius: 8;
+    -fx-background-radius: 0.57em;
     -fx-border-color: -colibri-field-border;
-    -fx-border-radius: 8;
-    -fx-padding: 8 11;
+    -fx-border-radius: 0.57em;
+    -fx-padding: 0.57em 0.79em;
     -fx-prompt-text-fill: -colibri-prompt;
-    -fx-min-height: 32;
+    -fx-min-height: 2.29em;
 }
 .text-field:hover, .password-field:hover, .combo-box:hover, .date-picker:hover, .text-area:hover {
     -fx-border-color: -colibri-cyan-accessible;
 }
 .text-field:focused, .password-field:focused, .combo-box:focused, .date-picker:focused, .text-area:focused {
     -fx-border-color: -colibri-focus;
-    -fx-border-width: 2;
+    -fx-border-width: 0.14em;
     -fx-effect: dropshadow(gaussian, -colibri-focus-faint, 8, 0.18, 0, 0);
 }
 .text-field:error, .password-field:error, .combo-box:error, .date-picker:error, .text-area:error {
     -fx-border-color: -colibri-error-border;
-    -fx-border-width: 2;
+    -fx-border-width: 0.14em;
 }
 .error-label, .error-caption { -fx-text-fill: -colibri-error-border; -fx-font-size: 0.86em; -fx-font-weight: 600; }
 .combo-box .list-cell { -fx-text-fill: -colibri-ink; }
 .check-box .box {
     -fx-background-color: -color-bg-raised;
     -fx-border-color: -colibri-field-border;
-    -fx-border-radius: 4;
-    -fx-background-radius: 4;
+    -fx-border-radius: 0.29em;
+    -fx-background-radius: 0.29em;
 }
 .check-box:selected .box { -fx-background-color: -color-interactive; -fx-border-color: -color-interactive; }
 .check-box:selected .mark { -fx-background-color: -color-on-primary; }
 .check-box:focus-visible .box {
     -fx-border-color: -colibri-focus;
-    -fx-border-width: 2;
+    -fx-border-width: 0.14em;
 }
 
 /* Tablas, listas, enlaces y pestañas. */
 .table-view, .list-view {
     -fx-background-color: -color-bg-sunken;
-    -fx-background-radius: 10;
+    -fx-background-radius: 0.71em;
     -fx-border-color: -colibri-border;
-    -fx-border-radius: 10;
-    -fx-padding: 1;
+    -fx-border-radius: 0.71em;
+    -fx-padding: 0.07em;
 }
 .table-view:focus-visible, .list-view:focus-visible {
     -fx-border-color: -colibri-focus;
-    -fx-border-width: 2;
+    -fx-border-width: 0.14em;
 }
 .table-view .placeholder .label, .list-view .placeholder .label {
     -fx-text-fill: -colibri-muted;
-    -fx-padding: 22;
+    -fx-padding: 1.57em;
 }
 .table-view .table-row-cell {
     -fx-cell-size: 44;
@@ -642,16 +642,16 @@
 .table-view .table-row-cell:selected .table-cell { -fx-text-fill: -color-fg; }
 .list-view .list-cell:selected .label { -fx-text-fill: -color-fg; }
 .table-view .table-cell {
-    -fx-padding: 10 14;
+    -fx-padding: 0.77em 1.08em;
     -fx-text-fill: -colibri-ink;
     -fx-font-size: 0.93em;
     -fx-alignment: center-left;
 }
 .table-view .column-header-background {
     -fx-background-color: -colibri-subtle;
-    -fx-background-radius: 9 9 0 0;
+    -fx-background-radius: 0.64em 0.64em 0 0;
 }
-.table-view .column-header { -fx-background-color: -colibri-transparent; -fx-size: 40; -fx-padding: 10 8; }
+.table-view .column-header { -fx-background-color: -colibri-transparent; -fx-size: 40; -fx-padding: 0.71em 0.57em; }
 .table-view .column-header .label {
     -fx-text-fill: -color-fg-muted;
     -fx-font-weight: 700;
@@ -659,69 +659,69 @@
     -fx-alignment: center-left;
 }
 .table-view .filler { -fx-background-color: -colibri-transparent; }
-.list-view .list-cell { -fx-padding: 10 12; -fx-background-color: -color-bg-sunken; -fx-text-fill: -colibri-ink; }
+.list-view .list-cell { -fx-padding: 0.71em 0.86em; -fx-background-color: -color-bg-sunken; -fx-text-fill: -colibri-ink; }
 .list-view .list-cell:odd { -fx-background-color: -colibri-row; }
 .list-view .list-cell .label { -fx-text-fill: -colibri-ink; }
 .list-view .list-cell:hover { -fx-background-color: -colibri-cyan-tint-strong; }
 
 /* Inventario: evita catálogos aparentemente vacíos y concentra la comparación de valoración. */
-.inventory-plan-table { -fx-min-height: 136; -fx-pref-height: 188; -fx-max-height: 220; }
-.inventory-lot-list { -fx-min-height: 118; -fx-pref-height: 164; -fx-max-height: 200; }
+.inventory-plan-table { -fx-min-height: 9.71em; -fx-pref-height: 13.43em; -fx-max-height: 15.71em; }
+.inventory-lot-list { -fx-min-height: 8.43em; -fx-pref-height: 11.71em; -fx-max-height: 14.29em; }
 .valuation-grid {
     -fx-background-color: -colibri-surface;
-    -fx-background-radius: 9;
+    -fx-background-radius: 0.64em;
     -fx-border-color: -colibri-border;
-    -fx-border-radius: 9;
-    -fx-padding: 1;
+    -fx-border-radius: 0.64em;
+    -fx-padding: 0.07em;
 }
 .valuation-header {
     -fx-background-color: -colibri-subtle;
     -fx-text-fill: -color-fg-muted;
     -fx-font-size: 0.86em;
     -fx-font-weight: 700;
-    -fx-padding: 10 14;
+    -fx-padding: 0.83em 1.16em;
 }
 .valuation-method, .valuation-value {
     -fx-border-color: -colibri-transparent -colibri-transparent -colibri-line -colibri-transparent;
-    -fx-border-width: 0 0 1 0;
-    -fx-padding: 10 14;
+    -fx-border-width: 0 0 0.07em 0;
+    -fx-padding: 0.71em 1.0em;
 }
 .valuation-method { -fx-text-fill: -colibri-ink; -fx-font-weight: 600; }
 .valuation-value { -fx-text-fill: -color-fg; -fx-font-weight: 700; }
 .hyperlink { -fx-text-fill: -colibri-cyan-accessible; -fx-border-color: -colibri-transparent; -fx-underline: false; }
 .hyperlink:hover { -fx-text-fill: -color-interactive; -fx-underline: true; }
 .hyperlink:visited { -fx-text-fill: -color-fg-muted; -fx-underline: true; }
-.separator .line { -fx-border-color: -colibri-line; -fx-border-width: 1 0 0 0; }
+.separator .line { -fx-border-color: -colibri-line; -fx-border-width: 0.07em 0 0 0; }
 .tab-pane { -fx-background-color: -colibri-transparent; -fx-tab-min-height: 38; }
 .tab-pane > .tab-content-area { -fx-background-color: -colibri-transparent; }
-.tab-pane .tab-header-area { -fx-padding: 0 0 4 0; }
+.tab-pane .tab-header-area { -fx-padding: 0 0 0.29em 0; }
 .tab-pane .tab-header-area .tab-header-background { -fx-background-color: -colibri-transparent; }
-.tab-pane .tab { -fx-background-color: -colibri-transparent; -fx-padding: 9 18; -fx-background-radius: 8 8 0 0; }
+.tab-pane .tab { -fx-background-color: -colibri-transparent; -fx-padding: 0.64em 1.29em; -fx-background-radius: 0.57em 0.57em 0 0; }
 .tab-pane .tab:selected { -fx-background-color: -colibri-cyan-tint-strong; }
 .tab-pane .tab-label { -fx-text-fill: -colibri-muted; -fx-font-weight: 700; }
 .tab-pane .tab:selected .tab-label { -fx-text-fill: -color-fg; }
 .topic-tabs { -fx-tab-min-height: 42; }
-.topic-tabs .tab { -fx-padding: 9 14; }
+.topic-tabs .tab { -fx-padding: 0.64em 1.0em; }
 .topic-tabs .tab-label { -fx-text-overrun: ellipsis; }
-.topic-tabs .tab-content-area { -fx-padding: 14 0 0 0; }
+.topic-tabs .tab-content-area { -fx-padding: 1.0em 0 0 0; }
 
 /* Inicio de sesión y diálogos. */
 .login-root {
     -fx-background-color: linear-gradient(to bottom right, -colibri-login-start 0%, -colibri-login-end 100%);
-    -fx-padding: 40;
+    -fx-padding: 2.86em;
 }
 .login-card {
     -fx-background-color: -colibri-surface;
-    -fx-background-radius: 18;
-    -fx-border-radius: 18;
+    -fx-background-radius: 1.29em;
+    -fx-border-radius: 1.29em;
     -fx-effect: dropshadow(gaussian, -colibri-shadow, 34, 0.16, 0, 10);
-    -fx-max-width: 840;
+    -fx-max-width: 60.0em;
 }
 .login-brand-panel {
     -fx-background-color: linear-gradient(to bottom right, -color-bg-canvas 0%, -color-bg-surface 55%, -color-bg-raised 100%);
-    -fx-background-radius: 18 0 0 18;
-    -fx-padding: 40 34;
-    -fx-spacing: 16;
+    -fx-background-radius: 1.29em 0 0 1.29em;
+    -fx-padding: 2.86em 2.43em;
+    -fx-spacing: 1.14em;
     -fx-alignment: center;
 }
 .login-logo { -fx-alignment: center; }
@@ -734,51 +734,51 @@
 }
 .login-tagline { -fx-font-size: 0.93em; -fx-text-fill: -colibri-nav-text; -fx-text-alignment: center; }
 .login-brand-panel .label { -fx-alignment: center; }
-.login-form { -fx-padding: 50 52; -fx-spacing: 13; -fx-alignment: center-left; }
+.login-form { -fx-padding: 3.57em 3.71em; -fx-spacing: 0.93em; -fx-alignment: center-left; }
 .login-title { -fx-font-size: 2em; -fx-font-weight: 700; -fx-text-fill: -colibri-ink; }
-.login-subtitle { -fx-text-fill: -colibri-muted; -fx-font-size: 0.97em; -fx-padding: 0 0 14 0; }
+.login-subtitle { -fx-text-fill: -colibri-muted; -fx-font-size: 0.97em; -fx-padding: 0 0 1.03em 0; }
 .login-form .field-label { -fx-font-size: 0.9em; -fx-font-weight: 600; -fx-text-fill: -color-fg-muted; }
-.login-form .text-field, .login-form .password-field { -fx-min-height: 42; }
-.login-form .primary-button { -fx-min-height: 44; -fx-font-size: 1em; }
-.login-card-compact { -fx-padding: 22; }
-.login-card-compact .login-form { -fx-padding: 22 30; -fx-spacing: 10; }
+.login-form .text-field, .login-form .password-field { -fx-min-height: 3.0em; }
+.login-form .primary-button { -fx-min-height: 3.14em; -fx-font-size: 1em; }
+.login-card-compact { -fx-padding: 1.57em; }
+.login-card-compact .login-form { -fx-padding: 1.57em 2.14em; -fx-spacing: 0.71em; }
 .login-card-compact .login-title { -fx-font-size: 1.64em; }
-.login-card-compact .login-subtitle { -fx-padding: 0 0 6 0; }
+.login-card-compact .login-subtitle { -fx-padding: 0 0 0.43em 0; }
 
 /* Salidas de cálculo: no heredan la altura de un campo de una sola línea. */
 .text-area.process-result-output {
-    -fx-min-height: 280px;
-    -fx-pref-height: 300px;
-    -fx-max-height: 320px;
+    -fx-min-height: 20.0em;
+    -fx-pref-height: 21.43em;
+    -fx-max-height: 22.86em;
 }
 .text-area.estimation-method-output {
-    -fx-min-height: 210px;
-    -fx-pref-height: 230px;
-    -fx-max-height: 250px;
+    -fx-min-height: 15.0em;
+    -fx-pref-height: 16.43em;
+    -fx-max-height: 17.86em;
     -fx-font-family: "Cascadia Mono", "Consolas", monospace;
 }
 .result-message {
-    -fx-min-height: 54px;
+    -fx-min-height: 3.86em;
 }
 .colibri-dialog { -fx-background-color: -colibri-canvas; }
 .dialog-pane .header-panel { -fx-background-color: -colibri-surface; }
 .dialog-pane .header-panel .label { -fx-text-fill: -colibri-ink; -fx-font-size: 1.14em; -fx-font-weight: 700; }
-.dialog-pane .button-bar { -fx-background-color: -colibri-surface; -fx-padding: 12 16; }
+.dialog-pane .button-bar { -fx-background-color: -colibri-surface; -fx-padding: 0.86em 1.14em; }
 .dialog-pane { -fx-background-color: -colibri-surface; }
 
 /* Splash y banner de inicio. */
 .splash-root {
     -fx-background-color: -colibri-surface;
-    -fx-background-radius: 18;
-    -fx-padding: 10;
+    -fx-background-radius: 1.29em;
+    -fx-padding: 0.71em;
     -fx-effect: dropshadow(gaussian, -colibri-shadow-strong, 30, 0.22, 0, 10);
 }
 .brand-hero {
     -fx-background-color: -colibri-surface;
-    -fx-background-radius: 12;
+    -fx-background-radius: 0.86em;
     -fx-border-color: -colibri-border;
-    -fx-border-radius: 12;
-    -fx-padding: 18 24;
+    -fx-border-radius: 0.86em;
+    -fx-padding: 1.29em 1.71em;
     -fx-effect: dropshadow(gaussian, -colibri-shadow-soft, 14, 0.06, 0, 3);
 }
 
@@ -796,7 +796,7 @@
 .paper-strong { -fx-font-weight: 700; }
 .paper-line {
     -fx-border-color: -color-paper-fg -colibri-transparent -colibri-transparent -colibri-transparent;
-    -fx-border-width: 1 0 0 0;
+    -fx-border-width: 0.07em 0 0 0;
 }
 
 /* ============================================================
@@ -808,49 +808,49 @@
 .side-footer {
     -fx-background-color: -color-bg-sunken;
     -fx-border-color: -color-border-subtle;
-    -fx-border-width: 1 0 0 0;
-    -fx-padding: 10 0 12 0;
+    -fx-border-width: 0.07em 0 0 0;
+    -fx-padding: 0.71em 0 0.86em 0;
 }
-.pie-content { -fx-spacing: 10; }
+.pie-content { -fx-spacing: 0.71em; }
 .pie-name { -fx-font-size: 0.9em; -fx-font-weight: 700; -fx-text-fill: -color-nav-text; }
 .pie-role { -fx-font-size: 0.78em; -fx-font-weight: 600; -fx-text-fill: -color-nav-subtle; }
-.pie-logout { -fx-padding: 6 10; -fx-min-height: 30; -fx-font-size: 0.85em; }
-.footer-zoom { -fx-spacing: 4; -fx-alignment: center; }
+.pie-logout { -fx-padding: 0.5em 0.84em; -fx-min-height: 2.52em; -fx-font-size: 0.85em; }
+.footer-zoom { -fx-spacing: 0.29em; -fx-alignment: center; }
 /* Con el menú contraído el pie tiene ~62 px útiles: zoom compacto y sin
    padding lateral excesivo para que avatar, zoom y sesión queden centrados. */
-.side-nav:colapsado .pie-content { -fx-padding: 10 4; }
-.side-nav:colapsado .footer-zoom { -fx-spacing: 4; }
+.side-nav:colapsado .pie-content { -fx-padding: 0.71em 0.29em; }
+.side-nav:colapsado .footer-zoom { -fx-spacing: 0.29em; }
 .side-nav:colapsado .zoom-button {
-    -fx-min-width: 28;
-    -fx-min-height: 28;
-    -fx-pref-width: 28;
-    -fx-pref-height: 28;
-    -fx-padding: 4;
+    -fx-min-width: 2.0em;
+    -fx-min-height: 2.0em;
+    -fx-pref-width: 2.0em;
+    -fx-pref-height: 2.0em;
+    -fx-padding: 0.29em;
 }
 .avatar {
-    -fx-min-width: 36;
-    -fx-pref-width: 36;
-    -fx-max-width: 36;
-    -fx-min-height: 36;
-    -fx-pref-height: 36;
-    -fx-max-height: 36;
+    -fx-min-width: 2.57em;
+    -fx-pref-width: 2.57em;
+    -fx-max-width: 2.57em;
+    -fx-min-height: 2.57em;
+    -fx-pref-height: 2.57em;
+    -fx-max-height: 2.57em;
     -fx-background-color: -color-interactive-subtle;
-    -fx-background-radius: 999;
+    -fx-background-radius: 71.36em;
     -fx-text-fill: -color-interactive;
     -fx-font-weight: 700;
     -fx-alignment: center;
 }
 
 /* Búsqueda y chip de período en la barra superior */
-.search-box { -fx-spacing: 8; -fx-alignment: center-right; }
+.search-box { -fx-spacing: 0.57em; -fx-alignment: center-right; }
 .search-pill {
     -fx-background-color: -color-bg-raised;
     -fx-border-color: -color-border-subtle;
     -fx-text-fill: -color-fg-muted;
-    -fx-background-radius: 999;
-    -fx-border-radius: 999;
-    -fx-padding: 7 14;
-    -fx-min-height: 32;
+    -fx-background-radius: 71.36em;
+    -fx-border-radius: 71.36em;
+    -fx-padding: 0.5em 1.0em;
+    -fx-min-height: 2.29em;
 }
 .search-pill .brand-icon-shape { -fx-fill: -color-fg-subtle; }
 .search-pill:hover { -fx-border-color: -color-interactive; -fx-text-fill: -color-fg; }
@@ -858,17 +858,17 @@
 .kbd-hint {
     -fx-background-color: -color-bg-subtle;
     -fx-border-color: -color-border-subtle;
-    -fx-border-radius: 6;
-    -fx-border-width: 1;
-    -fx-padding: 3 8;
+    -fx-border-radius: 0.55em;
+    -fx-border-width: 0.09em;
+    -fx-padding: 0.27em 0.73em;
     -fx-font-size: 0.78em;
     -fx-font-weight: 700;
     -fx-text-fill: -color-fg-subtle;
 }
 .period-chip {
-    -fx-background-radius: 999;
-    -fx-border-radius: 999;
-    -fx-padding: 6 12;
+    -fx-background-radius: 87.02em;
+    -fx-border-radius: 87.02em;
+    -fx-padding: 0.52em 1.05em;
     -fx-font-size: 0.82em;
     -fx-font-weight: 700;
 }
@@ -882,32 +882,32 @@
 .palette-scrim { -fx-background-color: -color-scrim; }
 .palette-panel {
     -fx-background-color: -color-bg-glass;
-    -fx-background-radius: 18;
+    -fx-background-radius: 1.29em;
     -fx-border-color: -color-border-glass;
-    -fx-border-radius: 18;
-    -fx-border-width: 1;
+    -fx-border-radius: 1.29em;
+    -fx-border-width: 0.07em;
     -fx-effect: dropshadow(gaussian, -color-shadow-strong, 30, 0.5, 0, 12);
 }
 .palette-field {
     -fx-background-color: -color-bg-raised;
-    -fx-background-radius: 10;
+    -fx-background-radius: 0.71em;
     -fx-border-color: -color-border-subtle;
-    -fx-border-radius: 10;
-    -fx-padding: 10 14;
+    -fx-border-radius: 0.71em;
+    -fx-padding: 0.71em 1.0em;
     -fx-font-size: 1em;
-    -fx-min-height: 40;
+    -fx-min-height: 2.86em;
     -fx-prompt-text-fill: -color-fg-subtle;
 }
 .palette-field:focused {
     -fx-border-color: -color-focus-ring;
-    -fx-border-width: 2;
+    -fx-border-width: 0.14em;
     -fx-effect: dropshadow(gaussian, -color-focus-faint, 8, 0.18, 0, 0);
 }
 .palette-list {
     -fx-background-color: -colibri-transparent;
     -fx-border-color: -colibri-transparent;
     -fx-padding: 0;
-    -fx-pref-height: 320;
+    -fx-pref-height: 22.86em;
 }
 .palette-list > .viewport { -fx-background-color: -colibri-transparent; }
 .palette-list .list-cell {
@@ -918,34 +918,34 @@
 .palette-list .list-cell:filled:hover,
 .palette-list .list-cell:filled:selected {
     -fx-background-color: -color-interactive-subtle;
-    -fx-background-radius: 10;
+    -fx-background-radius: 0.71em;
 }
 .palette-list .placeholder .label {
     -fx-text-fill: -color-fg-subtle;
-    -fx-padding: 18;
+    -fx-padding: 1.29em;
 }
 .palette-item-title { -fx-font-size: 0.95em; -fx-font-weight: 600; -fx-text-fill: -color-fg; }
 .palette-item-sub { -fx-font-size: 0.8em; -fx-text-fill: -color-fg-subtle; }
-.palette-hint { -fx-font-size: 0.78em; -fx-text-fill: -color-fg-subtle; -fx-padding: 0 4; }
+.palette-hint { -fx-font-size: 0.78em; -fx-text-fill: -color-fg-subtle; -fx-padding: 0 0.37em; }
 
 /* Flyout de vidrio para el rail contraído */
 .nav-flyout {
     -fx-background-color: -color-bg-glass;
-    -fx-background-radius: 14;
+    -fx-background-radius: 1.0em;
     -fx-border-color: -color-border-glass;
-    -fx-border-radius: 14;
-    -fx-border-width: 1;
-    -fx-padding: 6;
-    -fx-spacing: 2;
+    -fx-border-radius: 1.0em;
+    -fx-border-width: 0.07em;
+    -fx-padding: 0.43em;
+    -fx-spacing: 0.14em;
     -fx-effect: dropshadow(gaussian, -color-shadow-strong, 24, 0.5, 0, 10);
 }
 .nav-flyout-item {
     -fx-background-color: -colibri-transparent;
     -fx-border-color: -colibri-transparent;
     -fx-text-fill: -color-nav-text;
-    -fx-background-radius: 8;
-    -fx-padding: 9 14;
-    -fx-min-height: 34;
+    -fx-background-radius: 0.62em;
+    -fx-padding: 0.7em 1.09em;
+    -fx-min-height: 2.64em;
     -fx-font-size: 0.92em;
     -fx-font-weight: 600;
     -fx-alignment: center-left;
@@ -958,11 +958,11 @@
 /* Libro diario: lista + editor + inspector */
 .balance-bar {
     -fx-background-color: -color-bg-raised;
-    -fx-background-radius: 12;
+    -fx-background-radius: 0.86em;
     -fx-border-color: -color-border-subtle;
-    -fx-border-radius: 12;
-    -fx-border-width: 1;
-    -fx-padding: 10 14;
+    -fx-border-radius: 0.86em;
+    -fx-border-width: 0.07em;
+    -fx-padding: 0.71em 1.0em;
     -fx-alignment: center-left;
 }
 .balance-bar .label { -fx-font-weight: 700; }
@@ -974,15 +974,26 @@
     -fx-border-color: -color-success;
     -fx-background-color: -color-success-subtle;
 }
-.journal-list { -fx-pref-width: 320; -fx-min-width: 300; }
-.journal-inspector { -fx-padding: 12 16; }
+.journal-list { -fx-pref-width: 22.86em; -fx-min-width: 21.43em; }
+.journal-inspector { -fx-padding: 0.86em 1.14em; }
 .journal-inspector-row { -fx-alignment: top-left; }
 .inspector-subheading {
     -fx-font-size: 0.78em;
     -fx-font-weight: 700;
     -fx-text-fill: -color-fg-subtle;
-    -fx-padding: 0 0 2 0;
+    -fx-padding: 0 0 0.18em 0;
 }
 .inspector-folio { -fx-font-size: 1.02em; -fx-font-weight: 700; -fx-text-fill: -color-fg; }
 .inspector-concepto { -fx-font-size: 0.88em; -fx-text-fill: -color-fg-muted; }
 .inspector-cuadre { -fx-font-size: 0.88em; -fx-font-weight: 600; }
+
+/* Chips de tipo del catálogo institucional (Anexo M) */
+.instrumento-tipo {
+    -fx-background-radius: 91.48em;
+    -fx-padding: 0.27em 0.92em;
+    -fx-font-size: 0.78em;
+    -fx-font-weight: 700;
+}
+.instrumento-politica { -fx-background-color: -color-primary-subtle; -fx-text-fill: -color-primary; }
+.instrumento-proceso { -fx-background-color: -color-interactive-subtle; -fx-text-fill: -color-interactive; }
+.instrumento-procedimiento { -fx-background-color: -color-note-subtle; -fx-text-fill: -color-note; }

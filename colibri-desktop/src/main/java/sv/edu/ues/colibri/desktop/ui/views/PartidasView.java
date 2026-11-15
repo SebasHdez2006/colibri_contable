@@ -180,13 +180,13 @@ public class PartidasView extends VBox {
 
         cuentaCombo = new CatalogoCombo<>(cuentasMovimiento, conversorCuenta(),
                 Cuenta::getCodigo, this::buscarCuentas);
-        cuentaCombo.getEditor().setPromptText("Buscar cuenta…");
+        cuentaCombo.getEditor().setPromptText("Buscar cuenta");
         auxiliarCombo = new CatalogoCombo<>(auxiliares, conversorAuxiliar(),
                 OpcionAuxiliar::codigo, this::buscarAuxiliares);
-        auxiliarCombo.getEditor().setPromptText("Tercero, lote u orden…");
+        auxiliarCombo.getEditor().setPromptText("Tercero, lote u orden");
         centroCombo = new CatalogoCombo<>(centros, conversorCentro(),
                 ParametrizacionService.CentroCosto::codigo, this::buscarCentros);
-        centroCombo.getEditor().setPromptText("Centro de costo…");
+        centroCombo.getEditor().setPromptText("Centro de costo");
         debeCampo.setPromptText("0.00");
         haberCampo.setPromptText("0.00");
 
@@ -200,7 +200,7 @@ public class PartidasView extends VBox {
                 actualizarTotales();
             }
         });
-        Button cuadrar = new Button("Cuadrar con…");
+        Button cuadrar = new Button("Cuadrar con cuenta");
         cuadrar.setOnAction(e -> mostrarCuadre());
 
         var lineBox = ResponsiveLayouts.row(ResponsiveLayouts.field("Cuenta", cuentaCombo),
@@ -223,13 +223,13 @@ public class PartidasView extends VBox {
         mas.getStyleClass().add("secondary-button");
         MenuItem miDuplicar = new MenuItem("Duplicar partida");
         miDuplicar.setOnAction(e -> duplicarPartida());
-        MenuItem miImportar = new MenuItem("Importar CSV…");
+        MenuItem miImportar = new MenuItem("Importar CSV");
         miImportar.setOnAction(e -> importarCsv());
         MenuItem miAprobar = new MenuItem("Aprobar");
         miAprobar.setOnAction(e -> aprobarPartida());
-        MenuItem miAnular = new MenuItem("Anular…");
+        MenuItem miAnular = new MenuItem("Anular");
         miAnular.setOnAction(e -> anularPartida());
-        MenuItem miRevertir = new MenuItem("Revertir contabilizada…");
+        MenuItem miRevertir = new MenuItem("Revertir contabilizada");
         miRevertir.setOnAction(e -> revertirPartida());
         mas.getItems().addAll(miDuplicar, miImportar, miAprobar, miAnular, miRevertir);
 
@@ -792,13 +792,13 @@ public class PartidasView extends VBox {
                 + ". Complete cuenta y auxiliares:");
         CatalogoCombo<Cuenta> cta = new CatalogoCombo<>(cuentasMovimiento, conversorCuenta(),
                 Cuenta::getCodigo, this::buscarCuentas);
-        cta.getEditor().setPromptText("Buscar cuenta…");
+        cta.getEditor().setPromptText("Buscar cuenta");
         CatalogoCombo<OpcionAuxiliar> aux = new CatalogoCombo<>(auxiliares, conversorAuxiliar(),
                 OpcionAuxiliar::codigo, this::buscarAuxiliares);
-        aux.getEditor().setPromptText("Tercero, lote u orden…");
+        aux.getEditor().setPromptText("Tercero, lote u orden");
         CatalogoCombo<ParametrizacionService.CentroCosto> cen = new CatalogoCombo<>(centros,
                 conversorCentro(), ParametrizacionService.CentroCosto::codigo, this::buscarCentros);
-        cen.getEditor().setPromptText("Centro de costo…");
+        cen.getEditor().setPromptText("Centro de costo");
 
         VBox contenido = new VBox(10, aviso,
                 ResponsiveLayouts.row(ResponsiveLayouts.field("Cuenta (" + lado + ")", cta),
@@ -968,7 +968,7 @@ public class PartidasView extends VBox {
         }
         UiDialogs.error("El asiento está descuadrado por "
                 + MONEDA.format(suma(true).subtract(suma(false)).abs())
-                + ". Use «Cuadrar con…» para proponer la línea faltante.");
+                + ". Use «Cuadrar con cuenta» para proponer la línea faltante.");
         return false;
     }
 
@@ -1232,7 +1232,7 @@ public class PartidasView extends VBox {
         VBox seleccion = new VBox(4, subtituloSel, selFolio, selOrigen,
                 selConcepto, inspectorVacio);
         seleccion.setMinWidth(0);
-        HBox.setHgrow(seleccion, Priority.ALWAYS);
+        seleccion.setPrefWidth(320);
 
         Label tituloCuadre = new Label("Cuadre del asiento");
         tituloCuadre.getStyleClass().add("inspector-subheading");
@@ -1246,7 +1246,9 @@ public class PartidasView extends VBox {
         VBox doc = new VBox(4, tituloAcciones, new HBox(8, comprobante, evidencia));
         doc.setMinWidth(0);
 
-        HBox fila = new HBox(24, seleccion, cuadre, doc);
+        // FlowPane: las zonas bajan de línea cuando el ancho no alcanza en
+        // lugar de comprimir el texto aColumnas ilegibles.
+        FlowPane fila = new FlowPane(24, 10, seleccion, cuadre, doc);
         fila.setAlignment(Pos.TOP_LEFT);
         fila.getStyleClass().add("journal-inspector-row");
         insp.getChildren().add(fila);

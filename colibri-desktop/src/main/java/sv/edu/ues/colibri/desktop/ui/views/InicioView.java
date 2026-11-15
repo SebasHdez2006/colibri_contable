@@ -159,6 +159,7 @@ public class InicioView extends VBox {
         detalle.getStyleClass().add("financial-note");
         detalle.setWrapText(true);
         VBox bloque = new VBox(5, titulo, importe, detalle);
+        bloque.setAlignment(Pos.CENTER_LEFT);
         bloque.getStyleClass().addAll("financial-metric", "surface-card");
         return bloque;
     }
@@ -185,10 +186,21 @@ public class InicioView extends VBox {
         if (resumen.alertas().isEmpty()) {
             tile.getChildren().add(detalle("Sin alertas operativas.", "status-pill"));
         } else {
+            // Máximo tres alertas visibles para no desbordar el tile;
+            // el resto queda contado en una nota final.
+            int mostradas = 0;
             for (PanelInicioService.Alerta alerta : resumen.alertas()) {
+                if (mostradas++ == 3) {
+                    break;
+                }
                 String estilo = "ALTA".equals(alerta.severidad()) || "AVISO".equals(alerta.severidad())
                         ? "warning-pill" : "status-pill";
                 tile.getChildren().add(detalle("· " + alerta.mensaje(), estilo));
+            }
+            int restantes = resumen.alertas().size() - mostradas;
+            if (restantes > 0) {
+                tile.getChildren().add(detalle("…y " + restantes
+                        + " alerta(s) más en Registros.", "status-pill"));
             }
         }
         tile.getChildren().add(acciones);

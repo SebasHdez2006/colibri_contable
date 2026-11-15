@@ -2,6 +2,7 @@ package sv.edu.ues.colibri.desktop.ui.views;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -19,6 +20,7 @@ import sv.edu.ues.colibri.desktop.ui.UiDialogs;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -141,7 +143,120 @@ public final class EstimacionCostosView extends VBox {
                 parametros, calcular, resultado);
         getChildren().addAll(titulo, subtitulo, estimacion, comparacionPromedioHistoricos(motor),
                 calculadoraGerencial(), comparacionEstimadoReal(),
-                ResponsiveLayouts.sectionCard("Políticas de costos y ventas", politicas));
+                ResponsiveLayouts.sectionCard("Políticas de costos y ventas", politicas),
+                catalogoInstitucional());
+    }
+
+    /**
+     * Catálogo documental del Anexo M del informe técnico: las 122 políticas,
+     * procesos y procedimientos de la empresa, con filtro por texto.
+     */
+    private VBox catalogoInstitucional() {
+        List<InstrumentosInstitucionales.Instrumento> instrumentos =
+                InstrumentosInstitucionales.anexoM();
+        long politicas = instrumentos.stream()
+                .filter(i -> "Política".equals(i.tipo())).count();
+        long procesos = instrumentos.stream()
+                .filter(i -> "Proceso".equals(i.tipo())).count();
+        long procedimientos = instrumentos.size() - politicas - procesos;
+        Label resumen = new Label(instrumentos.size() + " instrumentos · "
+                + politicas + " políticas · " + procesos + " procesos · "
+                + procedimientos + " procedimientos. Fuente: informe técnico, Anexo M.");
+        resumen.getStyleClass().add("section-note");
+        resumen.setWrapText(true);
+
+        TextField buscar = new TextField();
+        buscar.setPromptText("Filtrar por nombre, tipo o sección");
+        buscar.setMaxWidth(Double.MAX_VALUE);
+
+        ObservableList<InstrumentosInstitucionales.Instrumento> visibles =
+                FXCollections.observableArrayList(instrumentos);
+        TableView<InstrumentosInstitucionales.Instrumento> tabla =
+                new TableView<>(visibles);
+        tabla.setPlaceholder(new Label("Sin instrumentos para el filtro."));
+        tabla.setMinHeight(280);
+        tabla.setPrefHeight(320);
+
+        TableColumn<InstrumentosInstitucionales.Instrumento, String> cNum =
+                new TableColumn<>("N.º");
+        cNum.setCellValueFactory(c -> new SimpleStringProperty(
+                String.valueOf(c.getValue().numero())));
+        cNum.setPrefWidth(56);
+        cNum.setMinWidth(48);
+        cNum.setSortable(false);
+
+        TableColumn<InstrumentosInstitucionales.Instrumento, String> cNom =
+                new TableColumn<>("Instrumento");
+        cNom.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().nombre()));
+        cNom.setMinWidth(320);
+        cNom.setSortable(false);
+
+        TableColumn<InstrumentosInstitucionales.Instrumento, String> cTip =
+                new TableColumn<>("Tipo");
+        cTip.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().tipo()));
+        cTip.setCellFactory(col -> new javafx.scene.control.TableCell<>() {
+            private final Label chip = new Label();
+
+            {
+                chip.getStyleClass().add("instrumento-tipo");
+            }
+
+            @Override
+            protected void updateItem(String tipo, boolean vacio) {
+                super.updateItem(tipo, vacio);
+                if (vacio || tipo == null) {
+                    setGraphic(null);
+                    setText(null);
+                    return;
+                }
+                chip.setText(tipo);
+                String clase = switch (tipo) {
+                    case "Política" -> "politica";
+                    case "Proceso" -> "proceso";
+                    default -> "procedimiento";
+                };
+                chip.getStyleClass().setAll("instrumento-tipo",
+                        "instrumento-" + clase);
+                setGraphic(chip);
+            }
+        });
+        cTip.setPrefWidth(120);
+        cTip.setMinWidth(100);
+        cTip.setSortable(false);
+
+        TableColumn<InstrumentosInstitucionales.Instrumento, String> cSec =
+                new TableColumn<>("Sección del informe");
+        cSec.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().seccion()));
+        cSec.setPrefWidth(210);
+        cSec.setMinWidth(150);
+        cSec.setSortable(false);
+
+        tabla.getColumns().addAll(cNum, cNom, cTip, cSec);
+        tabla.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
+
+        buscar.textProperty().addListener((obs, anterior, nuevo) -> {
+            String consulta = normalizar(nuevo);
+            visibles.setAll(instrumentos.stream()
+                    .filter(i -> consulta.isEmpty()
+                            || normalizar(i.nombre() + " " + i.tipo() + " " + i.seccion())
+                                    .contains(consulta))
+                    .toList());
+        });
+
+        return ResponsiveLayouts.sectionCard(
+                "Políticas, procesos y procedimientos (Anexo M)",
+                "Catálogo de referencia del marco institucional: lineamientos internos "
+                        + "de la empresa, no movimientos contables.",
+                resumen, buscar, tabla);
+    }
+
+    private static String normalizar(String texto) {
+        if (texto == null) {
+            return "";
+        }
+        return Normalizer.normalize(texto, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .toLowerCase(java.util.Locale.ROOT).trim();
     }
 
     private static BigDecimal valor(TextField campo) {
