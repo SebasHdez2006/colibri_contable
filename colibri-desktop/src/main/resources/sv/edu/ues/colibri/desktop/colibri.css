@@ -796,9 +796,9 @@
 
 /* Splash y banner de inicio. */
 .splash-root {
-    -fx-background-color: -colibri-surface;
+    -fx-background-color: -color-paper-bg;
     -fx-background-radius: 1.29em;
-    -fx-padding: 0.71em;
+    -fx-padding: 1.29em;
     -fx-effect: dropshadow(gaussian, -colibri-shadow-strong, 30, 0.22, 0, 10);
 }
 .brand-hero {

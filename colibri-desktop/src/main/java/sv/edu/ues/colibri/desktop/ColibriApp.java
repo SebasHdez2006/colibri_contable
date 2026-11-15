@@ -1,5 +1,6 @@
 package sv.edu.ues.colibri.desktop;
 
+import javafx.animation.FadeTransition;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
@@ -10,6 +11,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import javafx.util.Duration;
 import sv.edu.ues.colibri.application.AppContext;
 import sv.edu.ues.colibri.desktop.ui.BrandAssets;
 import sv.edu.ues.colibri.desktop.ui.LoginView;
@@ -27,6 +29,7 @@ public class ColibriApp extends Application {
 
     private AppContext context;
     private InstanceLock instanceLock;
+    private StackPane splashRoot;
 
     /**
      * Inicia la interfaz JavaFX, muestra la pantalla de bienvenida y continúa
@@ -43,8 +46,8 @@ public class ColibriApp extends Application {
         Thread arranque = new Thread(() -> {
             Arranque fallo = iniciarServicios();
             Platform.runLater(() -> {
-                splash.close();
                 if (fallo != null) {
+                    splash.close();
                     alertaFatal(fallo);
                     Platform.exit();
                     return;
@@ -52,8 +55,22 @@ public class ColibriApp extends Application {
                 stage.setTitle("Colibrí — Sistema Contable");
                 stage.setMinWidth(560);
                 stage.setMinHeight(440);
-                mostrarLogin(stage);
+                Scene escena = escenaLogin(stage);
+                // Crossfade: el login aparece sobre el splash y ambos se
+                // disuelven a la vez; el splash se cierra al terminar.
+                escena.getRoot().setOpacity(0);
+                stage.setMaximized(false);
+                stage.setScene(escena);
+                stage.centerOnScreen();
                 stage.show();
+                FadeTransition salida = new FadeTransition(Duration.millis(340), splashRoot);
+                salida.setToValue(0);
+                FadeTransition entrada = new FadeTransition(Duration.millis(340), escena.getRoot());
+                entrada.setFromValue(0);
+                entrada.setToValue(1);
+                salida.setOnFinished(e -> splash.close());
+                salida.play();
+                entrada.play();
             });
         }, "colibri-arranque");
         arranque.setDaemon(true);
@@ -102,6 +119,7 @@ public class ColibriApp extends Application {
         StackPane root = new StackPane(logo);
         root.setAlignment(Pos.CENTER);
         root.getStyleClass().add("splash-root");
+        splashRoot = root;
 
         Stage splash = new Stage(StageStyle.TRANSPARENT);
         splash.getIcons().addAll(BrandAssets.iconosVentana());
@@ -133,6 +151,23 @@ public class ColibriApp extends Application {
      * @param stage ventana principal donde se inyecta la escena
      */
     private void mostrarLogin(Stage stage) {
+        Scene scene = escenaLogin(stage);
+        stage.setMaximized(false);
+        stage.setScene(scene);
+        stage.centerOnScreen();
+        FadeTransition entrada = new FadeTransition(Duration.millis(320), scene.getRoot());
+        entrada.setFromValue(0);
+        entrada.setToValue(1);
+        entrada.play();
+    }
+
+    /**
+     * Construye la escena de inicio de sesión con su callback de acceso.
+     *
+     * @param stage ventana principal donde se inyectará la escena
+     * @return escena lista para mostrarse o fijarse en el stage
+     */
+    private Scene escenaLogin(Stage stage) {
         LoginView login = new LoginView(context, usuario -> {
             AppLog.info("Sesión iniciada: " + usuario.getUsuario() + " / " + usuario.getRol());
             MainShell shell = new MainShell(context, () -> mostrarLogin(stage));
@@ -147,9 +182,7 @@ public class ColibriApp extends Application {
         ResponsiveLayouts.ajustarAlContenido(login);
         Scene scene = new Scene(login, 920, 600);
         UiTheme.apply(scene);
-        stage.setMaximized(false);
-        stage.setScene(scene);
-        stage.centerOnScreen();
+        return scene;
     }
 
     /**
