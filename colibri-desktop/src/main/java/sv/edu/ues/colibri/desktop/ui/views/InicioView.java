@@ -3,20 +3,19 @@ package sv.edu.ues.colibri.desktop.ui.views;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
 import javafx.scene.control.OverrunStyle;
 import javafx.scene.control.ProgressBar;
-import javafx.scene.control.Separator;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.Tooltip;
+import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import sv.edu.ues.colibri.application.AppContext;
 import sv.edu.ues.colibri.application.panel.PanelInicioService;
-import sv.edu.ues.colibri.desktop.ui.layout.DosColumnas;
 import sv.edu.ues.colibri.domain.model.Partida;
 import sv.edu.ues.colibri.domain.model.Periodo;
 
@@ -83,16 +82,35 @@ public class InicioView extends VBox {
         cabecera.setAlignment(Pos.TOP_LEFT);
         cabecera.getStyleClass().add("dashboard-header");
 
-        getChildren().addAll(cabecera,
-                panoramaFinanciero(resumen),
-                new DosColumnas(controlOperativo(cuentas, borradores, estadoCatalogo, acciones),
-                        panoramaComercial(resumen)),
-                graficas(resumen),
-                alertas(resumen),
-                new DosColumnas(panelPlanes(resumen), panelClientes(resumen)),
-                panelSaasCif(resumen),
-                panelOrdenes(resumen),
-                panelBorradores(borradores));
+        // Bento: gráfica hero a la izquierda ocupando dos filas; KPIs y
+        // período a la derecha; franja inferior con pendientes, clientes y costos.
+        GridPane bento = new GridPane();
+        bento.getStyleClass().add("bento-grid");
+        bento.setHgap(16);
+        bento.setVgap(16);
+        ColumnConstraints ancha = new ColumnConstraints();
+        ancha.setPercentWidth(46);
+        ColumnConstraints angosta = new ColumnConstraints();
+        angosta.setPercentWidth(27);
+        bento.getColumnConstraints().addAll(ancha, angosta, angosta);
+
+        bento.add(graficaBarras(resumen.serieMensual()), 0, 0, 1, 2);
+        bento.add(cifraFinanciera("Ingresos", dinero(resumen.ingresosMes()),
+                variacionTexto(resumen.variacionIngresos(), resumen.ingresosMesAnterior()),
+                resumen.variacionIngresos().signum() < 0 ? "negative" : "positive"), 1, 0);
+        bento.add(cifraFinanciera("Utilidad", dinero(resumen.utilidadPeriodo()),
+                "Resultado de las cuentas 4–7",
+                resumen.utilidadPeriodo().signum() < 0 ? "negative" : "positive"), 2, 0);
+        bento.add(cifraFinanciera("Cartera", dinero(resumen.carteraClientes()),
+                resumen.documentosPendientesCobro() + " DTE(s) por "
+                        + dinero(resumen.dtesPendientes()),
+                resumen.documentosPendientesCobro() > 0 ? "attention" : "neutral"), 1, 1);
+        bento.add(periodoActual(periodo), 2, 1);
+        bento.add(porHacer(cuentas, borradores, estadoCatalogo, acciones, resumen), 0, 2);
+        bento.add(graficaClientes(resumen), 1, 2);
+        bento.add(costos(resumen), 2, 2);
+
+        getChildren().addAll(cabecera, bento);
     }
 
     private PanelInicioService.ResumenPanel cargarResumen(Periodo periodo) {
@@ -124,33 +142,7 @@ public class InicioView extends VBox {
         return bloque;
     }
 
-    /** Presenta las tres cifras que orientan la lectura del período en un único bloque jerarquizado. */
-    private VBox panoramaFinanciero(PanelInicioService.ResumenPanel resumen) {
-        Label encabezado = new Label("Pulso financiero");
-        encabezado.getStyleClass().add("section-heading");
-        Label contexto = new Label("Cifras contabilizadas del período actual");
-        contexto.getStyleClass().add("muted-caption");
-
-        HBox cifras = new HBox();
-        cifras.setAlignment(Pos.CENTER_LEFT);
-        cifras.getChildren().addAll(
-                cifraFinanciera("Ingresos", dinero(resumen.ingresosMes()),
-                        variacionTexto(resumen.variacionIngresos(), resumen.ingresosMesAnterior()),
-                        resumen.variacionIngresos().signum() < 0 ? "negative" : "positive"),
-                divisorFinanciero(),
-                cifraFinanciera("Utilidad", dinero(resumen.utilidadPeriodo()),
-                        "Resultado de las cuentas 4–7", resumen.utilidadPeriodo().signum() < 0
-                                ? "negative" : "positive"),
-                divisorFinanciero(),
-                cifraFinanciera("Cartera", dinero(resumen.carteraClientes()),
-                        resumen.documentosPendientesCobro() + " DTE(s) por "
-                                + dinero(resumen.dtesPendientes()),
-                        resumen.documentosPendientesCobro() > 0 ? "attention" : "neutral"));
-        VBox panel = new VBox(14, encabezado, contexto, cifras);
-        panel.getStyleClass().add("dashboard-overview");
-        return panel;
-    }
-
+    /** Tile KPI del Bento: cifra con su nota, presentada como tarjeta. */
     private VBox cifraFinanciera(String etiqueta, String valor, String nota, String tono) {
         Label titulo = new Label(etiqueta);
         titulo.getStyleClass().add("financial-label");
@@ -161,29 +153,41 @@ public class InicioView extends VBox {
         detalle.getStyleClass().add("financial-note");
         detalle.setWrapText(true);
         VBox bloque = new VBox(5, titulo, importe, detalle);
-        bloque.getStyleClass().add("financial-metric");
-        HBox.setHgrow(bloque, Priority.ALWAYS);
+        bloque.getStyleClass().addAll("financial-metric", "surface-card");
         return bloque;
     }
 
-    private Separator divisorFinanciero() {
-        Separator divisor = new Separator(javafx.geometry.Orientation.VERTICAL);
-        divisor.getStyleClass().add("financial-divider");
-        return divisor;
+    private Label encabezado(String texto) {
+        Label h = new Label(texto);
+        h.getStyleClass().add("section-heading");
+        return h;
     }
 
-    private VBox controlOperativo(long cuentas, java.util.List<Partida> borradores,
-                                  Label estadoCatalogo, HBox acciones) {
-        Label encabezado = new Label("Control operativo");
-        encabezado.getStyleClass().add("section-heading");
-        VBox panel = new VBox(12, encabezado,
-                filaOperativa("Catálogo de cuentas", cuentas + " cuentas configuradas", estadoCatalogo),
-                filaOperativa("Borradores", borradores.isEmpty() ? "Sin partidas por revisar"
-                        : borradores.size() + " pendiente(s) de revisión", detalle(borradores.isEmpty()
-                        ? "Al día" : "Atención requerida", borradores.isEmpty() ? "status-pill" : "warning-pill")),
-                acciones);
-        panel.getStyleClass().addAll("surface-card", "operational-summary");
-        return panel;
+    /** Tile "Por hacer": catálogo, borradores, alertas y acciones del período. */
+    private VBox porHacer(long cuentas, java.util.List<Partida> borradores,
+                          Label estadoCatalogo, HBox acciones,
+                          PanelInicioService.ResumenPanel resumen) {
+        VBox tile = new VBox(12);
+        tile.getStyleClass().addAll("surface-card", "por-hacer");
+        tile.getChildren().add(encabezado("Por hacer"));
+        tile.getChildren().add(filaOperativa("Catálogo de cuentas",
+                cuentas + " cuentas configuradas", estadoCatalogo));
+        tile.getChildren().add(filaOperativa("Borradores", borradores.isEmpty()
+                ? "Sin partidas por revisar" : borradores.size() + " pendiente(s) de revisión",
+                detalle(borradores.isEmpty() ? "Al día" : "Atención requerida",
+                        borradores.isEmpty() ? "status-pill" : "warning-pill")));
+        if (resumen.alertas().isEmpty()) {
+            tile.getChildren().add(detalle("Sin alertas operativas.", "status-pill"));
+        } else {
+            for (PanelInicioService.Alerta alerta : resumen.alertas()) {
+                String estilo = "ALTA".equals(alerta.severidad()) || "AVISO".equals(alerta.severidad())
+                        ? "warning-pill" : "status-pill";
+                tile.getChildren().add(detalle("· " + alerta.mensaje(), estilo));
+            }
+        }
+        tile.getChildren().add(acciones);
+        VBox.setVgrow(tile, Priority.ALWAYS);
+        return tile;
     }
 
     private HBox filaOperativa(String etiqueta, String valor, Label estado) {
@@ -199,21 +203,6 @@ public class InicioView extends VBox {
         return fila;
     }
 
-    private VBox panoramaComercial(PanelInicioService.ResumenPanel resumen) {
-        Label encabezado = new Label("Actividad comercial");
-        encabezado.getStyleClass().add("section-heading");
-        PanelInicioService.ProductoTop producto = resumen.productoTop();
-        String nombreProducto = producto == null ? "Aún no hay ventas registradas" : producto.nombre();
-        String detalleProducto = producto == null ? "Las licencias entregadas aparecerán aquí."
-                : producto.unidades() + " unidades · " + dinero(producto.ingresos());
-        VBox panel = new VBox(10, encabezado,
-                resumenComercial("Producto más vendido", nombreProducto, detalleProducto),
-                resumenComercial("Usuarios SaaS", String.valueOf(resumen.usuariosSaasMes()),
-                        "usuarios-mes facturables en el período"));
-        panel.getStyleClass().addAll("surface-card", "commercial-summary");
-        return panel;
-    }
-
     private VBox resumenComercial(String etiqueta, String valor, String nota) {
         Label titulo = new Label(etiqueta);
         titulo.getStyleClass().add("operational-key");
@@ -226,12 +215,6 @@ public class InicioView extends VBox {
         VBox bloque = new VBox(2, titulo, principal, detalle);
         bloque.getStyleClass().add("commercial-row");
         return bloque;
-    }
-
-    private javafx.scene.Node graficas(PanelInicioService.ResumenPanel resumen) {
-        VBox barras = graficaBarras(resumen.serieMensual());
-        VBox torta = graficaClientes(resumen.clientesTop());
-        return new DosColumnas(barras, torta);
     }
 
     /**
@@ -301,12 +284,13 @@ public class InicioView extends VBox {
         return card;
     }
 
-    /** Las barras ordenadas reemplazan el pastel: evitan etiquetas superpuestas y conservan importes exactos. */
-    private VBox graficaClientes(List<PanelInicioService.ClienteTop> clientes) {
-        Label heading = new Label("Facturación por cliente · período");
+    /** Ranking de clientes del período más la actividad comercial resumida. */
+    private VBox graficaClientes(PanelInicioService.ResumenPanel resumen) {
+        Label heading = new Label("Clientes principales · período");
         heading.getStyleClass().add("section-heading");
         VBox card = new VBox(8, heading);
         card.getStyleClass().addAll("surface-card", "dashboard-chart-card", "customer-ranking");
+        List<PanelInicioService.ClienteTop> clientes = resumen.clientesTop();
         if (clientes.isEmpty()) {
             card.getChildren().add(estadoVacio("Aún no hay clientes facturados en este período.",
                     "Los clientes aparecerán al contabilizar CCF o facturas."));
@@ -322,6 +306,14 @@ public class InicioView extends VBox {
             posicion++;
             card.getChildren().add(barraCliente(posicion, cliente, total));
         }
+        PanelInicioService.ProductoTop producto = resumen.productoTop();
+        card.getChildren().add(resumenComercial("Producto más vendido",
+                producto == null ? "Aún no hay ventas registradas" : producto.nombre(),
+                producto == null ? "Las licencias entregadas aparecerán aquí."
+                        : producto.unidades() + " unidades · " + dinero(producto.ingresos())));
+        card.getChildren().add(resumenComercial("Usuarios SaaS",
+                String.valueOf(resumen.usuariosSaasMes()),
+                "usuarios-mes facturables en el período"));
         return card;
     }
 
@@ -391,36 +383,37 @@ public class InicioView extends VBox {
                                 PanelInicioService.PuntoMes hito) {
     }
 
-    private VBox alertas(PanelInicioService.ResumenPanel resumen) {
-        Label heading = new Label("Alertas operativas");
-        heading.getStyleClass().add("section-heading");
-        VBox card = new VBox(8, heading);
-        card.getStyleClass().add("surface-card");
-        if (resumen.alertas().isEmpty()) {
-            card.getChildren().add(detalle("Sin alertas. Las operaciones del período están al día.",
-                    "status-pill"));
-            return card;
+    /** Contenido del tile de costos: tarifas por plan, SaaS/CIF y órdenes. */
+    private VBox costos(PanelInicioService.ResumenPanel resumen) {
+        VBox tile = new VBox(10);
+        tile.getStyleClass().addAll("surface-card", "costos-tile");
+        tile.getChildren().add(encabezado("Costos y suscripciones"));
+        tile.getChildren().add(contenidoPlanes(resumen));
+        boolean haySaasOCif = false;
+        for (PanelInicioService.SaasPlan plan : resumen.saasPorPlan()) {
+            tile.getChildren().add(new Label(plan.plan() + ": " + plan.usuariosMes()
+                    + " usuario(s)-mes"));
+            haySaasOCif = true;
         }
-        for (PanelInicioService.Alerta alerta : resumen.alertas()) {
-            String estilo = switch (alerta.severidad()) {
-                case "ALTA" -> "warning-pill";
-                case "AVISO" -> "warning-pill";
-                default -> "status-pill";
-            };
-            card.getChildren().add(detalle("· " + alerta.mensaje(), estilo));
+        for (PanelInicioService.CifComparativo cif : resumen.cif()) {
+            tile.getChildren().add(new Label("CIF " + cif.centro() + " · aplicado "
+                    + dinero(cif.aplicado()) + " / presupuestado " + dinero(cif.presupuestado())
+                    + " · variación " + dinero(cif.variacion())));
+            haySaasOCif = true;
         }
-        return card;
+        if (!haySaasOCif) {
+            tile.getChildren().add(detalle("Sin datos de SaaS o CIF para el período.", "status-pill"));
+        }
+        tile.getChildren().add(tablaOrdenes(resumen));
+        VBox.setVgrow(tile, Priority.ALWAYS);
+        return tile;
     }
 
-    private VBox panelPlanes(PanelInicioService.ResumenPanel resumen) {
-        Label heading = new Label("Precios vigentes por plan");
-        heading.getStyleClass().add("section-heading");
-        VBox card = new VBox(8, heading);
-        card.getStyleClass().addAll("surface-card", "dashboard-data-card");
+    /** Tabla de tarifas vigentes por plan, o estado vacío. */
+    private javafx.scene.Node contenidoPlanes(PanelInicioService.ResumenPanel resumen) {
         if (resumen.planes().isEmpty()) {
-            card.getChildren().add(estadoVacio("No hay planes vigentes para mostrar.",
-                    "Cree o active un plan desde Inventario → Servicios / Accesos."));
-            return card;
+            return estadoVacio("No hay planes vigentes para mostrar.",
+                    "Cree o active un plan desde Inventario → Servicios / Accesos.");
         }
         TableView<PanelInicioService.PlanTarifa> tabla = new TableView<>();
         tabla.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
@@ -438,44 +431,12 @@ public class InicioView extends VBox {
         tabla.getColumns().addAll(java.util.List.of(tarifa, facturacion));
         tabla.getItems().setAll(resumen.planes());
         tabla.setPrefHeight(altoTabla(resumen.planes().size()));
-        VBox.setVgrow(tabla, Priority.ALWAYS);
-        card.getChildren().add(tabla);
-        return card;
+        return tabla;
     }
 
-    private VBox panelClientes(PanelInicioService.ResumenPanel resumen) {
-        Label heading = new Label("Clientes principales del período");
-        heading.getStyleClass().add("section-heading");
-        VBox card = new VBox(8, heading);
-        card.getStyleClass().addAll("surface-card", "dashboard-data-card");
-        if (resumen.clientesTop().isEmpty()) {
-            card.getChildren().add(estadoVacio("No hay facturación de clientes en este período.",
-                    "Los clientes se mostrarán cuando se contabilicen CCF o facturas."));
-            return card;
-        }
-        TableView<PanelInicioService.ClienteTop> tabla = new TableView<>();
-        tabla.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
-        tabla.setFixedCellSize(34);
-        tabla.getStyleClass().add("dashboard-data-table");
-        agregarColumna(tabla, "Cliente", PanelInicioService.ClienteTop::nombre);
-        TableColumn<PanelInicioService.ClienteTop, String> facturado = new TableColumn<>("Facturado");
-        facturado.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(
-                dinero(c.getValue().facturado())));
-        TableColumn<PanelInicioService.ClienteTop, String> docs = new TableColumn<>("Docs");
-        docs.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(
-                String.valueOf(c.getValue().documentos())));
-        docs.setMaxWidth(80);
-        tabla.getColumns().addAll(java.util.List.of(facturado, docs));
-        tabla.getItems().setAll(resumen.clientesTop());
-        tabla.setPrefHeight(altoTabla(resumen.clientesTop().size()));
-        VBox.setVgrow(tabla, Priority.ALWAYS);
-        card.getChildren().add(tabla);
-        return card;
-    }
-
-    private VBox panelOrdenes(PanelInicioService.ResumenPanel resumen) {
-        Label heading = new Label("Órdenes de servicio · estimado vs. real");
-        heading.getStyleClass().add("section-heading");
+    /** Tabla de órdenes de servicio: presupuesto vs. costo real. */
+    private TableView<PanelInicioService.OrdenComparativo> tablaOrdenes(
+            PanelInicioService.ResumenPanel resumen) {
         TableView<PanelInicioService.OrdenComparativo> tabla = new TableView<>();
         tabla.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         tabla.setPlaceholder(new Label("Sin órdenes de servicio registradas."));
@@ -496,48 +457,7 @@ public class InicioView extends VBox {
         tabla.getColumns().addAll(java.util.List.of(presupuesto, real, variacion));
         tabla.getItems().setAll(resumen.ordenes());
         tabla.setPrefHeight(170);
-        VBox card = new VBox(8, heading, tabla);
-        card.getStyleClass().add("surface-card");
-        return card;
-    }
-
-    private VBox panelSaasCif(PanelInicioService.ResumenPanel resumen) {
-        Label heading = new Label("SaaS por plan y CIF del período");
-        heading.getStyleClass().add("section-heading");
-        VBox card = new VBox(8, heading);
-        card.getStyleClass().add("surface-card");
-        for (PanelInicioService.SaasPlan plan : resumen.saasPorPlan()) {
-            card.getChildren().add(new Label(plan.plan() + ": " + plan.usuariosMes() + " usuario(s)-mes"));
-        }
-        for (PanelInicioService.CifComparativo cif : resumen.cif()) {
-            card.getChildren().add(new Label("CIF " + cif.centro() + " · aplicado "
-                    + dinero(cif.aplicado()) + " / presupuestado " + dinero(cif.presupuestado())
-                    + " · variación " + dinero(cif.variacion())));
-        }
-        if (resumen.saasPorPlan().isEmpty() && resumen.cif().isEmpty()) {
-            card.getChildren().add(detalle("Sin datos de SaaS o CIF para el período.", "status-pill"));
-        }
-        return card;
-    }
-
-    private VBox panelBorradores(java.util.List<Partida> borradores) {
-        Label pendientesTitulo = new Label("Borradores por revisar");
-        pendientesTitulo.getStyleClass().add("section-heading");
-        ListView<String> lista = new ListView<>();
-        lista.setPlaceholder(new Label("No hay borradores pendientes. El libro diario está al día."));
-        for (Partida p : borradores) {
-            lista.getItems().add("%s  ·  %s  ·  Debe $%s / Haber $%s".formatted(
-                    p.getFechaContable(), p.getConcepto(), p.totalDebe(), p.totalHaber()));
-        }
-        VBox.setVgrow(lista, Priority.ALWAYS);
-
-        VBox pendientes = new VBox(10, pendientesTitulo,
-                new Label("Los borradores pueden estar descuadrados; una partida solo se contabiliza "
-                        + "cuando Debe y Haber coinciden exactamente."),
-                lista);
-        pendientes.getStyleClass().add("surface-card");
-        VBox.setVgrow(pendientes, Priority.ALWAYS);
-        return pendientes;
+        return tabla;
     }
 
     /**
