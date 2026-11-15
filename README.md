@@ -33,8 +33,9 @@ Actores:
 | Respaldo | Ejecución manual de `pg_dump`; no incluye cifrado, programación, incremental ni restauración desde la interfaz |
 | Exportación | PDF, XLSX y ZIP del rango seleccionado; el ZIP reúne Diario, Mayor, Balanza, Hoja de trabajo y los cuatro estados financieros disponibles |
 | Soporte técnico y entorno | Gestión de usuarios, bitácoras, parámetros de entorno y respaldo manual |
-| Migraciones Flyway `V1`–`V19` | Aplicadas por el arranque |
-| Identidad visual | Integrada |
+| Interfaz de escritorio | Shell con sidebar colapsable, paleta de comandos Ctrl+K, dashboard Bento, Libro diario en Lista+Editor+Inspector, breakpoints responsivos y tema oscuro |
+| Migraciones Flyway `V1`–`V23` | Aplicadas por el arranque |
+| Identidad visual | Sistema de diseño «Vuelo nocturno»: tokens CSS centralizados, tema oscuro por defecto, movimiento y lint de diseño |
 
 Fuera de alcance: emisión o transmisión oficial de DTE, conexiones bancarias o cloud, portal de descargas, web/multiusuario, multimoneda, cálculo legal integral de nómina con topes y reglas vigentes, prorrata automática de IVA mixto, respaldo programado/cifrado/incremental y restauración desde la interfaz. La planilla implementada calcula cargas configurables y genera su devengo; requiere validación profesional para uso laboral real. Las políticas fiscales también deben revisarse antes de aplicarlas a operaciones reales.
 
@@ -114,8 +115,11 @@ Colibri/
 ├─ colibri-reports/                Exportación de reportes
 ├─ colibri-desktop/                Interfaz JavaFX
 ├─ img/                            Identidad: Colibri.png, imagotipo, iconos, splash
-├─ scripts/                        setup-postgres.ps1/.sql, gen_catalogo.py
-└─ CasosDeUso.md · CasosDeUso_SoporteTecnico.md · Analisis_Sistema_Colibri.txt
+├─ scripts/                        run-colibri.ps1 (desarrollo), Colibri.vbs/.cmd e
+│                                  Iniciar-Colibri.ps1 (usuario final), setup-postgres,
+│                                  gen_catalogo.py, db/ (semillas y verificaciones)
+└─ *.md                            CasosDeUso, DESCARTE, ESCENARIO_EJERCICIO_CONTABLE_COMPLETO,
+                                   rubrica_de_evaluacion, sintesis-formulas-contables
 ```
 
 ### colibri-domain — `sv.edu.ues.colibri.domain`
@@ -162,11 +166,11 @@ Colibri/
 | Paquete | Contenido |
 |---|---|
 | (raíz) | `ColibriApp` (entrypoint), `InstanceLock`, `AppLog` |
-| `ui` | `MainShell` (BorderPane: menú lateral + barra superior + una página), `ResponsiveLayouts`, `UiTheme`, `UiDialogs`, `BrandAssets`, `BrandLogo`, `BrandIcon`, `LoginView` |
-| `ui.nav` | `NavItem`, `NavRegistry` (árbol de navegación por rol, fuente única), `SideNav` (acordeón), `SectionHost`, `Navegador` |
+| `ui` | `MainShell` (BorderPane: menú lateral + barra superior con breadcrumb/buscador + una página), `ResponsiveLayouts`, `UiTheme` (variantes semánticas de botón), `UiDialogs`, `UiCatalogos`, `Motion` (transiciones con *reduced-motion*), `PaletaComandos` (Ctrl+K), `BrandAssets`, `BrandLogo`, `BrandMark`, `BrandIcon`, `LoginView` |
+| `ui.nav` | `NavItem`, `NavRegistry` (árbol de navegación por rol, fuente única), `SideNav` (acordeón + pie de sesión/zoom), `NavFlyout` (menú flotante de vidrio, también desde el breadcrumb), `SectionHost`, `Navegador` |
 | `ui.layout` | `Page` (scroll/fill), `Breakpoints` (pseudo-clases `:compact/:medium/:wide`), `SegmentedNav`, `MasterDetail` |
-| `ui.views` | `InicioView`, `EmpresaPeriodosView`, `ParametrizacionView` (una sección por ítem del menú), `TemasContablesView`, `CatalogoView`, `PartidasView`, `DocumentosView`, `PlanillaView`, `InventarioCostosView`, `ProcesosCifView`, `EstimacionCostosView`, `SocietariosView`, `ReportesView`, `AjustesCierreView`, `RespaldoView`, `SoporteTecnicoView`, `UsuariosView` |
-| recursos | `colibri.css`, `img/` (marca, imagotipo, splash e iconos multiresolución 16–512) |
+| `ui.views` | `InicioView` (tablero Bento), `EmpresaPeriodosView`, `ParametrizacionView` (una sección por ítem del menú), `TemasContablesView`, `CatalogoView`, `PartidasView` (Lista + Editor + Inspector inferior), `DocumentosView`, `PlanillaView`, `InventarioCostosView`, `ProcesosCifView`, `EstimacionCostosView`, `SocietariosView`, `ReportesView`, `AjustesCierreView`, `RespaldoView`, `SoporteTecnicoView`, `UsuariosView` |
+| recursos | `tokens.css` (única hoja con literales: paleta, superficies, estados, motion, puente Modena, tema claro por `prefers-color-scheme`), `colibri.css` (alias semánticos `-colibri-*` y componentes), `img/` (marca, imagotipo, splash e iconos multiresolución 16–512 con placa clara) |
 
 ---
 
@@ -191,6 +195,7 @@ Colibri/
 | **Observer** | Listeners de JavaFX y `textProperty` en `UiTheme` |
 | **Decorator** | `UiTheme.decorate` enriquece controles con iconos/estilos |
 | **Lock / Failsafe de arranque** | `InstanceLock` + `Arranque` en `ColibriApp` |
+| **Design tokens + lint** | `tokens.css` concentra literales; `DisenoTokensTest` bloquea colores sueltos, `setStyle` en vistas y referencias rotas |
 
 ---
 
@@ -208,7 +213,8 @@ Colibri/
 - **Períodos.** La captura se bloquea en fechas cerradas; la aprobación del catálogo habilita movimientos.
 - **Esquema gestionado.** Flyway aplica migraciones versionadas; el pool Hikari se crea solo tras migrar.
 - **Continuidad.** El soporte técnico puede ejecutar un respaldo manual con `pg_dump` en `~/.colibri/backups`; la restauración, el cifrado y la programación son procedimientos externos al prototipo. Se conservan bitácoras de acceso y técnicas.
-- **Identidad visual empaquetada.** Logo, imagotipo, splash e iconos de barra de tareas se cargan desde recursos (`BrandAssets`), no desde rutas externas.
+- **Identidad visual empaquetada.** Logo, imagotipo, splash e iconos de barra de tareas se cargan desde recursos (`BrandAssets`), no desde rutas externas. Los iconos se generan con placa clara para ser legibles sobre la barra de tareas.
+- **Sistema de diseño «Vuelo nocturno».** Tema oscuro por defecto con acentos cian (interacción/enfoque) y lima (acción principal/positivo); tema claro disponible vía `prefers-color-scheme`. Todos los colores viven en `tokens.css`; los componentes consumen alias semánticos `-colibri-*`/`--color-*`. El movimiento es corto (140 ms interactivo, 220 ms entrada de página) y se desactiva con `prefers-reduced-motion`. Las variantes de botón se declaran con `UiTheme.Variante` en lugar de inferirse del texto.
 - **Simplicidad de despliegue.** Build reproducible con Maven Wrapper; sin contenedores en producción local.
 
 ---
@@ -258,9 +264,19 @@ En Windows PowerShell:
 .\scripts\run-colibri.ps1
 ```
 
-El comando `install` recompila e instala en el repositorio Maven local los cinco JAR de módulos y sus dependencias; el JAR de `colibri-desktop` es modular por capas y se ejecuta con JavaFX mediante Maven, no como `java -jar` autónomo. `run-colibri.ps1` realiza la instalación antes de abrir la aplicación. El arranque carga la configuración local, valida/construye las 19 migraciones Flyway y abre la pantalla de acceso.
+El comando `install` recompila e instala en el repositorio Maven local los cinco JAR de módulos y sus dependencias; el JAR de `colibri-desktop` es modular por capas y se ejecuta con JavaFX mediante Maven, no como `java -jar` autónomo. `run-colibri.ps1` realiza la instalación antes de abrir la aplicación. El arranque carga la configuración local, valida/construye las 23 migraciones Flyway y abre la pantalla de acceso.
 
 `run-colibri.ps1` instala primero los módulos hermanos en `~/.m2` y después ejecuta JavaFX. Así evita mezclar la interfaz recién compilada con JARs antiguos de `application`, `domain` o `persistence`.
+
+#### Lanzadores de usuario final
+
+Para uso diario sin consola de desarrollo:
+
+- **`scripts\Colibri.vbs`** — doble clic, sin ventanas de consola. Es el lanzador recomendado.
+- **`scripts\Colibri.cmd`** — igual pero con consola visible para depuración.
+- **`scripts\Iniciar-Colibri.ps1`** — lógica del lanzador: detecta `javaw` (JAVA_HOME, PATH o rutas comunes), reutiliza el classpath generado salvo que cambie algún `pom.xml`, comprueba PostgreSQL y arranca la app desacoplada. Con `-Compilar` fuerza recompilación.
+
+Ambos escriben bitácora en `%LOCALAPPDATA%\Colibri\logs\colibri-<fecha>.log` y, si el arranque falla, muestran un cuadro de diálogo con la causa. La primera ejecución puede tardar mientras Maven genera el classpath; las siguientes son directas.
 
 ### Credenciales iniciales
 
@@ -284,6 +300,7 @@ El comando `install` recompila e instala en el repositorio Maven local los cinco
 - `V10`–`V14` — ajustes, estimaciones, amortización, deterioro, costos por proceso, integridad de cédulas, aplicación y cierre de CIF.
 - `V15`–`V17` — tasas históricas y recuperación/inmutabilidad de cédulas de planilla.
 - `V18`–`V19` — inmutabilidad de cédulas de cierre, restitución de auxiliares al revertir, serialización de captura y bloqueo de cierre con cédulas pendientes.
+- `V20`–`V23` — costo de soporte en catálogo, plantillas de partida recurrente, aplicación de anticipos y tasas laborales de planilla.
 
 **Núcleo:** autenticación, catálogo, períodos, partida doble, bitácora y bloqueo de instancia.  
 **Documentos e IVA:** terceros, documentos internos y plantillas con tasas parametrizadas.  
