@@ -6,6 +6,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
+import javafx.scene.control.TableView;
 
 import java.net.URL;
 import java.util.Locale;
@@ -104,6 +105,14 @@ public final class UiTheme {
     private static void decorateNode(Node node) {
         if (node instanceof Button button) {
             decorateButton(button);
+        }
+        if (node instanceof TableView<?> tabla) {
+            // Nunca se encogen encabezados o importes para "hacerlos caber":
+            // el ancho excedente se consulta con el scroll horizontal nativo.
+            tabla.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
+            if (!tabla.getStyleClass().contains("table-scrollable")) {
+                tabla.getStyleClass().add("table-scrollable");
+            }
         }
         if (node instanceof Parent parent) {
             parent.getChildrenUnmodifiable().forEach(UiTheme::decorateNode);

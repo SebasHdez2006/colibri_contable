@@ -10,6 +10,7 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.input.KeyCode;
+import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.util.Duration;
@@ -26,13 +27,16 @@ public class TemaSwitch extends Pane {
     private final BooleanProperty oscuro = new SimpleBooleanProperty(UiTheme.temaOscuro());
     private final DoubleProperty avance = new SimpleDoubleProperty();
     private final Region perilla = new Region();
+    private final Label icono = new Label();
     private Timeline animacion;
 
     public TemaSwitch() {
         getStyleClass().add("tema-switch");
         setFocusTraversable(true);
         perilla.getStyleClass().add("tema-switch-knob");
-        getChildren().add(perilla);
+        icono.getStyleClass().add("tema-switch-icon");
+        icono.setMouseTransparent(true);
+        getChildren().addAll(perilla, icono);
         avance.set(oscuro.get() ? 0 : 1);
         actualizarEstadoVisual();
 
@@ -89,6 +93,8 @@ public class TemaSwitch extends Pane {
         double recorrido = Math.max(0, getWidth() - knobW - 2 * margen);
         perilla.resizeRelocate(knobW, knobH, margen, (getHeight() - knobH) / 2);
         perilla.setTranslateX(avance.get() * recorrido);
+        icono.resizeRelocate(knobW, knobH, margen, (getHeight() - knobH) / 2);
+        icono.setTranslateX(avance.get() * recorrido);
     }
 
     private void deslizar() {
@@ -103,6 +109,7 @@ public class TemaSwitch extends Pane {
     private void actualizarEstadoVisual() {
         getStyleClass().removeAll("tema-switch--claro", "tema-switch--oscuro");
         getStyleClass().add(oscuro.get() ? "tema-switch--oscuro" : "tema-switch--claro");
+        icono.setText(oscuro.get() ? "☾" : "☀");
         String texto = oscuro.get()
                 ? "Tema oscuro. Activar para cambiar a claro."
                 : "Tema claro. Activar para cambiar a oscuro.";

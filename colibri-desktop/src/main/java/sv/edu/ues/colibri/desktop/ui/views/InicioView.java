@@ -17,6 +17,7 @@ import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.VBox;
 import sv.edu.ues.colibri.application.AppContext;
 import sv.edu.ues.colibri.application.panel.PanelInicioService;
+import sv.edu.ues.colibri.desktop.ui.UiTables;
 import sv.edu.ues.colibri.domain.model.Partida;
 import sv.edu.ues.colibri.domain.model.Periodo;
 
@@ -114,8 +115,9 @@ public class InicioView extends VBox {
                         + dinero(resumen.dtesPendientes()),
                 resumen.documentosPendientesCobro() > 0 ? "attention" : "neutral"), 2, 1);
         bento.add(porHacer(cuentas, borradores, estadoCatalogo, acciones, resumen), 0, 2);
-        bento.add(graficaClientes(resumen), 1, 2);
-        bento.add(periodoActual(periodo), 2, 2);
+        // El período ya se muestra en la cabecera. Liberar esa tercera tarjeta
+        // evita truncar los nombres y montos de clientes en ventanas normales.
+        bento.add(graficaClientes(resumen), 1, 2, 2, 1);
         bento.add(costos(resumen), 0, 3, 3, 1);
 
         getChildren().addAll(cabecera, bento);
@@ -274,8 +276,8 @@ public class InicioView extends VBox {
         chart.setAnimated(false);
         chart.setCategoryGap(22);
         chart.setBarGap(3);
-        chart.setPrefHeight(200);
-        chart.setMinHeight(0);
+        chart.setPrefHeight(250);
+        chart.setMinHeight(220);
         chart.getStyleClass().addAll("dashboard-chart", "dashboard-income-chart");
         javafx.scene.chart.XYChart.Series<String, Number> ingresos =
                 new javafx.scene.chart.XYChart.Series<>();
@@ -292,6 +294,7 @@ public class InicioView extends VBox {
         }
         chart.getData().addAll(ingresos, egresos);
         card.getChildren().add(chart);
+        VBox.setVgrow(chart, Priority.ALWAYS);
         if (serieVisible.hito() != null) {
             PanelInicioService.PuntoMes hito = serieVisible.hito();
             Label aviso = new Label("Hito " + hito.etiqueta() + ": ingresos "
@@ -410,21 +413,25 @@ public class InicioView extends VBox {
         tile.getStyleClass().addAll("surface-card", "costos-tile");
         tile.getChildren().add(encabezado("Costos y suscripciones"));
         tile.getChildren().add(contenidoPlanes(resumen));
+        VBox indicadoresCostos = new VBox(6);
+        indicadoresCostos.getStyleClass().add("cost-summary-list");
         boolean haySaasOCif = false;
         for (PanelInicioService.SaasPlan plan : resumen.saasPorPlan()) {
-            tile.getChildren().add(new Label(plan.plan() + ": " + plan.usuariosMes()
-                    + " usuario(s)-mes"));
+            indicadoresCostos.getChildren().add(filaCosto(plan.plan(), plan.usuariosMes()
+                    + " usuario(s)-mes", "Uso del período"));
             haySaasOCif = true;
         }
         for (PanelInicioService.CifComparativo cif : resumen.cif()) {
-            tile.getChildren().add(new Label("CIF " + cif.centro() + " · aplicado "
-                    + dinero(cif.aplicado()) + " / presupuestado " + dinero(cif.presupuestado())
-                    + " · variación " + dinero(cif.variacion())));
+            indicadoresCostos.getChildren().add(filaCosto("CIF " + cif.centro(),
+                    "Aplicado " + dinero(cif.aplicado()) + " · Presupuesto "
+                            + dinero(cif.presupuestado()),
+                    "Variación " + dinero(cif.variacion())));
             haySaasOCif = true;
         }
         if (!haySaasOCif) {
-            tile.getChildren().add(detalle("Sin datos de SaaS o CIF para el período.", "status-pill"));
+            indicadoresCostos.getChildren().add(detalle("Sin datos de SaaS o CIF para el período.", "status-pill"));
         }
+        tile.getChildren().add(indicadoresCostos);
         tile.getChildren().add(tablaOrdenes(resumen));
         VBox.setVgrow(tile, Priority.ALWAYS);
         return tile;
@@ -437,7 +444,6 @@ public class InicioView extends VBox {
                     "Cree o active un plan desde Inventario → Servicios / Accesos.");
         }
         TableView<PanelInicioService.PlanTarifa> tabla = new TableView<>();
-        tabla.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         tabla.setFixedCellSize(34);
         tabla.getStyleClass().add("dashboard-data-table");
         agregarColumna(tabla, "Código", PanelInicioService.PlanTarifa::codigo);
@@ -452,14 +458,14 @@ public class InicioView extends VBox {
         tabla.getColumns().addAll(java.util.List.of(tarifa, facturacion));
         tabla.getItems().setAll(resumen.planes());
         tabla.setPrefHeight(altoTabla(resumen.planes().size()));
-        return tabla;
+        return UiTables.conBusqueda(tabla, "planes y tarifas", plan -> plan.codigo() + " "
+                + plan.nombre() + " " + plan.modalidad() + " " + plan.tipoFacturacion());
     }
 
     /** Tabla de órdenes de servicio: presupuesto vs. costo real. */
-    private TableView<PanelInicioService.OrdenComparativo> tablaOrdenes(
+    private javafx.scene.Node tablaOrdenes(
             PanelInicioService.ResumenPanel resumen) {
         TableView<PanelInicioService.OrdenComparativo> tabla = new TableView<>();
-        tabla.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         tabla.setPlaceholder(new Label("Sin órdenes de servicio registradas."));
         agregarColumna(tabla, "Orden", PanelInicioService.OrdenComparativo::codigo);
         agregarColumna(tabla, "Descripción", PanelInicioService.OrdenComparativo::descripcion);
@@ -478,7 +484,24 @@ public class InicioView extends VBox {
         tabla.getColumns().addAll(java.util.List.of(presupuesto, real, variacion));
         tabla.getItems().setAll(resumen.ordenes());
         tabla.setPrefHeight(170);
-        return tabla;
+        return UiTables.conBusqueda(tabla, "órdenes de servicio", orden -> orden.codigo() + " "
+                + orden.descripcion() + " " + orden.estado() + " " + orden.presupuesto()
+                + " " + orden.costoReal());
+    }
+
+    /** Dato de costo con tres niveles tipográficos, nunca texto suelto bajo una tabla. */
+    private VBox filaCosto(String titulo, String valor, String nota) {
+        Label etiqueta = new Label(titulo);
+        etiqueta.getStyleClass().add("cost-summary-title");
+        Label importe = new Label(valor);
+        importe.getStyleClass().add("cost-summary-value");
+        importe.setWrapText(true);
+        Label detalle = new Label(nota);
+        detalle.getStyleClass().add("cost-summary-note");
+        detalle.setWrapText(true);
+        VBox fila = new VBox(2, etiqueta, importe, detalle);
+        fila.getStyleClass().add("cost-summary-row");
+        return fila;
     }
 
     /**

@@ -16,6 +16,7 @@ import sv.edu.ues.colibri.application.configuracion.ParametrizacionService;
 import sv.edu.ues.colibri.desktop.ui.ResponsiveLayouts;
 import sv.edu.ues.colibri.desktop.ui.UiCatalogos;
 import sv.edu.ues.colibri.desktop.ui.UiDialogs;
+import sv.edu.ues.colibri.desktop.ui.UiTables;
 import sv.edu.ues.colibri.domain.model.Cuenta;
 import sv.edu.ues.colibri.domain.model.EstadoCuenta;
 import sv.edu.ues.colibri.domain.model.NaturalezaCuenta;
@@ -106,13 +107,15 @@ public class ParametrizacionView extends VBox {
             case EN_REVISION -> "En auditoría";
             case CERRADO -> "Cerrado";
         });
-        tabla.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         Runnable refrescar = () -> {
             tabla.getItems().clear();
             context.periodos().listarEjercicios()
                     .forEach(ej -> tabla.getItems().addAll(context.periodos().listarPeriodos(ej)));
         };
         refrescar.run();
+        var tablaBuscable = UiTables.conBusqueda(tabla, "períodos", periodo -> periodo.getMes()
+                + " " + periodo.getFechaInicio() + " " + periodo.getFechaFin() + " "
+                + periodo.getEstado());
         Button abierto = new Button("Abrir / reabrir");
         Button auditoria = new Button("Poner en auditoría");
         Button cerrado = new Button("Cerrar período");
@@ -134,7 +137,7 @@ public class ParametrizacionView extends VBox {
         });
         VBox box = new VBox(10, new Label("Abierto permite captura. En auditoría deja ajustes. "
                 + "Cerrado bloquea el mes tras verificar las cédulas pendientes."),
-                tabla, ResponsiveLayouts.row(abierto, auditoria, cerrado));
+                tablaBuscable, ResponsiveLayouts.row(abierto, auditoria, cerrado));
         box.getStyleClass().add("form-card");
         VBox.setVgrow(tabla, javafx.scene.layout.Priority.ALWAYS);
         return box;
@@ -151,7 +154,6 @@ public class ParametrizacionView extends VBox {
         });
         addCol(tabla, "Afectable", c -> c.isAdmiteMovimiento() ? "Sí" : "No");
         addCol(tabla, "Estado", c -> estadoTexto(c.getEstado()));
-        tabla.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         Runnable refrescar = () -> tabla.setItems(FXCollections.observableArrayList(context.catalogo().listar()));
         refrescar.run();
 
@@ -223,8 +225,10 @@ public class ParametrizacionView extends VBox {
         addCol(tabla, "Debe", ParametrizacionService.PostingProfile::cuentaDebe);
         addCol(tabla, "Haber", ParametrizacionService.PostingProfile::cuentaHaber);
         addCol(tabla, "IVA", p -> nvl(p.cuentaIva()));
-        tabla.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         tabla.setItems(FXCollections.observableArrayList(context.parametrizacion().listarPosting()));
+        var tablaBuscable = UiTables.conBusqueda(tabla, "eventos contables", perfil ->
+                perfil.evento() + " " + perfil.etiqueta() + " " + perfil.cuentaDebe() + " "
+                        + perfil.cuentaHaber() + " " + nvl(perfil.cuentaIva()));
         ComboBox<Cuenta> debe = UiCatalogos.campoCuenta(context, null,
                 "Cuenta de cargo por defecto del evento; vacío conserva la actual.");
         ComboBox<Cuenta> haber = UiCatalogos.campoCuenta(context, null,
@@ -288,7 +292,7 @@ public class ParametrizacionView extends VBox {
 
         VBox box = new VBox(10, new Label("Cuentas por defecto para ventas, compras, inventario, "
                 + "depreciación, planilla y demás eventos operativos."),
-                tabla,
+                tablaBuscable,
                 ResponsiveLayouts.row(ResponsiveLayouts.field("Debe", debe),
                         ResponsiveLayouts.field("Haber", haber), ResponsiveLayouts.field("IVA", iva), guardar),
                 new Label("Nuevo evento (el código se normaliza a mayúsculas):"),
@@ -345,8 +349,9 @@ public class ParametrizacionView extends VBox {
         addCol(tabla, "Clave", ParametrizacionService.Parametro::clave);
         addCol(tabla, "Valor", ParametrizacionService.Parametro::valor);
         addCol(tabla, "Descripción", p -> nvl(p.descripcion()));
-        tabla.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         tabla.setItems(FXCollections.observableArrayList(context.parametrizacion().listarPoliticas()));
+        var tablaBuscable = UiTables.conBusqueda(tabla, "políticas", politica -> politica.clave()
+                + " " + politica.valor() + " " + nvl(politica.descripcion()));
         TextField valor = new TextField();
         valor.setPromptText("Nuevo valor de la política");
         Button guardar = new Button("Actualizar valor");
@@ -363,7 +368,7 @@ public class ParametrizacionView extends VBox {
         });
         VBox box = new VBox(10, new Label("Políticas de partida doble, devengo, inventarios, CIF y RR. HH.; "
                 + "máscaras de folio, tolerancia $0.00 e inmutabilidad de partidas."),
-                tabla, ResponsiveLayouts.row(ResponsiveLayouts.field("Valor", valor), guardar));
+                tablaBuscable, ResponsiveLayouts.row(ResponsiveLayouts.field("Valor", valor), guardar));
         box.getStyleClass().add("form-card");
         VBox.setVgrow(tabla, javafx.scene.layout.Priority.ALWAYS);
         return box;
@@ -374,9 +379,10 @@ public class ParametrizacionView extends VBox {
         addCol(tabla, "Código", ParametrizacionService.CentroCosto::codigo);
         addCol(tabla, "Nombre", ParametrizacionService.CentroCosto::nombre);
         addCol(tabla, "Estado", c -> c.activo() ? "Activo" : "Inactivo");
-        tabla.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         Runnable refrescar = () -> tabla.setItems(FXCollections.observableArrayList(context.parametrizacion().listarCentros()));
         refrescar.run();
+        var tablaBuscable = UiTables.conBusqueda(tabla, "centros de costo", centro -> centro.codigo()
+                + " " + centro.nombre() + " " + centro.activo());
         TextField codigo = new TextField();
         codigo.setPromptText("Ej. CC-01");
         UiCatalogos.ayuda(codigo, "Código corto del centro de costo; es el que se captura en las partidas.");
@@ -390,7 +396,7 @@ public class ParametrizacionView extends VBox {
                     codigo.getText(), nombre.getText(), activo.isSelected()));
             refrescar.run();
         }));
-        VBox box = new VBox(10, tabla, ResponsiveLayouts.row(
+        VBox box = new VBox(10, tablaBuscable, ResponsiveLayouts.row(
                 ResponsiveLayouts.field("Código", codigo), ResponsiveLayouts.field("Nombre", nombre), activo, guardar));
         box.getStyleClass().add("form-card");
         VBox.setVgrow(tabla, javafx.scene.layout.Priority.ALWAYS);

@@ -19,6 +19,7 @@ import sv.edu.ues.colibri.application.AppContext;
 import sv.edu.ues.colibri.application.operacion.OperacionContableService;
 import sv.edu.ues.colibri.desktop.ui.ResponsiveLayouts;
 import sv.edu.ues.colibri.desktop.ui.UiDialogs;
+import sv.edu.ues.colibri.desktop.ui.UiTables;
 import sv.edu.ues.colibri.domain.exception.DomainException;
 import sv.edu.ues.colibri.domain.model.Documento;
 import sv.edu.ues.colibri.domain.model.Partida;
@@ -182,10 +183,14 @@ public class DocumentosView extends VBox {
         VBox panelTerceros = ResponsiveLayouts.sectionCard("Terceros",
                 "Seleccione el cliente o proveedor de la operación. Los combos de anticipo y "
                         + "DTE se filtran por el tercero seleccionado.",
-                tablaTerceros);
+                UiTables.conBusqueda(tablaTerceros, "terceros", tercero -> tercero.getNit()
+                        + " " + tercero.getRazonSocial() + " " + perfilTercero(tercero)));
         VBox panelDocumentos = ResponsiveLayouts.sectionCard("Documentos",
                 "Documentos tributarios emitidos con su estado de contabilización.",
-                tablaDocumentos);
+                UiTables.conBusqueda(tablaDocumentos, "documentos", documento ->
+                        documento.getFechaEmision() + " " + documento.getTipo() + " "
+                                + descripcionTercero(documento) + " " + descripcionCodigo(documento)
+                                + " " + documento.getEstado()));
         VBox.setVgrow(tablaTerceros, Priority.ALWAYS);
         VBox.setVgrow(tablaDocumentos, Priority.ALWAYS);
         tablaTerceros.setPrefHeight(330);
@@ -387,7 +392,6 @@ public class DocumentosView extends VBox {
         agregarColumna(tabla, "Centro", PartidaDetalle::getCentroCosto);
         agregarColumna(tabla, "Debe", d -> d.getDebe().toPlainString());
         agregarColumna(tabla, "Haber", d -> d.getHaber().toPlainString());
-        tabla.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         tabla.setPrefSize(560, 260);
 
         BigDecimal totalDebe = preview.lineas().stream().map(PartidaDetalle::getDebe)
@@ -399,7 +403,9 @@ public class DocumentosView extends VBox {
                         + "  ·  Fecha: " + preview.fecha()
                         + "  ·  Debe: " + totalDebe + "  ·  Haber: " + totalHaber
                         + (totalDebe.compareTo(totalHaber) == 0 ? "  (cuadra)" : "  (NO cuadra)")),
-                tabla);
+                UiTables.conBusqueda(tabla, "líneas del asiento", linea -> linea.getCodigoCuenta()
+                        + " " + linea.getAuxiliar() + " " + linea.getCentroCosto()
+                        + " " + linea.getDebe() + " " + linea.getHaber()));
         contenido.setPadding(new Insets(10));
         return contenido;
     }
@@ -422,7 +428,6 @@ public class DocumentosView extends VBox {
         TableColumn<Tercero, String> cEstado = new TableColumn<>("Estado");
         cEstado.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().isActivo() ? "Activo" : "Inactivo"));
         tablaTerceros.getColumns().setAll(cNit, cRazon, cPerfil, cEstado);
-        tablaTerceros.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         tablaTerceros.setPlaceholder(new Label("No hay terceros registrados."));
         tablaTerceros.setMinWidth(460);
         tablaTerceros.setMinHeight(320);
@@ -458,12 +463,12 @@ public class DocumentosView extends VBox {
 
     private void refrescar() {
         var terceros = FXCollections.observableArrayList(context.operaciones().listarTerceros());
-        tablaTerceros.setItems(terceros);
+        UiTables.reemplazarFilas(tablaTerceros, terceros);
         tercerosPorId.clear();
         for (Tercero tercero : terceros) {
             tercerosPorId.put(tercero.getId(), tercero);
         }
-        tablaDocumentos.setItems(FXCollections.observableArrayList(context.operaciones().listarDocumentos()));
+        UiTables.reemplazarFilas(tablaDocumentos, context.operaciones().listarDocumentos());
     }
 
     private String descripcionTercero(Documento documento) {

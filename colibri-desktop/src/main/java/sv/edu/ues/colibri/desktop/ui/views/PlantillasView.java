@@ -19,6 +19,7 @@ import sv.edu.ues.colibri.application.AppContext;
 import sv.edu.ues.colibri.desktop.ui.CatalogoCombo;
 import sv.edu.ues.colibri.desktop.ui.ResponsiveLayouts;
 import sv.edu.ues.colibri.desktop.ui.UiDialogs;
+import sv.edu.ues.colibri.desktop.ui.UiTables;
 import sv.edu.ues.colibri.desktop.ui.UiTheme;
 import sv.edu.ues.colibri.domain.exception.DomainException;
 import sv.edu.ues.colibri.domain.model.Cuenta;
@@ -62,7 +63,6 @@ public class PlantillasView extends VBox {
         agregarColumna(tabla, "Tipo", p -> p.tipo().getEtiqueta());
         agregarColumna(tabla, "Concepto", PlantillaPartida::concepto);
         agregarColumna(tabla, "Líneas", p -> String.valueOf(p.detalles().size()));
-        tabla.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         tabla.setPlaceholder(new Label("Sin plantillas. Cree la primera con «Nueva plantilla»."));
         VBox.setVgrow(tabla, Priority.ALWAYS);
 
@@ -113,7 +113,9 @@ public class PlantillasView extends VBox {
             }
         });
 
-        getChildren().addAll(titulo, ayuda, tabla,
+        getChildren().addAll(titulo, ayuda, UiTables.conBusqueda(tabla, "plantillas", plantilla ->
+                        plantilla.codigo() + " " + plantilla.nombre() + " " + plantilla.concepto()
+                                + " " + plantilla.tipo().getEtiqueta()),
                 ResponsiveLayouts.row(nueva, ver, generar));
         refrescar();
     }
@@ -177,7 +179,6 @@ public class PlantillasView extends VBox {
         agregarColumna(tablaLineas, "Cuenta", PartidaDetalle::getCodigoCuenta);
         agregarColumna(tablaLineas, "Debe", d -> d.getDebe().toPlainString());
         agregarColumna(tablaLineas, "Haber", d -> d.getHaber().toPlainString());
-        tablaLineas.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         tablaLineas.setPrefHeight(180);
         tablaLineas.setMinHeight(140);
 
@@ -250,7 +251,8 @@ public class PlantillasView extends VBox {
                 ResponsiveLayouts.row(ResponsiveLayouts.field("Tipo de partida", tipo),
                         ResponsiveLayouts.field("Concepto", concepto)),
                 new Label("Líneas del asiento (al menos dos; Debe y Haber deben cuadrar):"),
-                tablaLineas,
+                UiTables.conBusqueda(tablaLineas, "líneas de la plantilla", linea ->
+                        linea.getCodigoCuenta() + " " + linea.getDebe() + " " + linea.getHaber()),
                 ResponsiveLayouts.row(ResponsiveLayouts.field("Cuenta", cuenta),
                         ResponsiveLayouts.field("Debe", debe), ResponsiveLayouts.field("Haber", haber),
                         agregar, quitar),
@@ -370,9 +372,10 @@ public class PlantillasView extends VBox {
         agregarColumna(tabla, "Centro", PartidaDetalle::getCentroCosto);
         agregarColumna(tabla, "Debe", d -> d.getDebe().toPlainString());
         agregarColumna(tabla, "Haber", d -> d.getHaber().toPlainString());
-        tabla.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         tabla.setPrefSize(560, 320);
-        return tabla;
+        return UiTables.conBusqueda(tabla, "líneas de la plantilla", linea ->
+                linea.getCodigoCuenta() + " " + linea.getAuxiliar() + " " + linea.getCentroCosto()
+                        + " " + linea.getDebe() + " " + linea.getHaber());
     }
 
     private static <T> void agregarColumna(TableView<T> tabla, String titulo,

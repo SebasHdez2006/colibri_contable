@@ -44,6 +44,7 @@ import sv.edu.ues.colibri.application.partida.PartidaService;
 import sv.edu.ues.colibri.desktop.ui.CatalogoCombo;
 import sv.edu.ues.colibri.desktop.ui.ResponsiveLayouts;
 import sv.edu.ues.colibri.desktop.ui.UiDialogs;
+import sv.edu.ues.colibri.desktop.ui.UiTables;
 import sv.edu.ues.colibri.desktop.ui.UiTheme;
 import sv.edu.ues.colibri.domain.exception.DomainException;
 import sv.edu.ues.colibri.domain.model.Cuenta;
@@ -254,7 +255,10 @@ public class PartidasView extends VBox {
         VBox lineasCard = ResponsiveLayouts.sectionCard("Líneas del asiento",
                 "Cada línea registra cuenta, auxiliar y centro de costo con su importe en "
                         + "debe o haber; el cuadre se muestra debajo de la tabla.",
-                lineBox, tabla);
+                lineBox, UiTables.conBusqueda(tabla, "líneas del asiento", linea ->
+                        linea.getCodigo() + " " + linea.getAuxiliar() + " " + linea.getCentro()
+                                + " " + linea.getDebe() + " " + linea.getHaber()));
+        tabla.getStyleClass().add("journal-lines-table");
         VBox.setVgrow(lineasCard, Priority.ALWAYS);
 
         // Columna izquierda: lista de partidas con sus filtros.
@@ -267,7 +271,10 @@ public class PartidasView extends VBox {
                         ResponsiveLayouts.field("Hasta", filtroHasta)),
                 ResponsiveLayouts.row(ResponsiveLayouts.field("Diario desde", exportDesde),
                         ResponsiveLayouts.field("Diario hasta", exportHasta), exportar),
-                recientes);
+                UiTables.conBusqueda(recientes, "partidas", partida ->
+                        String.valueOf(partida.getFolio()) + " " + partida.getConcepto() + " "
+                                + partida.getFechaContable() + " " + partida.getEstado() + " "
+                                + partida.getOrigen()));
         listaCard.getStyleClass().addAll("surface-card", "journal-list");
         listaCard.setPrefWidth(320);
         listaCard.setMinWidth(300);
@@ -1165,7 +1172,6 @@ public class PartidasView extends VBox {
         rOrigen.setCellValueFactory(c -> new SimpleStringProperty(
                 c.getValue().getOrigen() != null ? c.getValue().getOrigen().name() : ""));
         recientes.getColumns().addAll(rFecha, rFolio, rConc, rOrigen);
-        recientes.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         recientes.setMinHeight(100);
         recientes.setOnMouseClicked(ev -> {
             if (ev.getClickCount() == 2) {
@@ -1210,7 +1216,7 @@ public class PartidasView extends VBox {
             UiDialogs.error(ex.getMessage());
             items = List.of();
         }
-        recientes.setItems(FXCollections.observableArrayList(items));
+        UiTables.reemplazarFilas(recientes, items);
     }
 
     // ------------------------------------------------------------------
@@ -1616,10 +1622,10 @@ public class PartidasView extends VBox {
         TableColumn<PartidaDetalle, String> dHaber = new TableColumn<>("Haber");
         dHaber.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getHaber().toPlainString()));
         detalles.getColumns().addAll(dCuenta, dDebe, dHaber);
-        detalles.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         detalles.setPrefSize(460, 180);
         contenido.getChildren().add(new Label("Líneas del asiento"));
-        contenido.getChildren().add(detalles);
+        contenido.getChildren().add(UiTables.conBusqueda(detalles, "líneas de evidencia", detalle ->
+                detalle.getCodigoCuenta() + " " + detalle.getDebe() + " " + detalle.getHaber()));
         return contenido;
     }
 

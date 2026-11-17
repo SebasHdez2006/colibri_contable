@@ -98,10 +98,11 @@ public final class PlanillaView extends VBox {
         asiento.setPromptText("La previsualización mostrará las líneas Debe y Haber.");
         asiento.setAccessibleText("Previsualización del asiento de planilla");
         asiento.setAccessibleHelp("Muestra la partida balanceada antes de contabilizar la planilla.");
-        asiento.setPrefRowCount(14);
-        asiento.setMinHeight(230);
+        asiento.setPrefRowCount(16);
+        asiento.setMinHeight(288);
+        asiento.getStyleClass().add("reconciliation-preview");
         VBox conciliacion = new VBox(10, encabezado("Conciliación previa"), resumen, asiento);
-        conciliacion.getStyleClass().add("form-card");
+        conciliacion.getStyleClass().addAll("form-card", "reconciliation-card");
 
         getChildren().addAll(titulo, ayuda, datos, conciliacion);
     }

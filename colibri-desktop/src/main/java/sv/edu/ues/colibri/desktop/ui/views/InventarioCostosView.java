@@ -21,6 +21,7 @@ import sv.edu.ues.colibri.application.inventario.InventarioCostoService;
 import sv.edu.ues.colibri.desktop.ui.ResponsiveLayouts;
 import sv.edu.ues.colibri.desktop.ui.UiCatalogos;
 import sv.edu.ues.colibri.desktop.ui.UiDialogs;
+import sv.edu.ues.colibri.desktop.ui.UiTables;
 import sv.edu.ues.colibri.domain.model.Cuenta;
 import sv.edu.ues.colibri.domain.model.Tercero;
 
@@ -276,9 +277,8 @@ public class InventarioCostosView extends VBox {
         tabla.setPrefHeight(420);
         Runnable cargar = () -> {
             var lote = loteKardex.getValue();
-            tabla.setItems(lote == null ? FXCollections.emptyObservableList()
-                    : FXCollections.observableArrayList(
-                            context.inventario().kardexDeLote(lote.id())));
+            UiTables.reemplazarFilas(tabla, lote == null ? java.util.List.of()
+                    : context.inventario().kardexDeLote(lote.id()));
         };
         loteKardex.getSelectionModel().selectedItemProperty().addListener((o, a, b) -> cargar.run());
         Button actualizar = new Button("Actualizar");
@@ -296,7 +296,10 @@ public class InventarioCostosView extends VBox {
                 new Label("Movimientos cronológicos por lote con saldo de unidades y valor bajo PEPS. "
                         + "La salida descuenta existencias; la devolución las repone y la revocación "
                         + "no mueve unidades porque la licencia ya había salido con su venta."),
-                ResponsiveLayouts.row(ResponsiveLayouts.field("Lote", loteKardex), actualizar), tabla);
+                ResponsiveLayouts.row(ResponsiveLayouts.field("Lote", loteKardex), actualizar),
+                UiTables.conBusqueda(tabla, "movimientos del kárdex", movimiento -> movimiento.fecha()
+                        + " " + etiquetaMovimiento(movimiento.tipo()) + " " + movimiento.licenciaNumero()
+                        + " " + movimiento.detalle() + " " + movimiento.folio()));
         return new javafx.scene.Node[]{card};
     }
 
@@ -321,7 +324,6 @@ public class InventarioCostosView extends VBox {
         TableColumn<ParametrizacionService.PlanServicio, String> cTar = new TableColumn<>("Tarifa");
         cTar.setCellValueFactory(c -> new SimpleStringProperty("$" + c.getValue().tarifa().toPlainString()));
         tablaPlanes.getColumns().addAll(cCod, cNom, cMod, cTar);
-        tablaPlanes.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         tablaPlanes.setItems(FXCollections.observableArrayList(context.parametrizacion().listarPlanes()));
         // TableView puede contraerse a la altura exclusiva del encabezado al
         // estar dentro de una VBox. Reservamos filas reales para que el
@@ -361,11 +363,13 @@ public class InventarioCostosView extends VBox {
             context.parametrizacion().guardarPlan(new ParametrizacionService.PlanServicio(
                     UUID.randomUUID(), pCod.getText(), pNom.getText(), pMod.getValue(),
                     new BigDecimal(pTar.getText()), pFacturacion.getValue(), UiCatalogos.codigoCuenta(pCta), true));
-            tablaPlanes.setItems(FXCollections.observableArrayList(context.parametrizacion().listarPlanes()));
+            UiTables.reemplazarFilas(tablaPlanes, context.parametrizacion().listarPlanes());
             recargarPlanes(planCosto, "SERVICIO");
         }));
         VBox catalogo = tarjeta("Catálogo de planes SaaS y servicios de desarrollo/mantenimiento",
-                tablaPlanes,
+                UiTables.conBusqueda(tablaPlanes, "planes y servicios", planFila -> planFila.codigo()
+                        + " " + planFila.nombre() + " " + planFila.modalidad() + " "
+                        + planFila.tarifa() + " " + planFila.tipoFacturacion()),
                 ResponsiveLayouts.row(ResponsiveLayouts.field("Código", pCod),
                         ResponsiveLayouts.field("Nombre", pNom),
                         ResponsiveLayouts.field("Modalidad", pMod),

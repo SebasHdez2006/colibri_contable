@@ -13,6 +13,7 @@ import javafx.scene.layout.VBox;
 import sv.edu.ues.colibri.application.AppContext;
 import sv.edu.ues.colibri.desktop.ui.ResponsiveLayouts;
 import sv.edu.ues.colibri.desktop.ui.UiDialogs;
+import sv.edu.ues.colibri.desktop.ui.UiTables;
 import sv.edu.ues.colibri.domain.model.Contador;
 
 import java.time.format.DateTimeFormatter;
@@ -45,7 +46,6 @@ public class UsuariosView extends VBox {
         acceso.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getUltimoAcceso() == null
                 ? "Sin acceso" : c.getValue().getUltimoAcceso().format(FECHA_HORA)));
         tabla.getColumns().addAll(usuario, nombre, estado, acceso);
-        tabla.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
 
         TextField nuevoUsuario = new TextField();
         TextField nuevoNombre = new TextField();
@@ -90,7 +90,9 @@ public class UsuariosView extends VBox {
             ResponsiveLayouts.field("Nombre completo", nuevoNombre),
             ResponsiveLayouts.field("Contraseña inicial", nuevaPassword), crear);
         VBox.setVgrow(tabla, javafx.scene.layout.Priority.ALWAYS);
-        getChildren().addAll(titulo, formulario, tabla, cambiarEstado);
+        getChildren().addAll(titulo, formulario, UiTables.conBusqueda(tabla, "usuarios", usuarioFila ->
+                usuarioFila.getUsuario() + " " + usuarioFila.getNombre() + " "
+                        + usuarioFila.getRol().etiqueta()), cambiarEstado);
         refrescar();
     }
 
