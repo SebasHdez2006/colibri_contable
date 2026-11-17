@@ -10,7 +10,7 @@ Para reemplazar los datos operativos por este escenario ejecute:
 .\scripts\run-colibri-complete.ps1 -Reset
 ```
 
-`-Reset` conserva las cuentas `contador` y `soporte`, pero borra la operación, los documentos y los catálogos de la base. Para cargar y verificar sin abrir JavaFX use `-SoloDatos`. El cargador compila, migra, incorpora el catálogo de referencia, el Anexo L y la ampliación integral; por último valida que el diario esté cuadrado y que ninguna subcuenta transaccional quede sin movimiento.
+`-Reset` conserva las cuentas `contador` y `soporte`, pero borra la operación, los documentos y los catálogos de la base. Para cargar y verificar sin abrir JavaFX use `-SoloDatos`. El cargador compila, migra, incorpora el catálogo de referencia, el Anexo L y la ampliación integral; por último ejecuta las verificaciones SQL incluidas para el escenario. Esa carga es destructiva para los datos operativos y no sustituye la validación contable o fiscal de una empresa real.
 
 ## Empresa y momento contable
 
@@ -28,25 +28,25 @@ La empresa vende software de tres maneras:
 |---|---|---|
 | Catálogo y parámetros | Todas las subcuentas de movimiento reciben al menos un apunte; se mantienen cuentas de agrupación sin movimientos por diseño contable. | Catálogo, mayor, balanza, cuentas T y mapeo contable. |
 | Terceros y documentos | Clientes Alfa, Beta y Gamma; proveedores QA y de licencias. Hay CCF, factura, recibo, comprobante, nota de crédito, nota de débito y otro documento. | Registro documental, IVA, anexos simulados, documentos pendientes y anulados. |
-| Proyectos | OS-2026-014 existente, OS-2026-015 en proceso, OS-2026-016 entregada y OS-2026-017 abierta. | Costos a la medida, presupuestos vs. reales, horas, servicios y CIF. |
+| Proyectos | OS-2026-014 existente, OS-2026-015 en proceso, OS-2026-016 entregada y OS-2026-017 abierta. | Consultas y cálculos de costos a la medida, presupuestos vs. reales, horas, servicios y CIF. El prototipo no implementa el ciclo completo de creación, entrega y liquidación de una orden. |
 | Descargables | Lotes LI-2026-03 a LI-2026-06, con licencias entregadas, reservadas, disponibles y devueltas. | Inventario digital, PEPS, costo de ventas y auxiliar de inventario. |
 | SaaS | Planes de Inventarios, Ventas Plus y Gestión Business; 45, 80 y 30 usuario-mes en noviembre. | Accesos, ventas SaaS, costo por plan y consumo de recursos. |
 | Costos y cierre | Dos procesos de costo, presupuestos CIF de Desarrollo y Plataforma, aplicación y cierre CIF; amortización, estimación de cartera y deterioro. | Paneles de procesos/CIF, cédulas y ajustes de cierre. |
-| Libro diario | Partidas contabilizadas, una en borrador, una aprobada, una anulada y una revertida con su asiento inverso. | Flujo de revisión, estados, auditoría y reversión. |
-| Plantillas y soporte | Plantillas de nube, renta y honorarios; entorno técnico y tres registros de monitoreo. | Borradores recurrentes y pantallas del rol de soporte. |
+| Libro diario | Partidas contabilizadas, una en borrador, una aprobada, una anulada y una revertida con su asiento inverso. | Flujo de revisión, estados y reversión. No representa una auditoría completa de antes/después para cada edición. |
+| Plantillas y soporte | Plantillas de nube, renta y honorarios; entorno técnico y tres registros de monitoreo de demostración. | Borradores recurrentes y pantallas del rol de soporte. El panel de monitoreo no ingiere automáticamente el archivo de log de la aplicación. |
 
 La partida `AJ-2026-000099` se llama **Cobertura técnica de subcuentas aún sin movimiento**. No representa una venta ni una política financiera: completa de forma balanceada las subcuentas que las operaciones realistas no alcanzan a tocar. Así el ejercicio prueba el 100 % del catálogo que admite movimientos. Las cuentas de cabecera no aparecen en el diario porque el modelo impide correctamente contabilizar en ellas.
 
 ## Recorrido recomendado
 
 1. Inicie sesión como contador y revise **Inicio** con el período de noviembre.
-2. Abra **Documentos** para ver los contratos, DTE simulados, recibos y notas pendientes.
-3. En **Costos > A la medida**, compare OS-2026-015 con OS-2026-016; después consulte **Procesos y CIF**.
+2. Abra **Documentos** para ver documentos internos con tipos fiscales simulados, recibos y notas pendientes. No son DTE oficiales ni se transmiten a una autoridad fiscal.
+3. En **Costos > A la medida**, compare los datos de OS-2026-015 con OS-2026-016; después consulte **Procesos y CIF**. Las órdenes sirven como datos de consulta y cálculo, no como un flujo operativo integral.
 4. En **Inventario > Digitales** y **Costos > Licencias descargables**, revise lotes, entregas y devoluciones.
 5. En **Inventario > Servicios / Accesos** y **Costos > Suscripción SaaS**, contraste usuarios-mes con los consumos de cada plan.
 6. En **Registros**, consulte los estados de partida, genere un borrador desde Plantillas y revise las cédulas en Ajustes.
 7. Exporte Diario, Mayor, Balanza, IVA, auxiliares y estados financieros desde **Reportes**.
-8. Inicie sesión como soporte para revisar Entorno, Monitoreo, Accesos y el respaldo simulado.
+8. Inicie sesión como soporte para revisar Entorno, Monitoreo, Accesos y el respaldo manual. El respaldo requiere `pg_dump` de PostgreSQL 18 y Monitoreo muestra los registros de demostración almacenados en la base.
 
 ## Crecimiento necesario desde 15 empleados
 
@@ -65,4 +65,4 @@ La meta de 31 es una capacidad mínima, no una proyección de ventas. Conviene h
 
 ## Límites del ejercicio
 
-No se deben interpretar sus cifras como estados financieros de la empresa real ni enviar sus DTE simulados. Es un conjunto de prueba auditable: los documentos, eventos, partidas, auxiliares y cédulas están ligados para que las pantallas y reportes tengan datos consistentes.
+No se deben interpretar sus cifras como estados financieros de la empresa real ni enviar sus documentos simulados como DTE. Es un conjunto de datos de prueba relacionado para que las pantallas y reportes tengan información consistente; no acredita una auditoría, una transmisión fiscal ni una restauración de respaldo.

@@ -1,14 +1,18 @@
+# Casos de uso vigentes del prototipo Colibri
+
+Este documento describe las funciones expuestas por la aplicación de escritorio Colibri en su estado actual. El prototipo usa JavaFX y PostgreSQL local; sus operaciones se orientan al registro y análisis contable académico. No genera, firma ni transmite Documentos Tributarios Electrónicos oficiales, ni sustituye la revisión profesional, tributaria o societaria.
+
 ## Módulo 1: Configuración de la Entidad y Empresa
 
 ### `CU-EMP-01`: Configurar Perfil Corporativo e Información Fiscal
 
-* **Descripción:** Permite al Contador registrar y actualizar los datos internos de empresa, actividad económica, dirección, logo y responsables de los reportes. En el caso académico, estos valores son simulados; no se atribuyen a Colibrí inscripciones, NIT, NRC ni registros profesionales reales.
+* **Descripción:** Permite al Contador registrar y actualizar datos de empresa, actividad económica, dirección, logo y firmantes que aparecen en comprobantes y reportes internos.
 
 
-* **Entradas:** Formulario de datos generales, archivo de imagen de logo, credenciales profesionales.
+* **Entradas:** Datos generales, datos fiscales que se desean mostrar, imagen de logo y responsables.
 
 
-* **Resultado:** Datos centralizados para los encabezados de reportes y documentos internos. La aplicación no genera, firma ni transmite DTE oficiales.
+* **Resultado:** Perfil almacenado para encabezados de reportes y comprobantes internos. Los datos no acreditan inscripciones, NIT, NRC ni registros profesionales reales, y no activan una integración con Hacienda.
 
 
 
@@ -18,73 +22,73 @@
 
 ### `CU-PAR-01`: Administrar Catálogo de Cuentas y Subcuentas
 
-* **Descripción:** Permite estructurar la jerarquía a 4 niveles (Clase, Grupo, Cuenta Agrupadora y Subcuenta a 6 dígitos). Permite configurar nombre, naturaleza (Deudora/Acreedora), si es afectable, origen/exclusividad de asiento (Manual/Automático) y activación de dimensiones analíticas obligatorias.
+* **Descripción:** Muestra el catálogo existente y permite crear subcuentas afectables de seis dígitos bajo una cuenta padre de cuatro dígitos. También permite cambiar la denominación y el estado de una cuenta seleccionada.
 
 
-* **Entradas:** Código contable, atributos de configuración, flags de dimensiones analíticas.
+* **Entradas:** Código de seis dígitos, código de cuenta padre, nombre, naturaleza y estado.
 
 
-* **Resultado:** Subcuenta parametrizada y lista para recibir asientos directos con validaciones activas en el motor transaccional.
-
-
-
-### `CU-PAR-02`: Configurar Mapeo Modular de Integración (Posting Profiles)
-
-* **Descripción:** Asigna las subcuentas por defecto que utilizará el sistema al procesar ventas, compras, cobros, pagos, anticipos, licencias, depreciaciones, inventario y liquidación de IVA.
-
-
-* **Entradas:** Selección de subcuentas por cada evento operativo del ERP.
-
-
-* **Resultado:** Plantillas de integración listas para la generación de asientos automáticos sin intervención de digitación manual.
+* **Resultado:** La subcuenta queda disponible para partidas si está activa y admite movimientos. El modelo actual no configura por cuenta el origen manual o automático, exclusividades de asiento ni dimensiones obligatorias; las líneas de partida sólo exponen los campos opcionales `auxiliar` y `centroCosto`.
 
 
 
-### `CU-PAR-03`: Gestionar Períodos Contables y Ejercicios Fiscales
+### `CU-PAR-02`: Configurar Perfiles de Contabilización
 
-* **Descripción:** Permite al Contador abrir, poner en revisión, cerrar o reabrir períodos, bloqueando la captura de nuevas partidas en rangos no abiertos.
-
-
-* **Entradas:** Selección de período, acción de bloqueo/cierre o reapertura autorizada.
+* **Descripción:** Permite consultar, crear y actualizar perfiles de contabilización por evento, con cuenta Debe, cuenta Haber y cuenta de IVA opcional.
 
 
-* **Resultado:** Período actualizado en estado `ABIERTO`, `EN_REVISION` o `CERRADO`, con bloqueo de captura cuando corresponda.
+* **Entradas:** Código y etiqueta del evento, y cuentas afectables de cargo, abono e IVA.
 
 
-
-### `CU-PAR-04`: Configurar Parámetros Fiscales Salvadoreños
-
-* **Descripción:** Configura tasas y cuentas asociadas para IVA, retención de IVA, pago a cuenta y retenciones de ISR, además del código de catálogo fiscal almacenado por el sistema. Las tasas aplicables dependen de la vigencia, del sujeto y de la operación.
-
-
-* **Entradas:** Tasas aprobadas, subcuentas de débito/crédito fiscal, código de actividad y datos de parametrización.
-
-
-* **Resultado:** Las operaciones compatibles usan las tasas y cuentas configuradas. La configuración debe ser validada profesionalmente y no equivale a una integración con servicios del Ministerio de Hacienda.
+* **Resultado:** Los perfiles quedan validados y pueden ser usados por los flujos que reconocen ese evento, como documentos operativos y anticipos. Crear un evento nuevo no crea por sí mismo una pantalla ni una automatización adicional, y algunos ajustes especializados usan su propia configuración o cuentas del activo registrado.
 
 
 
-### `CU-PAR-05`: Configurar Políticas y Secuenciales del Sistema
+### `CU-PAR-03`: Gestionar Períodos Contables Existentes
 
-* **Descripción:** Establece los formatos autogenerados de correlativos (`DI-YYYY-######`, `AJ-YYYY-######`), el margen de tolerancia de descuadre ($0.00 exacto) y la inmutabilidad estricta de partidas.
-
-
-* **Entradas:** Máscaras de texto, opciones de inmutabilidad y exigencia de campos obligatorios.
+* **Descripción:** Permite consultar los períodos cargados y cambiar su estado a abierto, en revisión o cerrado. El cierre valida las cédulas pendientes y el cierre desde Ajustes puede ejecutar depreciación, amortización y liquidación de IVA antes de bloquear la captura.
 
 
-* **Resultado:** Reglas de auditoría y control interno activas en toda la aplicación.
+* **Entradas:** Período seleccionado y acción de abrir o reabrir, poner en revisión o cerrar.
+
+
+* **Resultado:** El estado del período controla la captura de operaciones según las reglas de la aplicación. La interfaz actual no crea ni edita ejercicios fiscales nuevos.
 
 
 
-### `CU-PAR-06`: Administrar Catálogo de Centros de Costo
+### `CU-PAR-04`: Configurar Parámetros Fiscales
 
-* **Descripción:** Administra el listado de las áreas funcionales de la empresa (Administración, Desarrollo, Soporte, Comercial) que alimentan las validaciones de costos y gastos.
-
-
-* **Entradas:** Código de centro de costo, nombre del área, estado activo/inactivo.
+* **Descripción:** Permite guardar una configuración fiscal activa con tasas de IVA, retención de IVA, pago a cuenta, retenciones de ISR, cuentas relacionadas y código de catálogo MH.
 
 
-* **Resultado:** Entidades maestras disponibles para la selección de dimensiones analíticas en asientos contables.
+* **Entradas:** Tasas y cuentas afectables para los conceptos disponibles.
+
+
+* **Resultado:** Se actualiza un único registro de parámetros fiscales. No existe historial de vigencias ni perfiles distintos por sujeto u operación; el uso de cada cuenta o tasa depende del flujo operativo que la consulte. La configuración no equivale a una declaración ni a una integración con servicios del Ministerio de Hacienda.
+
+
+
+### `CU-PAR-05`: Consultar y Editar Valores de Políticas
+
+* **Descripción:** Permite listar y modificar los valores textuales de políticas guardadas para partida doble, devengo, inventarios, CIF y recursos humanos.
+
+
+* **Entradas:** Política seleccionada y nuevo valor.
+
+
+* **Resultado:** El valor queda persistido para consulta. En la implementación actual, el formato de folio, el cuadre exacto Debe igual a Haber y la inmutabilidad de partidas contabilizadas se aplican con reglas fijas del motor; cambiar máscaras, tolerancias o flags de esas políticas no reconfigura dinámicamente esas reglas.
+
+
+
+### `CU-PAR-06`: Administrar Centros de Costo
+
+* **Descripción:** Permite registrar o actualizar código, nombre y estado de los centros de costo.
+
+
+* **Entradas:** Código, nombre y bandera activo.
+
+
+* **Resultado:** El catálogo se ofrece en varias pantallas de costos, planilla y CIF. Las líneas manuales de partida no validan de forma obligatoria que un código escrito en `centroCosto` exista o esté activo en este catálogo.
 
 
 
@@ -92,63 +96,107 @@
 
 ## Módulo 3: Registros y Transacciones Contables (Motor Transaccional)
 
-### `CU-REG-01`: Registrar y Aprobar Asientos en Libro Diario
+### `CU-REG-01`: Registrar, Aprobar y Contabilizar Partidas de Libro Diario
 
-* **Descripción:** Permite capturar e ingresar partidas manuales (Ingreso `IN`, Egreso `EG`, Diario `DI`) exigiendo que el débito y crédito cuadren a $0.00 y que se completen los atributos requeridos según las dimensiones de cada subcuenta.
-
-
-* **Entradas:** Fecha, tipo de asiento, concepto, líneas con subcuenta, cargos/abonos y dimensiones disponibles (tercero, referencia documental, proyecto, centro de costo y lote).
+* **Descripción:** Permite crear partidas de ingreso, egreso, diario, ajuste, apertura o cierre; agregar líneas, guardarlas como borrador, aprobarlas y contabilizarlas.
 
 
-* **Resultado:** La partida pasa de `BORRADOR` a `APROBADA` y, al confirmarse, a `CONTABILIZADA`. En ese último estado es inmutable y afecta el Libro Mayor, auxiliares y estados financieros.
+* **Entradas:** Fecha, tipo, concepto, referencia de soporte y líneas con cuenta, Debe, Haber, auxiliar y centro de costo opcionales.
 
 
-
-### `CU-REG-02`: Revertir y Corregir Partidas Contabilizadas (Asientos AJ)
-
-* **Descripción:** Permite anular o corregir un asiento contabilizado mediante la emisión de una partida de Ajuste (`AJ`) con montos invertidos, exigiendo la captura obligatoria del motivo de corrección.
-
-
-* **Entradas:** Selección de la partida original, motivo de reversión por escrito.
-
-
-* **Resultado:** Partida original marcada como `REVERTIDA`, creación del asiento reverso `AJ` y vinculación hipertextual bidireccional entre ambos registros.
+* **Resultado:** La partida pasa por los estados `BORRADOR`, `APROBADA` y `CONTABILIZADA`. El motor exige cuentas activas y afectables, por lo menos dos líneas y cuadre exacto. Una partida contabilizada queda inmutable y alimenta los libros generados por el prototipo.
 
 
 
-### `CU-REG-03`: Ejecutar Liquidación Mensual de IVA
+### `CU-REG-02`: Anular o Revertir Partidas
 
-* **Descripción:** Asistente automático que compensa el saldo de `IVA Débito Fiscal` contra `IVA Crédito Fiscal` al final de cada mes, determinando el `IVA por Pagar` o el `Crédito Fiscal Remanente`.
-
-
-* **Entradas:** Selección del mes a liquidar.
+* **Descripción:** Permite anular una partida o revertir una partida contabilizada mediante una partida de ajuste con importes compensatorios.
 
 
-* **Resultado:** Asiento automático de liquidación de IVA y saldos de apoyo para revisión tributaria. Los libros de IVA y la declaración oficial requieren conciliación y procedimientos externos al prototipo.
+* **Entradas:** Partida seleccionada, motivo solicitado por la interfaz y fecha de reversión cuando aplica.
+
+
+* **Resultado:** La anulación cambia el estado a `ANULADA`; la reversión genera una partida `AJ`, marca la original como `REVERTIDA` y registra la relación en la bitácora. La pantalla exige motivo, aunque la capa de servicio no lo vuelve una validación independiente; tampoco se ofrece un enlace hipertextual bidireccional entre ambos comprobantes.
 
 
 
-### `CU-REG-04`: Ejecutar Proceso de Depreciación y Amortización
+### `CU-REG-03`: Liquidar IVA del Período
 
-* **Descripción:** Calcula y contabiliza la cuota mensual lineal de depreciación para activos fijos activos registrados. El cálculo usa costo, valor residual y vida útil en meses; no calcula amortización de intangibles.
-
-
-* **Entradas:** Período de cálculo.
+* **Descripción:** Ejecuta el cruce de IVA débito e IVA crédito del período seleccionado desde la vista de ajustes y cierre.
 
 
-* **Resultado:** Generación e impacto automático de partidas de gasto/costo por depreciación contra depreciación acumulada.
+* **Entradas:** Fecha del período abierto.
+
+
+* **Resultado:** Se genera una partida de liquidación con el saldo correspondiente. Los libros de IVA sirven como apoyo interno y requieren conciliación y procedimientos tributarios externos.
+
+
+
+### `CU-REG-04`: Ejecutar Depreciación y Amortización
+
+* **Descripción:** Ejecuta depreciación lineal de activos fijos y amortización de intangibles registrados para la fecha seleccionada.
+
+
+* **Entradas:** Fecha contable dentro del período abierto y activos o intangibles elegibles.
+
+
+* **Resultado:** Se registran las partidas de depreciación o amortización del período. Los procesos son idempotentes para evitar duplicar la cuota de un mismo período.
 
 
 
 ### `CU-REG-05`: Importar Borradores de Asientos CSV
 
-* **Descripción:** Permite cargar un archivo CSV de líneas de asiento para crear un borrador contable sujeto a revisión. No interpreta JSON, XML ni DTE.
+* **Descripción:** Permite cargar un archivo CSV de líneas de asiento y convertirlo en un borrador contable para revisión posterior.
 
 
-* **Entradas:** Archivo CSV con las líneas del asiento y fecha contable.
+* **Entradas:** Archivo CSV y fecha contable.
 
 
-* **Resultado:** Partidas pre-cargadas en estado Borrador para revisión y aprobación final del Contador.
+* **Resultado:** Partida creada en estado `BORRADOR`. No importa JSON, XML ni DTE oficiales.
+
+
+### `CU-REG-06`: Registrar Terceros, Documentos y Operaciones con IVA
+
+* **Descripción:** Permite registrar terceros como clientes o proveedores y contabilizar operaciones de venta de licencia, venta SaaS, compra, cobro, pago y anticipo SaaS. Antes de contabilizar se puede previsualizar el asiento. También permite aplicar un anticipo con saldo a un DTE del mismo cliente.
+
+
+* **Entradas:** Tercero seleccionado, plantilla de operación, fecha, importe, opción de IVA incluido, cuenta alternativa opcional y, para cobros, retención de IVA opcional.
+
+
+* **Resultado:** Se registra el documento interno y su partida contable con el perfil disponible o con la cuenta alternativa indicada. La función no genera ni transmite DTE oficiales.
+
+
+### `CU-REG-07`: Administrar Plantillas de Asiento Recurrente
+
+* **Descripción:** Permite crear plantillas con código, nombre, tipo de partida, concepto y líneas contables balanceadas, y generar desde una plantilla el borrador del mes.
+
+
+* **Entradas:** Datos de la plantilla y al menos dos líneas con Debe y Haber equilibrados.
+
+
+* **Resultado:** Plantilla almacenada y borrador generado para revisión y contabilización posterior; no contabiliza automáticamente una recurrencia sin intervención del usuario.
+
+
+### `CU-REG-08`: Calcular y Contabilizar Planilla Agregada
+
+* **Descripción:** Calcula una planilla agregada del período con empleados, salario nominal, tasas laborales configuradas, ISR, otras deducciones, prestaciones y centro de costo.
+
+
+* **Entradas:** Fecha, cantidad de empleados, importes agregados y centro de costo.
+
+
+* **Resultado:** Se previsualiza la conciliación y se puede registrar una única partida de planilla. El prototipo no administra expedientes individuales de empleados ni sustituye cálculos laborales o previsionales oficiales.
+
+
+### `CU-REG-09`: Registrar Ajustes y Cerrar el Período
+
+* **Descripción:** Permite registrar devengos de suscripciones, consumo de nube, alquiler y gasto devengado; ejecutar depreciación, amortización y liquidación de IVA; y cerrar el período con o sin los ajustes automáticos.
+
+
+* **Entradas:** Fecha contable e importes de los ajustes manuales, o confirmación de cierre.
+
+
+* **Resultado:** Cada ajuste crea una partida. El cierre bloquea la captura del período conforme a los controles de la aplicación.
 
 
 
@@ -156,39 +204,36 @@
 
 ## Módulo 4: Gestión de Inventario Digital y Servicios
 
-### `CU-INV-01`: Administrar Lotes de Licencias Digitales Liberadas
+### `CU-INV-01`: Liberar y Mover Lotes de Licencias Digitales
 
-* **Descripción:** Registro y control de lotes de licencias de software listos para distribución. Al confirmar la venta, el sistema reserva la unidad disponible del lote liberado más antiguo conforme a PEPS, contabiliza la operación y confirma la entrega; el contador no selecciona manualmente el lote de salida.
-
-
-* **Entradas:** Producto, número de versión, número de lote, unidades liberadas, costo unitario.
+* **Descripción:** Permite liberar un lote de licencias con código, unidades, costo total y cliente. También permite registrar venta y costo, devolución al inventario y revocación de derecho, y consultar el kárdex del lote.
 
 
-* **Resultado:** Auxiliar de inventario digital y costo de venta actualizados por PEPS automático. La vista muestra PEPS, promedio ponderado y UEPS como comparación analítica; sólo PEPS puede originar la salida y el asiento de costo de ventas.
+* **Entradas:** Código de lote, unidades, costo total, cliente y movimiento solicitado.
 
 
-
-### `CU-INV-02`: Administrar Catálogo de Servicios y Planes SaaS
-
-* **Descripción:** CRUD de las ofertas comercializables de desarrollo a la medida, suscripciones SaaS por usuario-mes y servicios facturados por plan, paquete o hito.
-
-
-* **Entradas:** Nombre del plan/servicio, tarifa base, modalidad de facturación, cuenta de ingreso asociada y, cuando aplica, unidad de consumo por usuario-mes.
-
-
-* **Resultado:** Catálogo de productos/servicios disponible para integración con facturación y acumulación de costos por plan.
+* **Resultado:** La salida toma automáticamente la unidad disponible más antigua con PEPS y actualiza el kárdex. La vista muestra comparaciones con promedio y UEPS, pero sólo PEPS origina la salida contable. La liberación actual no permite elegir producto o versión: el servicio asigna una versión fija del prototipo y el costo se captura manualmente.
 
 
 
-### `CU-INV-03`: Registrar Estimación por Deterioro de Inventario Digital
+### `CU-INV-02`: Registrar Catálogo de Planes de Servicio
 
-* **Descripción:** Registra un asiento de ajuste por deterioro con referencia de lote. La estimación del importe y la evaluación de obsolescencia son procedimientos de revisión externa al prototipo.
-
-
-* **Entradas:** Versión/Lote a evaluar, monto de deterioro calculado.
+* **Descripción:** Permite registrar planes con código, nombre, modalidad (`LICENCIA`, `SAAS`, `PROYECTO` o `SERVICIO`), tarifa, tipo de facturación, cuenta de ingreso y estado.
 
 
-* **Resultado:** Partida de ajuste contabilizada con referencia de lote; su razonabilidad requiere documentación de soporte y revisión profesional.
+* **Entradas:** Datos del plan y cuenta de ingreso afectable.
+
+
+* **Resultado:** El plan queda disponible en la vista de servicios y accesos; guardar un código existente actualiza su registro en la base de datos. La interfaz no ofrece un flujo completo de selección, edición y baja de todos los planes existentes.
+
+
+
+### `CU-INV-03`: Deterioro de Inventario Digital
+
+* **Descripción:** El servicio de cierre contiene una capacidad para registrar deterioro de inventario, pero la aplicación de escritorio actual no ofrece una pantalla ni acción de usuario para ejecutarla.
+
+
+* **Resultado:** No existe un caso de uso operativo accesible para registrar deterioro desde la interfaz actual.
 
 
 
@@ -196,51 +241,73 @@
 
 ## Módulo 5: Gestión y Acumulación de Costos
 
-### `CU-COS-01`: Acumular y Liquidar Costos por Órdenes de Servicio (A la Medida)
+### `CU-COS-01`: Acumular Costos de una Orden de Servicio de Ejemplo
 
-* **Descripción:** Asigna y acumula los costos de mano de obra directa, insumos técnicos y Costos Indirectos de Fabricación (CIF) aplicados a cada Orden de Trabajo (OS) de desarrollo a la medida.
-
-
-* **Entradas:** Código de OS, horas reportadas, insumos utilizados, tasa de CIF.
+* **Descripción:** La vista permite cargar costos de ejemplo, registrar mano de obra directa y reconocer el costo de una orden identificada en la interfaz.
 
 
-* **Resultado:** Acumulación por orden de mano de obra directa, recursos directos y CIF; actualización de `Servicios en Proceso` y liquidación hacia `Costo de Ventas` al entregar el proyecto.
+* **Entradas:** Código de orden, importe o base de costo y datos solicitados por el formulario.
 
 
-
-### `CU-COS-02`: Determinar Costo de Licencias Descargables
-
-* **Descripción:** Consolida los costos capitalizables de desarrollo de una versión genérica para calcular el costo unitario por licencia al momento de la liberación del lote.
-
-
-* **Entradas:** Inversión acumulada en la versión, total de licencias generadas.
-
-
-* **Resultado:** Costo unitario grabado en el lote de inventario digital y salida posterior por PEPS automático según fecha de liberación, código y número de lote.
+* **Resultado:** Se acumulan o reconocen costos para la orden seleccionada. No existe en la aplicación actual un ciclo completo para crear, editar, entregar y controlar el estado de órdenes de servicio; el reconocimiento no verifica una entrega previa.
 
 
 
-### `CU-COS-03`: Determinar Costo por Procesos SaaS
+### `CU-COS-02`: Liberar Licencias con Costo Manual
 
-* **Descripción:** Acumula los costos operativos del servidor, infraestructura en la nube y soporte técnico asignados al servicio SaaS para calcular el costo por usuario-mes.
-
-
-* **Entradas:** Costos de alojamiento, soporte e infraestructura del período; usuarios-mes registrados por plan.
+* **Descripción:** Al liberar un lote, el usuario proporciona el costo total y las unidades; el sistema calcula el costo unitario del lote para sus posteriores salidas PEPS.
 
 
-* **Resultado:** Costo unitario SaaS por usuario-mes y distribución conciliable de los costos entre planes suscritos, incluso cuando el reparto requiere asignar centavos residuales.
+* **Entradas:** Código de lote, unidades, costo total y cliente.
+
+
+* **Resultado:** El costo unitario se guarda en el lote liberado. El prototipo no consolida automáticamente costos capitalizables por producto o versión y la versión no se selecciona desde la interfaz.
 
 
 
-### `CU-COS-04`: Acumular Costos de Otros Servicios por Plan Facturado
+### `CU-COS-03`: Calcular Costo por Usuario Mes para SaaS
 
-* **Descripción:** Registra y concentra los recursos, horas y CIF de implementación, migración, capacitación, soporte u otros servicios dentro del plan, paquete o hito que se facture.
-
-
-* **Entradas:** Plan facturado, orden opcional, recursos directos, horas y CIF aplicable.
+* **Descripción:** Permite registrar usuarios-mes por plan y calcular una distribución gerencial de costos SaaS a partir de las cuentas de costo definidas por el servicio.
 
 
-* **Resultado:** Costo total y margen identificables por plan, sin mezclarlo con el inventario de licencias ni con el costo mensual del SaaS.
+* **Entradas:** Planes, usuarios-mes y costos contabilizados del período.
+
+
+* **Resultado:** Se muestra el costo por usuario-mes y la distribución calculada. El cálculo no deja una distribución contable persistida ni genera por sí mismo un asiento de reparto entre planes.
+
+
+
+### `CU-COS-04`: Acumular Costos por Plan Facturado
+
+* **Descripción:** Permite registrar mano de obra directa, recursos directos y CIF para un plan de servicio seleccionado.
+
+
+* **Entradas:** Plan, tipo de costo, importe, descripción y centro de costo cuando aplica.
+
+
+* **Resultado:** Se consulta el costo acumulado del plan. El modelo actual no relaciona el consumo con una orden opcional ni calcula ingreso o margen por plan.
+
+
+### `CU-COS-05`: Registrar Costeo por Procesos y CIF
+
+* **Descripción:** Permite guardar una cédula de proceso para un período, calcular costos por PEPS y promedio, y usar UEPS sólo como comparación. También permite guardar análisis CIF, aplicar CIF a una orden y cerrar la variación CIF.
+
+
+* **Entradas:** Balance físico, avances, costos de material y conversión, centro de costo, presupuesto CIF, base y costos reales.
+
+
+* **Resultado:** Cédula y análisis disponibles para consulta, y partidas trazables para aplicación y cierre de variación CIF. Los valores constituyen evidencia de cálculo dentro del prototipo.
+
+
+### `CU-COS-06`: Estimar Costos y Precios Unitarios
+
+* **Descripción:** Ofrece técnicas de estimación de esfuerzo, costo total y precio unitario, comparación de métodos de costeo y comparación entre estimado y costos históricos.
+
+
+* **Entradas:** Variables de estimación, costos, márgenes y datos de comparación solicitados por cada instrumento.
+
+
+* **Resultado:** Resultados de análisis para apoyo gerencial. Los cálculos no generan por sí solos una partida ni sustituyen la validación de una cotización o contrato.
 
 
 
@@ -248,49 +315,67 @@
 
 ## Módulo 6: Reportes, Estados Financieros y Exportación Avanzada
 
-### `CU-REP-01`: Generar Libros Contables Obligatorios y Estados Financieros
+### `CU-REP-01`: Consultar Libros Contables y Estados Financieros
 
-* **Descripción:** Permite consultar y emitir Libro Diario, Libro Mayor, Cuenta T, Balanza de Comprobación, Hoja de trabajo, Situación financiera y Resultados. Cambios en el patrimonio y Flujos de efectivo se construyen para el ZIP, pero no aparecen en el selector manual de la vista principal. Diario contiene fecha, PDA, código/referencia, cuenta/concepto, Debe y Haber; Mayor concentra acumulados y saldos; Balanza totaliza Debe/Haber; y Hoja enlaza catálogo, balanza, ajustes, balanza ajustada, resultados, capital y situación financiera.
-
-
-* **Entradas:** Selección del libro/estado, período o rango de fechas.
+* **Descripción:** La navegación principal permite consultar Libro Diario, Libro Mayor, Cuenta T, Balanza de Comprobación, Hoja de Trabajo, Situación Financiera y Resultados. La vista es de sólo lectura y admite el rango o período requerido por cada reporte.
 
 
-* **Resultado:** Vista de sólo lectura para revisión. Situación financiera presenta activos, pasivos y patrimonio clasificados; Resultados presenta ventas netas, costo de ventas, utilidad bruta, gastos de operación, resultado financiero/otros, impuesto y utilidad neta. El Estado de Flujos de Efectivo utiliza método directo y se limita a movimientos de Caja chica y Bancos (grupo 1101); debe conciliarse antes de su uso final.
+* **Entradas:** Tipo de reporte, fechas y alcance disponible.
+
+
+* **Resultado:** Reporte visible para revisión. El paquete ZIP también incorpora Estado de Cambios en el Patrimonio y Estado de Flujos de Efectivo; estos dos no aparecen como selección individual en la navegación principal. El estado de flujos usa el método directo y se limita a movimientos del grupo de Caja chica y Bancos configurado por el prototipo.
 
 
 
-### `CU-REP-02`: Generar Libros Fiscales de IVA
+### `CU-REP-02`: Consultar Libros Fiscales de IVA
 
-* **Descripción:** Genera auxiliares de compras y ventas (CCF y consumidor final) para apoyar la preparación y revisión tributaria.
-
-
-* **Entradas:** Mes y año fiscal a consultar.
+* **Descripción:** Permite consultar libros de compras, ventas CCF y ventas consumidor final por rango de fechas.
 
 
-* **Resultado:** Reporte fiscal interno sujeto a revisión del responsable tributario; no presenta declaraciones ni sustituye los registros exigibles.
+* **Entradas:** Tipo de libro y rango de fechas.
+
+
+* **Resultado:** Auxiliar fiscal interno sujeto a revisión tributaria. En la consulta actual, el libro de ventas a consumidor final incluye documentos `FACTURA` y `CCF`, por lo que puede solaparse con el libro de ventas CCF; no genera declaraciones ni registros oficiales.
 
 
 
 ### `CU-REP-03`: Consultar Libros Auxiliares
 
-* **Descripción:** Muestra movimientos para Auxiliar de Clientes, Auxiliar de Proveedores, Auxiliar de Inventario Digital, Auxiliar de Órdenes de Servicio y Gastos por Centro de Costo.
+* **Descripción:** Permite consultar auxiliares de clientes, proveedores, inventario digital, órdenes de servicio y gastos por centro de costo mediante tipo y rango de fechas.
 
 
-* **Entradas:** Tipo de auxiliar, dimensión seleccionada, rango de fechas.
+* **Entradas:** Tipo de auxiliar y rango de fechas.
 
 
-* **Resultado:** Tabla detallada de movimientos y saldo acumulado filtrado por el parámetro elegido.
+* **Resultado:** Tabla de movimientos y totales Debe y Haber. La interfaz actual no recibe una dimensión o código específico para filtrar un auxiliar y no presenta un saldo acumulado por movimiento.
 
 
 
-### `CU-REP-04`: Exportar Paquete de Reportes del Rango Seleccionado (ZIP)
+### `CU-REP-04`: Exportar Paquete ZIP de Reportes
 
-* **Descripción:** Genera un paquete `.zip` para un único rango de fechas, organizado en una carpeta del año inicial. Incluye Libro Diario, Libro Mayor, Balanza, Hoja de trabajo y los cuatro estados financieros disponibles, en PDF y XLSX. Los reportes de más de diez columnas se exportan en PDF apaisado A3 para preservar la legibilidad.
-
-
-* **Entradas:** Fecha inicial, fecha final y alcance de información seleccionado.
+* **Descripción:** Genera un archivo ZIP para un rango de fechas y el alcance `Libro completo` o `Caso D`. El paquete incluye siempre ocho formatos: Diario, Mayor, Balanza, Hoja de Trabajo, Situación Financiera, Resultados, Cambios en el Patrimonio y Flujos de Efectivo, en PDF y XLSX.
 
 
-* **Resultado:** Archivo `Reportes_Contables_Colibri.zip` del rango elegido. La selección múltiple de períodos o años no está implementada.
+* **Entradas:** Fecha inicial, fecha final y alcance.
 
+
+* **Resultado:** Archivo con nombre `Reportes_<periodo>_<marca>.zip`, organizado por reporte y período. El nombre de carpeta de período puede representar un mes y año o un rango. Los reportes anchos se exportan en PDF A3 apaisado. No se seleccionan individualmente los formatos dentro del ZIP.
+
+
+### `CU-REP-05`: Exportar Libros para Varios Períodos
+
+* **Descripción:** Permite seleccionar varios períodos de los ejercicios disponibles y exportar los libros elegidos para cada combinación.
+
+
+* **Entradas:** Períodos marcados y tipos de libro disponibles.
+
+
+* **Resultado:** Se crean archivos PDF y XLSX por período en una carpeta de salida. Esta exportación multiperíodo no se empaqueta en un único ZIP.
+
+
+### `CU-REP-06`: Consultar la Sección de Libros Societarios
+
+* **Descripción:** Muestra una vista informativa sobre actas, accionistas y capital social.
+
+
+* **Resultado:** La sección remite a los reportes obligatorios para capital y estados financieros. No registra ni emite libros societarios en la versión actual.

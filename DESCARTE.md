@@ -2,20 +2,16 @@
 
 Este repositorio contiene solo lo que participa en algún proceso vigente del sistema:
 **compilación** (`mvnw`, POM raíz y POM de los 5 módulos), **ejecución** (`colibri-desktop`
-y sus recursos empaquetados), **migración del esquema** (Flyway `V1`–`V22`),
+y sus recursos empaquetados), **migración del esquema** (Flyway `V1`–`V25`),
 **pruebas** (`src/test` de cada módulo y `scripts/anexo_l/test_extraer_anexo_l.py`),
 **preparación de base y datos** (`scripts/setup-postgres.*`, `scripts/run-colibri.ps1`,
 `scripts/anexo_l/`, `scripts/db/`) y la **documentación** citada en el `README.md`.
 
-Validación realizada sobre este contenido (clon limpio, JDK 25):
-
-- `./mvnw clean test` sin base de prueba → `BUILD SUCCESS` en los 5 módulos (57 pruebas; las 7
-  de integración se omiten por no haber PostgreSQL).
-- Con PostgreSQL 18 en el puerto 5434 (`colibri_test`) las 22 migraciones Flyway se aplican sin
-  error. En `PartidaServiceIntegrationTest` fallan 2 pruebas que no corresponden al código
-  vigente: `usuariosPersonalesPersistenBloqueoYPermitenDesactivacion` crea usuarios con la sesión
-  del contador (hoy reservado a soporte técnico) y
-  `librosPresentanCuentasTHojaDeTrabajoYEstadosBalanceados` (aserción en la línea 185).
+Estado de verificación documental: la versión actual contiene las migraciones `V1` a `V25`.
+Los resultados de `./mvnw clean test` y de las pruebas que requieren PostgreSQL dependen del
+entorno y deben registrarse para cada ejecución; este archivo no conserva conteos ni resultados
+históricos como si fueran evidencia vigente. La validación del esquema debe ejecutarse contra una
+base desechable, porque las semillas y los scripts de reinicio pueden reemplazar datos operativos.
 
 Lo siguiente existía en el directorio de trabajo original y **no** se versiona:
 
@@ -33,5 +29,4 @@ Lo siguiente existía en el directorio de trabajo original y **no** se versiona:
 | `.vs/` | Caché e índices de Visual Studio (sqlite, índices de Copilot). Específicos de la máquina. |
 | `.vscode/` | Configuración local del editor; ya estaba excluida por `.gitignore`. |
 | `.continue/` | Reglas del asistente de IA Continue; no afectan compilación ni ejecución. |
-| `.devin/config.local.json` | Permisos locales de un asistente de IA; configuración personal. |
 | `.github/modernize/` | Hooks de registro de la herramienta de migración de Java de Copilot; su propio `.gitignore` (`**/*`) ya los excluía. No son workflows de GitHub Actions. |

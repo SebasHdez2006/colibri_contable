@@ -1,51 +1,53 @@
-# Casos de uso del actor Soporte Técnico
+# Casos de uso vigentes del actor Soporte Técnico
 
-Colibrí es una aplicación de escritorio conectada a PostgreSQL local. Esta especificación refleja las acciones disponibles en las vistas y servicios actuales. El actor técnico administra cuentas y entorno, consulta bitácoras y ejecuta respaldos manuales; no consulta saldos ni registra operaciones contables.
+Colibrí es una aplicación de escritorio conectada a PostgreSQL local. Esta especificación describe las acciones disponibles en las vistas y servicios actuales. El actor técnico administra cuentas y entorno, consulta registros técnicos y ejecuta respaldos manuales; no consulta saldos ni registra operaciones contables.
 
 ## Usuarios
 
 ### CU-ST-01 Crear y administrar cuentas de usuario
 
 - **Actor:** Soporte Técnico.
-- **Precondición:** sesión activa con rol técnico.
-- **Flujo:** consultar usuarios y conteo de cuentas activas; crear una cuenta indicando usuario, nombre, correo, rol y contraseña inicial; o seleccionar una cuenta existente para actualizar nombre, correo y estado activo/inactivo.
-- **Resultado:** la cuenta se guarda y el sistema registra la acción correspondiente. Los mecanismos de recuperación se entregan y resguardan conforme al procedimiento local.
-- **Alcance:** la vista permite elegir el rol al crear una cuenta. La edición disponible no cambia usuario, rol ni contraseña.
-- **Seguridad:** el mantenimiento de usuarios está protegido para Soporte Técnico.
+- **Precondición:** Sesión activa con rol de soporte técnico.
+- **Flujo:** Consultar usuarios y cantidad de cuentas activas; crear una cuenta con usuario, nombre, correo, rol y contraseña inicial; o seleccionar una cuenta existente para cambiar nombre, correo y estado activo o inactivo.
+- **Resultado:** La creación registra una entrada de bitácora y devuelve un código de recuperación. La actualización realizada por la pantalla se guarda, pero esa operación no crea por sí misma una entrada de bitácora ni usa las protecciones del método especializado para evitar desactivar la propia cuenta o la última cuenta activa.
+- **Alcance:** La vista permite escoger el rol sólo al crear. La edición disponible no cambia usuario, rol ni contraseña.
+- **Seguridad:** Los servicios de mantenimiento exigen rol de soporte técnico.
 
 ## Base de datos
 
 ### CU-ST-02 Generar respaldo manual
 
 - **Actor:** Soporte Técnico.
-- **Precondición:** PostgreSQL está disponible y `pg_dump` de PostgreSQL 18 está instalado en la ruta configurada por el prototipo.
-- **Flujo:** consultar la fecha del último respaldo registrado, confirmar la acción y solicitar el respaldo.
-- **Resultado:** `pg_dump` crea un archivo de base de datos en `~/.colibri/backups`; la interfaz registra fecha y resultado en el entorno técnico.
-- **Límite:** no hay programación, cifrado, retención, respaldo incremental ni restauración desde la aplicación. La restauración debe ejecutarse y comprobarse mediante un procedimiento externo en una base aislada.
+- **Precondición:** PostgreSQL disponible y `pg_dump` de PostgreSQL 18 instalado en `C:\Program Files\PostgreSQL\18\bin\pg_dump.exe`.
+- **Flujo:** Consultar la fecha del último respaldo registrado, confirmar la acción y solicitar el respaldo.
+- **Resultado:** `pg_dump` crea un archivo de respaldo en `~/.colibri/backups`; al completar el flujo se actualiza la fecha del último respaldo en el entorno técnico.
+- **Límite:** La ruta del ejecutable no es configurable. No hay programación, cifrado, retención, respaldo incremental, historial visible de resultados ni restauración desde la aplicación. La restauración debe ejecutarse y comprobarse externamente en una base aislada.
 
 ## Entorno
 
 ### CU-ST-03 Probar y guardar configuración técnica
 
 - **Actor:** Soporte Técnico.
-- **Precondición:** sesión activa y valores de conexión válidos para guardar.
+- **Precondición:** Sesión activa y valores de conexión válidos para guardar.
 - **Entradas:** URL JDBC, usuario y contraseña de PostgreSQL, ruta de reportes, ruta DTE e impresora.
-- **Flujo:** revisar los valores almacenados, introducir cambios y seleccionar **Probar conexión / Guardar configuración**.
-- **Resultado:** el servicio intenta conectar a PostgreSQL; si la conexión es exitosa, crea la ruta de reportes cuando corresponde, actualiza la configuración técnica y guarda los valores locales aplicables en `~/.colibri/application.local.properties`.
-- **Límite:** la ruta DTE y la impresora se guardan como parámetros. Esto no integra con Hacienda ni verifica una impresora de red.
+- **Flujo:** Revisar los valores almacenados, introducir cambios y seleccionar **Probar conexión / Guardar configuración**. La prueba abre una conexión con los valores introducidos y la aplicación intenta crear la ruta de reportes indicada.
+- **Resultado:** Se actualiza el registro de entorno técnico y se intenta persistir localmente URL, usuario y contraseña de base de datos, ruta de reportes e impresora en `~/.colibri/application.local.properties`. La ruta DTE queda en el registro de entorno, pero no se escribe en ese archivo local.
+- **Límites:** Los errores al persistir el archivo local se silencian y la configuración activa de la aplicación se crea al iniciar, por lo que una nueva conexión requiere reiniciar para ser usada por los servicios en ejecución. Una contraseña vacía se prueba como conexión sin contraseña, no como reutilización garantizada de la contraseña ya guardada. No hay integración con Hacienda ni verificación de impresoras de red.
 
 ## Monitoreo
 
-### CU-ST-04 Consultar bitácora técnica
+### CU-ST-04 Consultar registros técnicos
 
 - **Actor:** Soporte Técnico.
-- **Flujo:** consultar los eventos técnicos ordenados por fecha y filtrar por nivel (`TODOS`, `INFO`, `WARN`, `ERROR`, `FATAL`). Doble clic sobre un evento muestra el detalle o la traza disponible.
-- **Resultado:** hasta 200 eventos para la consulta; el panel apoya el diagnóstico local y no expone datos financieros.
+- **Flujo:** Consultar hasta 200 filas de `log_tecnico` ordenadas por fecha y filtrar por `TODOS`, `INFO`, `WARN`, `ERROR` o `FATAL`. Un doble clic muestra el detalle o la traza disponible.
+- **Resultado:** Panel de consulta de la tabla de registros técnicos. Cuando la tabla está vacía, el inicio de la aplicación inserta registros de demostración.
+- **Límite:** El log operativo de la aplicación se escribe en `~/.colibri/colibri.log` y no alimenta automáticamente esta tabla; por tanto el panel no representa necesariamente los eventos técnicos reales de la ejecución.
 
 ## Accesos
 
-### CU-ST-05 Auditar accesos y desbloquear cuentas
+### CU-ST-05 Consultar accesos y desbloquear cuentas
 
 - **Actor:** Soporte Técnico.
-- **Flujo:** consultar la bitácora de accesos y estados de usuario, seleccionar una cuenta y solicitar desbloqueo con generación de clave temporal.
-- **Resultado:** se reinician los intentos fallidos, se libera el bloqueo, la cuenta queda activa y se entrega una clave temporal de un solo uso. La operación conserva trazabilidad.
+- **Flujo:** Consultar la bitácora de accesos y estados de usuario, seleccionar una cuenta y solicitar desbloqueo con generación de clave temporal.
+- **Resultado:** Se reinician los intentos fallidos, se libera el bloqueo, la cuenta queda activa, se reemplaza su hash de contraseña y se registra una entrada `CLAVE_TEMPORAL` en bitácora.
+- **Límite:** La clave emitida puede utilizarse como contraseña normal hasta que sea cambiada; no tiene vencimiento, marca de uso único ni cambio obligatorio. El código de recuperación es un mecanismo distinto y sí rota al utilizarse.

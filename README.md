@@ -1,362 +1,134 @@
-# Colibrí — Sistema Contable (escritorio Java)
+# Colibrí Sistema Contable
 
-<!--
-Documento principal de referencia del repositorio.
-Resume el alcance funcional, la arquitectura, el estado del prototipo y las
-limitaciones vigentes para mantener una documentación homogénea con el resto
-de archivos del proyecto.
--->
+Prototipo funcional de escritorio para **Soluciones Empresariales Colibrí, S.A. de C.V.**. Se ejecuta localmente con JavaFX y PostgreSQL y está orientado a la captura, procesamiento y consulta de información contable de demostración.
 
-Prototipo funcional para **Soluciones Empresariales Colibrí, S.A. de C.V.**  
-Sistema de escritorio **local y monousuario** (JavaFX + PostgreSQL). No emite DTE oficiales ni se integra con bancos, servicios web o multimoneda.
+Este documento describe el comportamiento del código disponible en el repositorio. Cuando una política, un instrumento académico o un caso de uso propone una capacidad no implementada, se indica como límite del prototipo y no como funcionalidad operativa.
 
-Actores:
-- **Contador** — operación contable: Empresa, Parametrización, Registros, Documentos, Inventario, Costos, Reportes.
-- **Soporte técnico** — administración: Usuarios, Base de datos, Entorno, Monitoreo, Accesos. No consulta saldos ni partidas.
+## Alcance actual
 
----
+Colibrí cuenta con dos roles:
 
-## 1. Estado y límites actuales del sistema
+- **Contador:** Empresa, Parametrización, Registros, Inventario, Costos y Reportes.
+- **Soporte técnico:** Usuarios, Base de datos, Entorno, Monitoreo y Accesos. No puede consultar saldos, partidas ni estados financieros desde la interfaz de ese rol.
 
-| Área | Estado |
-|---|---|
-| Arquitectura por capas (5 módulos Maven) | Implementada |
-| Autenticación, roles, bloqueo y bitácora | Implementados |
-| Catálogo de cuentas a 6 dígitos y períodos contables | Implementados |
-| Partida doble, inmutabilidad y validaciones | Implementadas |
-| Documentos internos e IVA neto/incluido | Implementados con tasas y cuentas parametrizables |
-| Inventario y costos | PEPS automático para licencias descargables; órdenes para software a la medida; SaaS por usuario-mes y plan; servicios por plan; costeo por procesos y CIF aplicado/cerrado |
-| Ajustes y cierre | IVA acumulado, consumo y devengo, depreciación/amortización, provisión de incobrables, deterioro/reversión y protección de cierre |
-| Planilla | Cálculo configurable de cargas laborales, cédula por período y asiento de devengo |
-| Libros y estados | Diario, Mayor, Balanza, Cuenta T, Hoja de trabajo, Situación financiera, Resultados, libros de IVA y auxiliares disponibles en el selector; Cambios en el patrimonio y Flujos de efectivo se generan en el ZIP |
-| Flujo de efectivo | Método directo limitado a Caja chica y Bancos (grupo 1101); requiere conciliación documental antes de uso definitivo |
-| Respaldo | Ejecución manual de `pg_dump`; no incluye cifrado, programación, incremental ni restauración desde la interfaz |
-| Exportación | PDF, XLSX y ZIP del rango seleccionado; el ZIP reúne Diario, Mayor, Balanza, Hoja de trabajo y los cuatro estados financieros disponibles |
-| Soporte técnico y entorno | Gestión de usuarios, bitácoras, parámetros de entorno y respaldo manual |
-| Interfaz de escritorio | Shell con sidebar colapsable, paleta de comandos Ctrl+K, dashboard Bento, Libro diario en Lista+Editor+Inspector, breakpoints responsivos y tema oscuro |
-| Migraciones Flyway `V1`–`V23` | Aplicadas por el arranque |
-| Identidad visual | Sistema de diseño «Vuelo nocturno»: tokens CSS centralizados, tema oscuro por defecto, movimiento y lint de diseño |
+El prototipo incluye:
 
-Fuera de alcance: emisión o transmisión oficial de DTE, conexiones bancarias o cloud, portal de descargas, web/multiusuario, multimoneda, cálculo legal integral de nómina con topes y reglas vigentes, prorrata automática de IVA mixto, respaldo programado/cifrado/incremental y restauración desde la interfaz. La planilla implementada calcula cargas configurables y genera su devengo; requiere validación profesional para uso laboral real. Las políticas fiscales también deben revisarse antes de aplicarlas a operaciones reales.
+- autenticación local, bloqueo por intentos fallidos, sesión con inactividad, código de recuperación de un solo uso y separación de roles;
+- empresa, catálogo de cuentas de seis dígitos, períodos, partidas de diario, reversión, documentos internos, terceros, anticipos y plantillas recurrentes;
+- parametrización de cuentas, perfiles de contabilización, tasas y centros de costo, con las limitaciones indicadas más adelante;
+- lotes de licencias, asignación PEPS, kárdex de licencias, servicios y cálculos de costos para las líneas de negocio modeladas;
+- planilla, ajustes y cierre: liquidación de IVA, devengos, depreciación, amortización de intangibles, estimación de incobrables, deterioro y reversión de inventario, CIF y costeo por procesos;
+- Libro Diario, Mayor, Balanza, Cuenta T, Hoja de trabajo, Situación financiera, Resultados, libros de IVA, auxiliares y exportación a PDF/XLSX/ZIP;
+- respaldo manual mediante `pg_dump`, y un panel de soporte para usuarios, configuración, respaldos y consulta de registros técnicos.
 
-### Formatos contables emitidos
+No es una aplicación web, multiusuario, bancaria, de comercio electrónico ni multimoneda. No transmite DTE oficiales, no entrega licencias por portal ni ejecuta pagos. La nómina y los parámetros fiscales son de demostración y requieren revisión profesional antes de cualquier uso real.
 
-- **Libro Diario:** Fecha, PDA, código/referencia, cuenta y concepto, Debe y Haber, agrupados por partida y con totales.
-- **Libro Mayor y Cuenta T:** código, cuenta, acumulados Debe/Haber, saldos deudor/acreedor y desglose de cargos, abonos y totales por cuenta.
-- **Balanza de comprobación:** código, cuenta, Debe, Haber y fila de comprobación final.
-- **Hoja de trabajo:** catálogo; balanza; ajustes; balanza ajustada; resultados; capital; y situación financiera, con Debe/Haber en cada bloque.
-- **Estados:** situación financiera con clasificación de activo, pasivo y patrimonio; y resultados con ventas netas, costo de ventas, utilidad bruta, gastos de operación, resultado financiero/otros, impuesto y utilidad neta.
+## Límites conocidos del comportamiento actual
 
-Para licencias descargables, el sistema asigna automáticamente la unidad disponible del lote liberado más antiguo mediante PEPS. La pantalla presenta PEPS, promedio ponderado y UEPS sólo como comparación analítica; promedio y UEPS no generan asientos ni cambian la política contable seleccionada.
+- Las reglas de obligatoriedad, origen y exclusividad de dimensiones no se aplican por cuenta. El detalle de una partida admite los campos libres de auxiliar y centro de costo, pero no existe un motor de dimensiones configurables.
+- Los parámetros de políticas y secuenciales se almacenan, pero el folio y la igualdad Debe/Haber se resuelven con reglas fijas del motor.
+- La liberación de un lote de licencias recibe un costo total manual y usa la versión de producto actualmente fijada en el servicio; no implementa una consolidación automática de costos por producto y versión.
+- Las órdenes de software a la medida no tienen un ciclo completo de creación, entrega y liquidación controlado por la interfaz. Los cálculos de SaaS, planes y órdenes son apoyo gerencial, no una trazabilidad integral de rentabilidad por contrato.
+- La separación de ventas CCF y consumidor final en los libros de IVA no es completamente excluyente en la consulta actual. Los auxiliares no permiten elegir una dimensión específica ni presentan saldo acumulado por movimiento.
+- La exportación por varios períodos existe y genera archivos por combinación seleccionada en una carpeta. El ZIP se genera para un rango y contiene un conjunto fijo de reportes.
+- El monitoreo técnico consulta la tabla `log_tecnico`, que se inicializa con registros de demostración si está vacía; no consume automáticamente el archivo de log de la aplicación. `AppLog` escribe en `%USERPROFILE%\.colibri\colibri.log`, mientras el lanzador de usuario escribe en `%LOCALAPPDATA%\Colibri\logs`.
+- La clave temporal emitida por Soporte Técnico desbloquea la cuenta y sustituye la contraseña, pero no posee vencimiento, uso único ni cambio obligatorio implementados.
+- El respaldo es manual, depende de `C:\Program Files\PostgreSQL\18\bin\pg_dump.exe` y no incluye programación, cifrado, incremental ni restauración desde la interfaz.
 
----
+## Arquitectura
 
-## 2. Stack y librerías
+El proyecto está organizado en cinco módulos Maven con dependencias orientadas desde la interfaz hacia los servicios y el núcleo:
 
-| Componente | Versión / artefacto | Uso en el sistema |
-|---|---|---|
-| Java | 25 LTS (`maven.compiler.release=25`) | Lenguaje y runtime |
-| JavaFX | 25 (`base`, `controls`, `fxml`, `graphics`) | Interfaz de escritorio (MVVM ligero) |
-| PostgreSQL | 18 (puerto **5434** en el entorno documentado) + driver JDBC `42.7.12` | Persistencia relacional |
-| Maven | 3.9.11 (Wrapper `mvnw`) | Build multmódulo y empaquetado |
-| HikariCP | 6.3.0 | Pool de conexiones |
-| Flyway | 11.10.0 (`flyway-core`, `flyway-database-postgresql`) | Migraciones versionadas del esquema |
-| JasperReports | 7.0.7 (+ `jasperreports-pdf`) | Reportes PDF |
-| Apache POI | 5.4.1 (`poi`, `poi-ooxml`) | Exportación Excel (XLSX) |
-| Jackson | 2.22.3 (`databind`, `jsr310`) | Serialización JSON de estructuras internas |
-| SLF4J | 2.0.17 (`slf4j-api`, `slf4j-simple`) | Logging de la aplicación |
-| JUnit 5 | 5.13.4 | Pruebas unitarias/integración |
-| AssertJ | 3.27.7 | Aserciones fluidas |
-| Testcontainers | 1.21.3 (`postgresql`) | PostgreSQL efímero para pruebas |
-| TestFX | 4.0.18 (+ `openjfx-monocle`) | Pruebas de UI |
-
----
-
-## 3. Arquitectura
-
-Arquitectura **en capas** con dependencias en un solo sentido (puertos y adaptadores): el núcleo contable no conoce la base de datos ni la interfaz.
-
-```
-            colibri-desktop  (adaptador de ENTRADA: JavaFX)
-                   │  depende de ↓
-            colibri-application  (servicios de aplicación / casos de uso)
-                   │  depende de ↓
-   colibri-domain ──── colibri-persistence  (adaptador de SALIDA: JDBC + Flyway)
-   (núcleo: reglas)      (repositorios, conexión)
-                   ↑
-            colibri-reports  (exportación PDF/Excel)
-
-   Regla de dependencia: desktop → application → { domain, persistence, reports }
-                         persistence → domain
-                         domain → (sin dependencias de framework)
+```text
+colibri-desktop       JavaFX, navegación y vistas
+        ↓
+colibri-application   servicios de aplicación y casos de uso
+        ↓
+colibri-domain        reglas y modelos sin JavaFX ni JDBC
+colibri-persistence   JDBC, HikariCP, repositorios y Flyway
+colibri-reports       composición y exportación PDF/XLSX/ZIP
 ```
 
-- **Domain** — entidades y reglas puras (partida doble, IVA, estados). Sin JavaFX ni JDBC.
-- **Persistence** — repositorios (mapeo ResultSet↔dominio), pool Hikari, migraciones Flyway.
-- **Application** — orquesta los casos de uso y expone servicios vía `AppContext`; las operaciones de escritura se ejecutan en transacciones JDBC.
-- **Reports** — API mínima de composición/exportación (Jasper/POI).
-- **Desktop** — JavaFX: shell, navegación, vistas por módulo e identidad visual.
+`AppContext` es la raíz de composición. Al iniciar, carga la configuración de base de datos, ejecuta Flyway, crea los servicios y asegura los datos de arranque. Las operaciones de escritura se coordinan mediante transacciones JDBC.
 
-### Punto de composición
-`AppContext` es la **raíz de composición**: construye el pool, aplica migraciones, inicializa los servicios y habilita la semilla de demostración sólo por configuración explícita (inyección manual por constructor). Las vistas reciben únicamente el `AppContext`.
+Los módulos principales son:
 
----
+- **`colibri-domain`**: modelos contables, reglas de partida doble, IVA, seguridad y cálculos puros.
+- **`colibri-persistence`**: configuración, conexión Hikari, migraciones y repositorios JDBC.
+- **`colibri-application`**: autenticación, catálogo, períodos, partidas, documentos, inventario, costos, cierre, planilla, reportes, panel, plantillas, respaldo y soporte.
+- **`colibri-reports`**: generación de estructuras para PDF, Excel y ZIP.
+- **`colibri-desktop`**: aplicación JavaFX, navegación por rol, vistas operativas, tema e identidad visual.
 
-## 4. Módulos y paquetes
+## Tecnologías
 
-```
-Colibri/
-├─ pom.xml                         Parent POM (dependencyManagement centralizado)
-├─ mvnw / mvnw.cmd                 Maven Wrapper
-├─ application.local.properties.example
-├─ colibri-domain/                 Núcleo (sin frameworks)
-├─ colibri-persistence/            Persistencia
-├─ colibri-application/            Servicios / casos de uso
-├─ colibri-reports/                Exportación de reportes
-├─ colibri-desktop/                Interfaz JavaFX
-├─ img/                            Identidad: Colibri.png, imagotipo, iconos, splash
-├─ scripts/                        run-colibri.ps1 (desarrollo), Colibri.vbs/.cmd e
-│                                  Iniciar-Colibri.ps1 (usuario final), setup-postgres,
-│                                  gen_catalogo.py, db/ (semillas y verificaciones)
-└─ *.md                            CasosDeUso, DESCARTE, ESCENARIO_EJERCICIO_CONTABLE_COMPLETO,
-                                   rubrica_de_evaluacion, sintesis-formulas-contables
-```
+| Componente | Versión configurada | Uso |
+|---|---:|---|
+| Java | 25 | Lenguaje y runtime |
+| JavaFX | 25 | Interfaz de escritorio |
+| PostgreSQL | 18 en el entorno documentado | Persistencia |
+| Maven Wrapper | Maven 3.9.11 | Compilación multmódulo |
+| HikariCP | 6.3.0 | Pool JDBC |
+| Flyway | 11.10.0 | Migraciones de esquema |
+| JasperReports | 7.0.7 | Reportes PDF |
+| Apache POI | 5.4.1 | Exportación XLSX |
+| Jackson | 2.22.3 | JSON interno |
+| JUnit, Testcontainers y TestFX | configurados en el POM | Pruebas |
 
-### colibri-domain — `sv.edu.ues.colibri.domain`
-| Paquete | Contenido |
-|---|---|
-| `model` | `Partida`, `PartidaDetalle`, `Cuenta`, `Documento`, `Tercero`, `Empresa`, `Ejercicio`, `Periodo`, `Contador`, `BitacoraEntrada`, `EventoContable`, y enums `EstadoPartida`/`EstadoCuenta`/`EstadoPeriodo`/`NaturalezaCuenta`/`TipoPartida`/`OrigenPartida`/`RolUsuario` |
-| `iva` | `IvaCalculator` (+ `Resultado`) — cálculo desde neto o desde total incluido con tasa suministrada |
-| `security` | `PasswordHasher` — PBKDF2-HMAC-SHA256 con sal; los parámetros se gestionan en el código de seguridad |
-| `exception` | `DomainException` |
+Flyway aplica las migraciones **V1 a V25** al arrancar. `V24` incorpora cuentas y planes de referencia, y `V25` crea el kárdex de movimientos de licencias.
 
-### colibri-persistence — `sv.edu.ues.colibri.persistence`
-| Paquete | Contenido |
-|---|---|
-| `config` | `DatabaseConfig` (carga credenciales), `DataSourceFactory` (Hikari), `FlywayMigrator` |
-| `jdbc` | `JdbcSupport` (transacciones), `PersistenceException` |
-| `repo` | `ContadorRepository`, `CuentaRepository`, `PartidaRepository`, `DocumentoRepository`, `TerceroRepository`, `EmpresaRepository`, `PeriodoRepository`, `EventoRepository`, `BitacoraRepository`, `CatalogoVersionRepository` |
-| recursos | `db/migration/V1__nucleo.sql` … `V19__serializacion_cierre_cedulas_pendientes.sql`, `application.properties` |
+## Requisitos y configuración local
 
-### colibri-application — `sv.edu.ues.colibri.application`
-| Paquete | Contenido |
-|---|---|
-| (raíz) | `AppContext` — raíz de composición y fachada de servicios |
-| `auth` | `AuthService` — login, sesión, roles, intentos, recuperación |
-| `bootstrap` | `BootstrapService`, `CasoContableSeedService` — inicialización segura y semilla de demostración optativa |
-| `catalogo` | `CatalogoService` |
-| `periodo` | `PeriodoAppService` |
-| `partida` | `PartidaService` — captura y contabilización |
-| `operacion` | `OperacionContableService` (+ `PlantillaDraft`) — asientos automáticos |
-| `inventario` | `InventarioCostoService` (+ `LoteInfo`, `OrdenInfo`, `ReservaLicencia`) |
-| `costos` | `EstimacionCostosService`, `CosteoGerencialService` — estimación, precio unitario, costo directo, estándar y ABC |
-| `libros` | `LibroContableService` — Diario, Mayor, Balanza, Estados |
-| `cierre` | `CierreService` — IVA, devengos, depreciación/amortización, estimaciones de cartera, deterioro y cierre de período |
-| `costos` | `CifService`, `CosteoPorProcesosService` — aplicación/cierre de CIF y cédulas PEPS, promedio y UEPS |
-| `nomina` | `PlanillaService` — cálculo parametrizado de cargas y contabilización del devengo |
-| `configuracion` | `ParametrizacionService` (+ `Parametro`, `ParametroFiscal`, `CentroCosto`, `PlanServicio`, `PostingProfile`) |
-| `respaldo` | `RespaldoService` — `pg_dump` |
-| `soporte` | `SoporteTecnicoService` (+ `Entorno`, `LogTecnico`) |
-| `support` | `JsonSupport` — serialización JSON interna |
+1. Instalar JDK 25 y PostgreSQL 18.
+2. Copiar `application.local.properties.example` a `%USERPROFILE%\.colibri\application.local.properties` y ajustar las credenciales.
+3. El archivo de ejemplo y `scripts\setup-postgres.ps1` usan el puerto 5434. Si no existe una configuración local, `DatabaseConfig` y los lanzadores usan 5432 como valor de respaldo.
 
-### colibri-reports — `sv.edu.ues.colibri.reports`
-- `ReportService` — composición y exportación PDF/Excel y paquete ZIP.
-
-### colibri-desktop — `sv.edu.ues.colibri.desktop`
-| Paquete | Contenido |
-|---|---|
-| (raíz) | `ColibriApp` (entrypoint), `InstanceLock`, `AppLog` |
-| `ui` | `MainShell` (BorderPane: menú lateral + barra superior con breadcrumb/buscador + una página), `ResponsiveLayouts`, `UiTheme` (variantes semánticas de botón), `UiDialogs`, `UiCatalogos`, `Motion` (transiciones con *reduced-motion*), `PaletaComandos` (Ctrl+K), `BrandAssets`, `BrandLogo`, `BrandMark`, `BrandIcon`, `LoginView` |
-| `ui.nav` | `NavItem`, `NavRegistry` (árbol de navegación por rol, fuente única), `SideNav` (acordeón + pie de sesión/zoom), `NavFlyout` (menú flotante de vidrio, también desde el breadcrumb), `SectionHost`, `Navegador` |
-| `ui.layout` | `Page` (scroll/fill), `Breakpoints` (pseudo-clases `:compact/:medium/:wide`), `SegmentedNav`, `MasterDetail` |
-| `ui.views` | `InicioView` (tablero Bento), `EmpresaPeriodosView`, `ParametrizacionView` (una sección por ítem del menú), `TemasContablesView`, `CatalogoView`, `PartidasView` (Lista + Editor + Inspector inferior), `DocumentosView`, `PlanillaView`, `InventarioCostosView`, `ProcesosCifView`, `EstimacionCostosView`, `SocietariosView`, `ReportesView`, `AjustesCierreView`, `RespaldoView`, `SoporteTecnicoView`, `UsuariosView` |
-| recursos | `tokens.css` (única hoja con literales: paleta, superficies, estados, motion, puente Modena, tema claro por `prefers-color-scheme`), `colibri.css` (alias semánticos `-colibri-*` y componentes), `img/` (marca, imagotipo, splash e iconos multiresolución 16–512 con placa clara) |
-
----
-
-## 5. Patrones de diseño
-
-| Patrón | Dónde se aplica |
-|---|---|
-| **Capas / Puertos y Adaptadores** | Separación domain ↔ application ↔ adaptadores (persistence, desktop) |
-| **Repository** | `repo/*` encapsula el acceso a datos por agregado |
-| **Data Mapper** | Repositorios traducen `ResultSet` ↔ entidades de dominio |
-| **Facade / Application Service** | `AppContext` y los `*Service` como fachadas de casos de uso |
-| **Composition Root + DI por constructor** | `AppContext` crea e inyecta todas las dependencias |
-| **Unit of Work / Transaction Script** | `JdbcSupport.inTransaction` / `runInTransaction` |
-| **Factory** | `DataSourceFactory` (crea pools Hikari) |
-| **Singleton (proceso)** | `InstanceLock` garantiza una sola instancia; pool único de Hikari |
-| **DTO / Record** | `LoteInfo`, `OrdenInfo`, `Parametro`, `PostingProfile`, `LogTecnico`, etc. |
-| **Value Object / Enum** | `NaturalezaCuenta`, `TipoPartida`, `EstadoPartida`, `RolUsuario` |
-| **Strategy / cálculo aislado** | `IvaCalculator` desacopla el cálculo fiscal |
-| **Bootstrap / semilla controlada** | `BootstrapService`, `CasoContableSeedService` |
-| **Esquema versionado (migraciones)** | Flyway `V1`–`V19` |
-| **MVC/MVVM ligero (JavaFX)** | `MainShell` + `views` + binding a `Property` |
-| **Observer** | Listeners de JavaFX y `textProperty` en `UiTheme` |
-| **Decorator** | `UiTheme.decorate` enriquece controles con iconos/estilos |
-| **Lock / Failsafe de arranque** | `InstanceLock` + `Arranque` en `ColibriApp` |
-| **Design tokens + lint** | `tokens.css` concentra literales; `DisenoTokensTest` bloquea colores sueltos, `setStyle` en vistas y referencias rotas |
-
----
-
-## 6. Decisiones de uso
-
-- **Local y monocapa de escritorio.** Sin red, sin web y sin multiusuario; el sistema es un prototipo funcional de un solo equipo.
-- **Separación de roles (menor privilegio).** El Contador no administra usuarios ni base de datos; el Soporte Técnico no accede a saldos ni partidas (`exigirContador` / `exigirSoporteTecnico`).
-- **Credenciales fuera del código.** Se leen de `%USERPROFILE%\.colibri\application.local.properties` (ver `application.local.properties.example`). Nunca se versionan secretos.
-- **Puerto 5434.** Se usa 5434 (no 5432) para no chocar con instalaciones locales de PostgreSQL.
-- **Seguridad de contraseñas.** Hash PBKDF2-HMAC-SHA256 con sal (`PasswordHasher`); nunca texto claro.
-- **Política de acceso.** Bloqueo tras 5 intentos fallidos (15 min) y expiración de sesión por inactividad (15 min).
-- **Recuperación local.** Código de un solo uso escrito en `%USERPROFILE%\.colibri\recovery-code.txt`; se rota al usarse. Soporte Técnico puede emitir clave temporal.
-- **Inicialización conservadora.** `BootstrapService` crea empresa, ejercicio, períodos y cuentas iniciales sólo si no existen; nunca restablece credenciales, roles, estados ni datos ya administrados. La semilla de demostración se habilita únicamente con `-Dcolibri.seed.demo=true` o `COLIBRI_SEED_DEMO=true`.
-- **Integridad contable.** Partida doble con descuadre exacto ($0.00; 0.01 en pruebas); partidas contabilizadas inmutables y reversión solo vía ajustes (`AJ`).
-- **Períodos.** La captura se bloquea en fechas cerradas; la aprobación del catálogo habilita movimientos.
-- **Esquema gestionado.** Flyway aplica migraciones versionadas; el pool Hikari se crea solo tras migrar.
-- **Continuidad.** El soporte técnico puede ejecutar un respaldo manual con `pg_dump` en `~/.colibri/backups`; la restauración, el cifrado y la programación son procedimientos externos al prototipo. Se conservan bitácoras de acceso y técnicas.
-- **Identidad visual empaquetada.** Logo, imagotipo, splash e iconos de barra de tareas se cargan desde recursos (`BrandAssets`), no desde rutas externas. Los iconos se generan con placa clara para ser legibles sobre la barra de tareas.
-- **Sistema de diseño «Vuelo nocturno».** Tema oscuro por defecto con acentos cian (interacción/enfoque) y lima (acción principal/positivo); tema claro disponible vía `prefers-color-scheme`. Todos los colores viven en `tokens.css`; los componentes consumen alias semánticos `-colibri-*`/`--color-*`. El movimiento es corto (140 ms interactivo, 220 ms entrada de página) y se desactiva con `prefers-reduced-motion`. Las variantes de botón se declaran con `UiTheme.Variante` en lugar de inferirse del texto.
-- **Simplicidad de despliegue.** Build reproducible con Maven Wrapper; sin contenedores en producción local.
-
----
-
-## 7. Requisitos previos
-
-1. JDK 25 (LTS) en `PATH`; Maven Wrapper usa `maven.compiler.release=25`.
-2. PostgreSQL 18. En esta máquina el servicio escucha en **puerto 5434** (no 5432).
-3. Crear rol/bases:
+Para preparar el entorno de demostración en el puerto configurado:
 
 ```powershell
-# Si pg_hba tiene trust en 127.0.0.1, basta:
-.\scripts\setup-postgres.ps1
-
-# Si exige password del superusuario:
-$env:PGPASSWORD = 'TU_PASSWORD_DE_POSTGRES'
+$env:PGPASSWORD = 'CONTRASENA_DEL_SUPERUSUARIO'
 .\scripts\setup-postgres.ps1
 ```
 
-Crea el rol `colibri`/`colibri`, las bases `colibri` y `colibri_test`, y
-`%USERPROFILE%\.colibri\application.local.properties`. Al primer arranque, Flyway
-aplica las migraciones y, sólo si no existen cuentas, el bootstrap crea empresa,
-períodos y los usuarios iniciales `contador` / `Colibri2026!` y `soporte` /
-`Soporte2026!`. Cambie esas credenciales antes de operar datos reales.
+El script crea o actualiza el rol y las bases `colibri` y `colibri_test`. Las credenciales iniciales que genera el bootstrap (`contador` y `soporte`) son sólo para desarrollo y deben reemplazarse antes de usar una base no desechable.
 
-4. Si cambió `pg_hba.conf` (p. ej. `trust` antes de `scram-sha-256` en localhost), reinicie como administrador:
+## Compilar y ejecutar
 
-```powershell
-Restart-Service postgresql-x64-18
-```
-
----
-
-## 8. Compilar y ejecutar
-
-```bash
-./mvnw -v
-./mvnw clean test
-./mvnw -pl colibri-desktop -am install -DskipTests
-./mvnw -pl colibri-desktop javafx:run
-```
-
-En Windows PowerShell:
+Desde la raíz del repositorio:
 
 ```powershell
 .\mvnw.cmd clean test
-.\scripts\run-colibri.ps1
+.\mvnw.cmd -pl colibri-desktop -am install -DskipTests
+.\mvnw.cmd -pl colibri-desktop javafx:run
 ```
 
-El comando `install` recompila e instala en el repositorio Maven local los cinco JAR de módulos y sus dependencias; el JAR de `colibri-desktop` es modular por capas y se ejecuta con JavaFX mediante Maven, no como `java -jar` autónomo. `run-colibri.ps1` realiza la instalación antes de abrir la aplicación. El arranque carga la configuración local, valida/construye las 23 migraciones Flyway y abre la pantalla de acceso.
+También están disponibles estos flujos:
 
-`run-colibri.ps1` instala primero los módulos hermanos en `~/.m2` y después ejecuta JavaFX. Así evita mezclar la interfaz recién compilada con JARs antiguos de `application`, `domain` o `persistence`.
+- `scripts\run-colibri.ps1`: compila, migra y abre la aplicación. `-Reset` reemplaza los datos operativos por la semilla del Anexo L; úselo sólo sobre una base de demostración.
+- `scripts\run-colibri-complete.ps1 -Reset`: carga y verifica el ejercicio contable integral mediante los scripts SQL; también elimina datos operativos existentes.
+- `scripts\Iniciar-Colibri.ps1`: lanzador para usuario final. `Colibri.vbs` lo ejecuta sin consola y `Colibri.cmd` conserva la consola visible.
 
-#### Lanzadores de usuario final
-
-Para uso diario sin consola de desarrollo:
-
-- **`scripts\Colibri.vbs`** — doble clic, sin ventanas de consola. Es el lanzador recomendado.
-- **`scripts\Colibri.cmd`** — igual pero con consola visible para depuración.
-- **`scripts\Iniciar-Colibri.ps1`** — lógica del lanzador: detecta `javaw` (JAVA_HOME, PATH o rutas comunes), reutiliza el classpath generado salvo que cambie algún `pom.xml`, comprueba PostgreSQL y arranca la app desacoplada. Con `-Compilar` fuerza recompilación.
-
-Ambos escriben bitácora en `%LOCALAPPDATA%\Colibri\logs\colibri-<fecha>.log` y, si el arranque falla, muestran un cuadro de diálogo con la causa. La primera ejecución puede tardar mientras Maven genera el classpath; las siguientes son directas.
-
-### Credenciales iniciales
-
-- **Contador:** `contador` / `Colibri2026!` — Empresa, Parametrización, Registros, Documentos, Inventario, Costos y Reportes.
-- **Soporte técnico:** `soporte` / `Soporte2026!` — Usuarios, Base de datos, Entorno, Monitoreo y Accesos.
-- Cuando el bootstrap crea por primera vez la cuenta `contador`, genera un **código de recuperación de un solo uso** en `%USERPROFILE%\.colibri\recovery-code.txt`.
-
----
-
-## 9. Migraciones y componentes implementados
-
-- `V1__nucleo.sql` — autenticación, contador, catálogo, períodos, partidas, bitácora.
-- `V2__catalogo.sql` — catálogo contable (tabla VIII).
-- `V3__etapa2_documentos.sql` — terceros, documentos e IVA.
-- `V4__etapa3_inventario_costos.sql` — inventario, lotes y órdenes de servicio.
-- `V5__parametrizacion_casos_uso.sql` — parametrización, dimensiones y catálogos.
-- `V6__roles_soporte_tecnico.sql` — rol de Soporte Técnico, correo y entorno técnico.
-- `V7__perfil_posting_anticipo.sql` — perfil de contabilización para anticipos.
-- `V8__costeo_por_plan_y_peps_exacto.sql` — modalidad de servicio, consumo por plan, usuarios-mes SaaS y PEPS exacto.
-- `V9__politicas_contables_costos_y_rrhh.sql` — políticas de devengo, partida doble, consistencia, inventarios, CIF, distribución y control de horas.
-- `V10`–`V14` — ajustes, estimaciones, amortización, deterioro, costos por proceso, integridad de cédulas, aplicación y cierre de CIF.
-- `V15`–`V17` — tasas históricas y recuperación/inmutabilidad de cédulas de planilla.
-- `V18`–`V19` — inmutabilidad de cédulas de cierre, restitución de auxiliares al revertir, serialización de captura y bloqueo de cierre con cédulas pendientes.
-- `V20`–`V23` — costo de soporte en catálogo, plantillas de partida recurrente, aplicación de anticipos y tasas laborales de planilla.
-
-**Núcleo:** autenticación, catálogo, períodos, partida doble, bitácora y bloqueo de instancia.  
-**Documentos e IVA:** terceros, documentos internos y plantillas con tasas parametrizadas.  
-**Inventario y costos:** PEPS automático de licencias descargables, órdenes de servicio, acumulación por plan facturado y SaaS por usuarios-mes; estimación, precio unitario y comparación de costos directo, estándar y ABC.  
-**Ecuaciones de estimación:** `EstimacionCostosService` aplica ecuaciones parametrizadas para juicio experto (promedio ponderado), analogía por tamaño, puntos de función, COSMIC, COCOMO II simplificado, corrección por desgaste/retrabajo, LOC, PERT de tres puntos y Putnam/SLIM. La interfaz muestra los insumos propios de cada técnica y los envía a las variantes parametrizadas del servicio.
-
-En forma compacta: `Eexperto = Σ(wᵢ·Eᵢ)/Σwᵢ`; `Eanalogía = Eref·(Tobjetivo/Tref)·F`; `EFP = FP·h/FP`; `ECOSMIC = CFP·h/CFP`; `PMCOCOMO = 2.94·KLOC^(0.91+0.01·ΣSF)·ΠEM` y `h = PM·h/mes`; `Edesgaste = hproductivas/(1−desgaste)`; `ELOC = KLOC/productividad·160`; `EPERT = (O+4M+P)/6`; `ESLIM = [S/(Ck·t^(4/3))]^3·2080`. Después se calculan CIF, costo total y precio con margen mediante `precio = costoTotal/(1−margen)`.
-**Temas y trazabilidad:** el menú Temas contables presenta una subpestaña por tema de la rúbrica y enlaza con el módulo operativo correspondiente.  
-**Libros, cierre y respaldo:** Diario, Mayor, Balanza, Cuenta T, Hoja de trabajo, estados disponibles, Excel/PDF/ZIP, liquidación de IVA, devengos y provisiones de cierre, planilla configurable, CIF y costeo por procesos, y respaldo manual con `pg_dump`.
-
----
-
-## 10. Pruebas
-
-- Unitarias: equilibrio $0.01, códigos de 6 dígitos, hash y cálculo de IVA.
-- Integración (si existe `colibri_test` en puerto 5434): catálogo, idempotencia de evento.
-- UI: TestFX + Monocle.
+Las pruebas pueden usar la base separada configurando:
 
 ```powershell
-$env:COLIBRI_TEST_DB_URL="jdbc:postgresql://127.0.0.1:5434/colibri_test"
-$env:COLIBRI_TEST_DB_USER="colibri"
-$env:COLIBRI_TEST_DB_PASSWORD="colibri"
+$env:COLIBRI_TEST_DB_URL = 'jdbc:postgresql://127.0.0.1:5434/colibri_test'
+$env:COLIBRI_TEST_DB_USER = 'colibri'
+$env:COLIBRI_TEST_DB_PASSWORD = 'colibri'
 .\mvnw.cmd test
 ```
 
-### Ejercicio histórico del Anexo L (seed)
+## Datos de demostración
 
-El Anexo L del informe técnico se extrae a JSON y se carga como datos de ejemplo.
+Los scripts de `scripts\db` preparan referencias, el Anexo L y el ejercicio integral. Son datos de práctica y las operaciones `-Reset`, `reset_total.sql` y los seeds correspondientes pueden reemplazar datos operativos. Antes de ejecutarlos, confirme que la base seleccionada sea desechable o esté respaldada.
 
-```powershell
-# 1) Extraer el Anexo L (valida diario, balanza, estados y apertura derivada)
-python scripts/anexo_l/extraer_anexo_l.py --docx ..\Informe_tecnico_Colibri.docx
-# 2) Regenerar el SQL de seed y de verificación desde el JSON
-python scripts/anexo_l/generar_seed_sql.py
-# 3) Reset total (conserva solo `contador` y `flyway_schema_history`) + referencia + seed + verificación
-psql -h 127.0.0.1 -p 5434 -U colibri -d colibri -v confirmar=SI -f scripts/db/reset_total.sql
-psql -h 127.0.0.1 -p 5434 -U colibri -d colibri -f scripts/db/seed_00_referencia.sql
-psql -h 127.0.0.1 -p 5434 -U colibri -d colibri -f scripts/db/seed_anexo_l.sql
-psql -h 127.0.0.1 -p 5434 -U colibri -d colibri -f scripts/db/verificar_anexo_l.sql
-```
+## Documentación vigente
 
-Alternativa Java: con la base sin partidas, arrancar con `-Dcolibri.seed.anexol=true` o `COLIBRI_SEED_ANEXO_L=true` (`AnexoLSeedService`, excluyente con `colibri.seed.demo`). `seed_00_referencia.sql` se regenera con `scripts/anexo_l/generar_referencia.py` desde una base recién migrada cuando cambien los datos de referencia de Flyway.
-
----
-
-## 11. Documentación del repositorio
-
-| Archivo | Contenido |
+| Documento | Propósito |
 |---|---|
-| `CasosDeUso.md` | Casos de uso del actor Contador |
-| `CasosDeUso_SoporteTecnico.md` | Casos de uso del actor Soporte Técnico |
-| `Analisis_Sistema_Colibri.txt` | Entradas, procesos, salidas, controles y frontera del sistema |
-| `rubrica_de_evaluacion_del_proyecto.md` | Criterios académicos del proyecto |
-| `sintesis-formulas-contables.md` | Fórmulas contables y de costos, con notas de vigencia para El Salvador |
-| `Informe_tecnico_Colibri_integral.docx` | Informe académico integral y referencias |
-| `Informe_Resumen.docx` | Informe ejecutivo armonizado con el informe integral |
-| `Libros_y_formulas_contables_Colibri.docx` | Formatos de libros y aplicación de fórmulas del caso |
-| `Formato de libros, reportes y manejo de inventarios .pdf` | Documento de referencia para formatos de salida e inventario |
+| `CasosDeUso.md` | Casos de uso reales del rol Contador, con límites explícitos del prototipo. |
+| `CasosDeUso_SoporteTecnico.md` | Casos de uso reales del rol Soporte Técnico. |
+| `ESCENARIO_EJERCICIO_CONTABLE_COMPLETO.md` | Escenario de demostración y precauciones de carga. |
+| `rubrica_de_evaluacion_del_proyecto.md` | Matriz académica y notas de evidencia. |
+| `sintesis-formulas-contables.md` | Material académico de referencia; no todas las fórmulas son automatismos del software. |
+| `DESCARTE.md` | Elementos descartados y decisiones de alcance. |
 
+Los instrumentos, políticas y especificaciones que se encuentran en el directorio superior del proyecto describen el marco organizativo y académico. Deben leerse junto con sus leyendas de estado: una política documentada no implica por sí sola que exista un control automático en Colibrí.

@@ -1,5 +1,7 @@
 # Síntesis de Fórmulas Contables y de Costos
 
+> **Alcance documental.** Este archivo es material académico de referencia, no un inventario de automatismos de Colibrí. El prototipo calcula o usa directamente sólo una parte de estas fórmulas (por ejemplo IVA, partida doble, ajustes, depreciación, amortización, planilla, PEPS, procesos, CIF y estimaciones). Las fórmulas restantes orientan el análisis, la parametrización manual o la validación profesional; no deben presentarse como resultados generados automáticamente por el software.
+
 <!--
 Documento de apoyo técnico y académico.
 Agrupa fórmulas, ecuaciones y criterios de vigencia para mantener una lectura
