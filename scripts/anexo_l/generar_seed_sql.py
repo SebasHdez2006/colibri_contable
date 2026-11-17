@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
-"""Genera scripts/db/seed_anexo_l.sql a partir de anexo_l.json (bloque "seed").
+"""Genera scripts/db/seed_anexo_l.sql a partir de anexo_l.json (esquema v2).
 
 Los UUID son deterministas (uuid5) para que la salida sea reproducible.
+El estado de los períodos replica el informe: enero–septiembre CERRADO,
+octubre EN_REVISION y noviembre–diciembre ABIERTO.
 """
 import argparse
+import calendar
 import json
+import re
 import sys
 import uuid
 from pathlib import Path
@@ -46,6 +50,14 @@ def periodo_de(f):
     return int(f.split('-')[1])
 
 
+def estado_periodo(mes):
+    if mes <= 9:
+        return 'CERRADO'
+    if mes == 10:
+        return 'EN_REVISION'
+    return 'ABIERTO'
+
+
 def generar(d):
     s = d['seed']
     anio = d['ejercicio']['anio']
@@ -75,11 +87,11 @@ END $$;""")
       f"{q(e['moneda'])}, {q(e['zona_horaria'])}, {q(e['actividad_economica'])});")
     w(f"INSERT INTO ejercicio (id, empresa_id, anio, fecha_inicio, fecha_fin, activo, version_catalogo) "
       f"VALUES ('{ej}', '{emp}', {anio}, DATE '{anio}-01-01', DATE '{anio}-12-31', TRUE, 1);")
-    import calendar
     for mes in range(1, 13):
         ult = calendar.monthrange(anio, mes)[1]
         w(f"INSERT INTO periodo (id, ejercicio_id, mes, fecha_inicio, fecha_fin, estado, version) VALUES "
-          f"({periodo_ref(anio, mes)}, '{ej}', {mes}, DATE '{anio}-{mes:02d}-01', DATE '{anio}-{mes:02d}-{ult:02d}', 'ABIERTO', 1);")
+          f"({periodo_ref(anio, mes)}, '{ej}', {mes}, DATE '{anio}-{mes:02d}-01', DATE '{anio}-{mes:02d}-{ult:02d}', "
+          f"'{estado_periodo(mes)}', 1);")
     w(f"UPDATE catalogo_version SET aprobado = TRUE, aprobado_en = CURRENT_TIMESTAMP, aprobado_por = {CONTADOR} "
       f"WHERE version = 1;")
 
@@ -116,9 +128,11 @@ END $$;""")
         w(f"INSERT INTO partida_detalle (id, partida_id, linea, codigo_cuenta, auxiliar, centro_costo, debe, haber) "
           f"VALUES\n    {filas};")
         w(f"UPDATE evento_contable SET partida_contabilizada_id = '{pid}' WHERE id = '{eid}';")
-        if p['documento']:
-            w(f"INSERT INTO documento_evento (id, documento_id, evento_id, tipo_evento, partida_id) VALUES "
-              f"('{uid('docev', p['folio'])}', '{d_id[p['documento']]}', '{eid}', {q(p['tipo_evento'])}, '{pid}');")
+        for x in s['documentos']:
+            if x['folio'] == p['folio']:
+                w(f"INSERT INTO documento_evento (id, documento_id, evento_id, tipo_evento, partida_id) VALUES "
+                  f"('{uid('docev', x['codigo'], p['folio'])}', '{d_id[x['codigo']]}', '{eid}', "
+                  f"{q(x['tipo_evento'])}, '{pid}');")
     for a in s['aplicaciones_pago']:
         w(f"INSERT INTO aplicacion_pago (id, documento_origen_id, documento_pago_id, partida_id, importe, fecha, concepto) "
           f"VALUES ('{uid('apago', a['pago'])}', '{d_id[a['origen']]}', '{d_id[a['pago']]}', '{p_id[a['folio']]}', "
@@ -131,19 +145,66 @@ END $$;""")
         w(f"INSERT INTO lote_licencia (id, version_id, codigo_lote, unidades_estimadas, costo_total, costo_unitario, "
           f"unidades_disponibles, fecha_liberacion, partida_id) VALUES ('{lid}', "
           f"(SELECT pv.id FROM producto_version pv JOIN producto p ON p.id = pv.producto_id "
-          f"WHERE p.codigo = 'COL-INV' AND pv.version_label = {q(l['version'])}), {q(l['codigo_lote'])}, "
+          f"WHERE p.codigo = {q(l['producto'])} AND pv.version_label = {q(l['version'])}), {q(l['codigo_lote'])}, "
           f"{l['unidades_estimadas']}, {num(l['costo_total'])}, {num(l['costo_unitario'])}, "
           f"{l['unidades_disponibles']}, {fecha(l['fecha_liberacion'])}, "
           f"{q(p_id[l['folio']]) if l['folio'] else 'NULL'});")
         filas = []
         for x in l['licencias']:
-            ent = x['estado'] == 'ENTREGADA'
+            tiene_doc = x.get('documento') is not None
             filas.append(f"('{uid('licencia', l['codigo_lote'], str(x['numero']))}', '{lid}', {x['numero']}, "
-                         f"{q(x['estado'])}, {q(t_id[x['cliente']]) if ent else 'NULL'}, NULL, "
-                         f"{q(d_id[x['documento']]) if ent else 'NULL'}, {fecha(x.get('fecha'))}, "
-                         f"{fecha(x.get('fecha'))}, {num(x['costo_unitario'])})")
+                         f"{q(x['estado'])}, {q(t_id[x['cliente']]) if x.get('cliente') else 'NULL'}, NULL, "
+                         f"{q(d_id[x['documento']]) if tiene_doc else 'NULL'}, "
+                         f"{fecha(x.get('fecha_entrega'))}, {fecha(x.get('fecha_entrega'))}, "
+                         f"{num(x['costo_unitario'])})")
         w("INSERT INTO licencia (id, lote_id, numero, estado, cliente_id, contrato_id, documento_id, fecha_entrega, "
           "fecha_activacion, costo_unitario) VALUES\n    " + ',\n    '.join(filas) + ';')
+
+        # Kárdex del lote: la liberación suma todas las unidades y cada
+        # licencia entregada, devuelta o revocada deja su movimiento con el
+        # saldo corrido. Las ventas del Anexo L son partidas agregadas por
+        # lote, por lo que las entregas no llevan partida propia.
+        saldo_u = len(l['licencias'])
+        saldo_v = round(float(l['costo_total']), 2)
+        movs = [dict(sufijo='lib', licencia=None, tipo='LIBERACION',
+                     fecha=l['fecha_liberacion'], unidades=len(l['licencias']),
+                     costo=float(l['costo_unitario']), importe=round(float(l['costo_total']), 2),
+                     saldo_u=saldo_u, saldo_v=saldo_v,
+                     partida=p_id[l['folio']] if l['folio'] else None,
+                     detalle='Liberación de lote')]
+        for x in sorted((x for x in l['licencias']
+                         if x['estado'] in ('ENTREGADA', 'DEVUELTA', 'REVOCADA')),
+                        key=lambda x: (x.get('fecha_entrega') or l['fecha_liberacion'], x['numero'])):
+            lic = uid('licencia', l['codigo_lote'], str(x['numero']))
+            costo = float(x['costo_unitario'])
+            fch = x.get('fecha_entrega') or l['fecha_liberacion']
+            if x['estado'] == 'ENTREGADA':
+                saldo_u -= 1
+                imp = round(-costo, 2)
+                saldo_v = round(saldo_v + imp, 2)
+                movs.append(dict(sufijo=str(x['numero']) + '-ent', licencia=lic, tipo='ENTREGA',
+                                 fecha=fch, unidades=-1, costo=costo, importe=imp,
+                                 saldo_u=saldo_u, saldo_v=saldo_v, partida=None, detalle=None))
+            elif x['estado'] == 'DEVUELTA':
+                saldo_u += 1
+                imp = round(costo, 2)
+                saldo_v = round(saldo_v + imp, 2)
+                movs.append(dict(sufijo=str(x['numero']) + '-dev', licencia=lic, tipo='DEVOLUCION',
+                                 fecha=fch, unidades=1, costo=costo, importe=imp,
+                                 saldo_u=saldo_u, saldo_v=saldo_v, partida=None,
+                                 detalle='Devolución histórica'))
+            else:
+                movs.append(dict(sufijo=str(x['numero']) + '-rev', licencia=lic, tipo='REVOCACION',
+                                 fecha=fch, unidades=0, costo=costo, importe=0.0,
+                                 saldo_u=saldo_u, saldo_v=saldo_v, partida=None,
+                                 detalle='Revocación histórica'))
+        for m in movs:
+            w(f"INSERT INTO licencia_movimiento (id, lote_id, licencia_id, tipo, fecha, unidades, "
+              f"costo_unitario, importe, saldo_unidades, saldo_valor, partida_id, detalle, creado_por) "
+              f"VALUES ('{uid('kardex', l['codigo_lote'], m['sufijo'])}', '{lid}', "
+              f"{q(m['licencia'])}, {q(m['tipo'])}, {fecha(m['fecha'])}, {m['unidades']}, "
+              f"{num(m['costo'])}, {num(m['importe'])}, {m['saldo_u']}, {num(m['saldo_v'])}, "
+              f"{q(m['partida']) if m['partida'] else 'NULL'}, {q(m['detalle'])}, {CONTADOR});")
 
     for o in s['ordenes']:
         oid = uid('orden', o['codigo'])
@@ -151,12 +212,13 @@ END $$;""")
           f"('{oid}', {q(o['codigo'])}, '{t_id[o['cliente']]}', {q(o['descripcion'])}, {num(o['presupuesto'])}, "
           f"{num(o['precio_venta'])}, {q(o['estado'])});")
         pf = o['folio_consumos']
-        fch = next(p['fecha'] for p in s['partidas'] if p['folio'] == pf)
-        for i, c in enumerate(o['consumos'], 1):
-            w(f"INSERT INTO orden_consumo (id, orden_id, tipo, descripcion, cantidad, tarifa, importe, periodo_id, fecha, partida_id) "
-              f"VALUES ('{uid('consumo', o['codigo'], str(i))}', '{oid}', {q(c['tipo'])}, {q(c['descripcion'])}, "
-              f"{num(c['cantidad'])}, {num(c['tarifa'])}, {num(c['importe'])}, {periodo_ref(anio, periodo_de(fch))}, "
-              f"{fecha(fch)}, '{p_id[pf]}');")
+        if pf:
+            fch = next(p['fecha'] for p in s['partidas'] if p['folio'] == pf)
+            for i, c in enumerate(o['consumos'], 1):
+                w(f"INSERT INTO orden_consumo (id, orden_id, tipo, descripcion, cantidad, tarifa, importe, periodo_id, fecha, partida_id) "
+                  f"VALUES ('{uid('consumo', o['codigo'], str(i))}', '{oid}', {q(c['tipo'])}, {q(c['descripcion'])}, "
+                  f"{num(c['cantidad'])}, {num(c['tarifa'])}, {num(c['importe'])}, {periodo_ref(anio, periodo_de(fch))}, "
+                  f"{fecha(fch)}, '{p_id[pf]}');")
 
     for a in s['activos_fijos']:
         w(f"INSERT INTO activo_fijo (id, codigo, nombre, cuenta_activo, cuenta_dep_acum, cuenta_gasto, costo, vida_meses, "
@@ -174,32 +236,51 @@ END $$;""")
           f"{q(a['codigo'])}, {q(a['nombre'])}, {q(a['cuenta_activo'])}, {q(a['cuenta_amort_acum'])}, "
           f"{q(a['cuenta_gasto'])}, {num(a['costo'])}, {a['vida_meses']}, {fecha(a['fecha_uso'])}, "
           f"{num(a['valor_residual'])}, {num(a['amortizacion_acum'])}, TRUE);")
+    for c in s.get('cuotas_amortizacion', []):
+        w(f"INSERT INTO amortizacion_cuota (id, activo_id, periodo_id, importe, partida_id) VALUES "
+          f"('{uid('amort', c['activo'], str(c['periodo_mes']))}', '{uid('ai', c['activo'])}', "
+          f"{periodo_ref(anio, c['periodo_mes'])}, {num(c['importe'])}, '{p_id[c['folio']]}');")
+    for c in s.get('estimaciones_cartera', []):
+        w(f"INSERT INTO estimacion_cartera_cuota (id, periodo_id, base_estimacion, porcentaje, importe, partida_id) VALUES "
+          f"('{uid('estcar', str(c['periodo_mes']))}', {periodo_ref(anio, c['periodo_mes'])}, "
+          f"{num(c['base_estimacion'])}, {num(c['porcentaje'])}, {num(c['importe'])}, '{p_id[c['folio']]}');")
+    for u in s.get('saas_usuario_mes', []):
+        w(f"INSERT INTO saas_usuario_mes (plan_id, periodo, usuarios_mes) VALUES "
+          f"((SELECT id FROM plan_servicio WHERE codigo = {q(u['plan'])}), DATE '{u['periodo']}', {u['usuarios_mes']});")
     for pl in s['planillas']:
         cols = ['empleados', 'salario_nominal', 'tasa_isss_laboral', 'tasa_previsional_laboral', 'isr_retenido',
                 'otras_deducciones', 'isss_laboral', 'isss_patronal', 'previsional_laboral', 'previsional_patronal',
-                'incaf', 'liquido_por_pagar', 'costo_patronal_total', 'tasa_isss_patronal',
-                'tasa_previsional_patronal', 'tasa_incaf', 'umbral_incaf_empleados']
-        vals = ', '.join(num(pl[c]) for c in cols)
-        w(f"INSERT INTO planilla_periodo (id, periodo_id, fecha_contable, {', '.join(cols)}, centro_costo, clave_evento, "
+                'incaf', 'aguinaldo_provisionado', 'vacaciones_provisionadas', 'otras_prestaciones',
+                'liquido_por_pagar', 'costo_patronal_total', 'tasa_isss_patronal',
+                'tasa_previsional_patronal', 'tasa_incaf', 'umbral_incaf_empleados', 'centro_costo']
+        defaults = {'aguinaldo_provisionado': '0', 'vacaciones_provisionadas': '0',
+                    'otras_prestaciones': '0', 'tasa_isss_patronal': '0.075',
+                    'tasa_previsional_patronal': '0.0875', 'tasa_incaf': '0.01',
+                    'umbral_incaf_empleados': '10', 'centro_costo': 'GENERAL'}
+        vals = ', '.join(q(pl[c]) if c == 'centro_costo' else num(pl.get(c, defaults.get(c, 0)))
+                         for c in cols)
+        w(f"INSERT INTO planilla_periodo (id, periodo_id, fecha_contable, {', '.join(cols)}, clave_evento, "
           f"partida_id) VALUES ('{uid('planilla', str(pl['periodo_mes']))}', {periodo_ref(anio, pl['periodo_mes'])}, "
-          f"{fecha(pl['fecha_contable'])}, {vals}, {q(pl['centro_costo'])}, {q(pref + pl['clave_evento'])}, "
-          f"'{p_id[pl['folio']]}');")
+          f"{fecha(pl['fecha_contable'])}, {vals}, {q(pref + pl['clave_evento'])}, '{p_id[pl['folio']]}');")
 
-    cerrados = ', '.join(str(m) for m in d['ejercicio']['periodos_cerrados'])
-    w(f"UPDATE periodo SET estado = 'CERRADO' WHERE ejercicio_id = '{ej}' AND mes IN ({cerrados});")
     w('COMMIT;')
     return '\n'.join(out) + '\n'
 
 
 def generar_verificacion(d):
-    saldos = {}
-    for b in d['balanza']:
-        c = '110501' if b['codigo'] == '1105' else b['codigo']
-        saldos[c] = saldos.get(c, 0) + (float(b['debe']) - float(b['haber']))
+    # Saldos esperados por cuenta de 6 dígitos: apertura + movimientos del diario
+    esperado = {}
+    for a in d['apertura']:
+        esperado[a['codigo']] = esperado.get(a['codigo'], 0.0) + float(a['neto'])
+    for p in d['diario']:
+        for l in p['lineas']:
+            esperado[l['cuenta']] = esperado.get(l['cuenta'], 0.0) + float(l['debe']) - float(l['haber'])
+    esperado = {c: round(v, 2) for c, v in esperado.items() if abs(v) >= 0.005}
     sep = ',' + chr(10) + '    '
-    valores = sep.join(f"('{c}', {v:.2f})" for c, v in sorted(saldos.items()))
+    valores = sep.join(f"('{c}', {v:.2f})" for c, v in sorted(esperado.items()))
     ctl = d['controles']
-    return f"""-- Generado por generar_seed_sql.py. Falla (RAISE EXCEPTION) si el seed no coincide con el Anexo L.
+    bancos_ini = float(next(a['neto'] for a in d['apertura'] if a['codigo'] == '110102'))
+    return f"""-- Generado por generar_seed_sql.py. Falla (RAISE EXCEPTION) si el seed no coincide con el informe.
 \\encoding UTF8
 \\set ON_ERROR_STOP on
 DO $$
@@ -220,15 +301,15 @@ BEGIN
         SELECT COALESCE(e.codigo, r.codigo) FROM esperado e FULL JOIN real r ON r.codigo = e.codigo
          WHERE COALESCE(e.saldo,0) <> COALESCE(r.saldo,0)
     ) x;
-    IF n <> 0 THEN RAISE EXCEPTION 'La balanza difiere del Anexo L en % cuentas', n; END IF;
+    IF n <> 0 THEN RAISE EXCEPTION 'La balanza difiere del informe en % cuentas', n; END IF;
 
     SELECT SUM(pd.debe) INTO v FROM partida_detalle pd JOIN partida p ON p.id = pd.partida_id
-     WHERE p.tipo <> 'AP' AND p.fecha_contable >= DATE '2026-10-01';
+     WHERE p.tipo <> 'AP' AND p.fecha_contable >= DATE '2026-10-01' AND p.fecha_contable < DATE '2026-11-01';
     IF v <> {ctl['diario_debe']} THEN RAISE EXCEPTION 'Sumas de octubre % <> {ctl['diario_debe']}', v; END IF;
 
     SELECT SUM(pd.debe - pd.haber) INTO v FROM partida_detalle pd JOIN partida p ON p.id = pd.partida_id
      WHERE pd.codigo_cuenta = '110102' AND p.fecha_contable < DATE '2026-10-01';
-    IF v <> 100914.25 THEN RAISE EXCEPTION 'Saldo inicial de bancos %', v; END IF;
+    IF v <> {bancos_ini:.2f} THEN RAISE EXCEPTION 'Saldo inicial de bancos %', v; END IF;
 
     SELECT count(*), COALESCE(SUM(costo_unitario),0) INTO n, v FROM licencia WHERE estado = 'DISPONIBLE';
     IF n <> {ctl['licencias_disponibles']} OR v <> {ctl['inventario_licencias']} THEN
@@ -238,10 +319,22 @@ BEGIN
     IF n <> {len(d['seed']['partidas'])} THEN RAISE EXCEPTION 'Partidas contabilizadas: %', n; END IF;
     SELECT count(*) INTO n FROM periodo WHERE estado = 'CERRADO';
     IF n <> {len(d['ejercicio']['periodos_cerrados'])} THEN RAISE EXCEPTION 'Periodos cerrados: %', n; END IF;
+    SELECT count(*) INTO n FROM periodo WHERE estado = 'EN_REVISION' AND mes = 10;
+    IF n <> 1 THEN RAISE EXCEPTION 'Octubre no esta EN_REVISION'; END IF;
     SELECT count(*) INTO n FROM contador WHERE usuario IN ('contador','soporte');
     IF n <> 2 THEN RAISE EXCEPTION 'Usuarios conservados: %', n; END IF;
     SELECT count(*) INTO n FROM planilla_periodo WHERE partida_id IS NOT NULL;
     IF n <> 1 THEN RAISE EXCEPTION 'Planilla de octubre no enlazada'; END IF;
+    SELECT count(*) INTO n FROM amortizacion_cuota;
+    IF n <> 2 THEN RAISE EXCEPTION 'Cuotas de amortizacion: %', n; END IF;
+    SELECT count(*) INTO n FROM estimacion_cartera_cuota;
+    IF n <> 1 THEN RAISE EXCEPTION 'Estimacion de cartera: %', n; END IF;
+    SELECT count(*) INTO n FROM saas_usuario_mes;
+    IF n <> 3 THEN RAISE EXCEPTION 'Consumos SaaS de octubre: %', n; END IF;
+    SELECT count(*) INTO n FROM orden_servicio;
+    IF n <> 4 THEN RAISE EXCEPTION 'Ordenes de servicio: %', n; END IF;
+    SELECT count(*) INTO n FROM orden_consumo;
+    IF n <> 9 THEN RAISE EXCEPTION 'Consumos de ordenes: %', n; END IF;
     RAISE NOTICE 'Seed del Anexo L verificado';
 END $$;
 """

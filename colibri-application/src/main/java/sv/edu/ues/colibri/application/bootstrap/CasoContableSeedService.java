@@ -10,6 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -118,7 +119,7 @@ public final class CasoContableSeedService {
                 "CASO-D-DOC-03", "03-PRODUCCION", facturaProduccion, "COMPRA",
                 List.of(linea("110702", "500.00", "0"), linea("110301", "65.00", "0"),
                         linea("110102", "0", "565.00")));
-        insertarPartida(conn, usuario, enero, TipoPartida.DI,
+        UUID ventaLicencia = insertarPartida(conn, usuario, enero, TipoPartida.DI,
                 LocalDate.of(2026, 1, 10), "Entrega de licencia Colibrí Inventarios y costo de salida",
                 "CASO-D-DOC-04", "04-LICENCIA", facturaLicencia, "VENTA",
                 List.of(linea("110201", "271.20", "0"), linea("510302", "100.00", "0"),
@@ -152,7 +153,13 @@ public final class CasoContableSeedService {
                 List.of(linea("210201", "50.70", "0"), linea("110301", "0", "50.70")));
 
         UUID lote = insertarLote(conn, liberacion);
-        insertarLicencias(conn, lote, cliente, contratoLicencia, facturaLicencia);
+        List<UUID> licencias = insertarLicencias(conn, lote, cliente, contratoLicencia, facturaLicencia);
+        insertarKardex(conn, lote, null, "LIBERACION", LocalDate.of(2026, 1, 5), 5,
+                new BigDecimal("100.000000"), new BigDecimal("500.00"), 5,
+                new BigDecimal("500.00"), liberacion, "Liberación de lote", usuario);
+        insertarKardex(conn, lote, licencias.get(0), "ENTREGA", LocalDate.of(2026, 1, 10), -1,
+                new BigDecimal("100.000000"), new BigDecimal("-100.00"), 4,
+                new BigDecimal("400.00"), ventaLicencia, "Entrega de licencia", usuario);
 
         UUID facturaOrden = crearDocumento(conn, "CCF", NIT_EMPRESA, "SIM-ANEXOD-CLI", cliente,
                 contratoOrden, LocalDate.of(2026, 2, 28),
@@ -457,15 +464,18 @@ public final class CasoContableSeedService {
         return loteId;
     }
 
-    private void insertarLicencias(Connection conn, UUID loteId, UUID clienteId,
-                                   UUID contratoId, UUID documentoId) throws SQLException {
+    private List<UUID> insertarLicencias(Connection conn, UUID loteId, UUID clienteId,
+                                         UUID contratoId, UUID documentoId) throws SQLException {
+        List<UUID> ids = new ArrayList<>();
         try (PreparedStatement ps = conn.prepareStatement("""
                 INSERT INTO licencia (id, lote_id, numero, estado, cliente_id, contrato_id,
                     documento_id, fecha_entrega, fecha_activacion, costo_unitario)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 100.000000)
                 """)) {
             for (int numero = 1; numero <= 5; numero++) {
-                ps.setObject(1, UUID.randomUUID());
+                UUID licenciaId = UUID.randomUUID();
+                ids.add(licenciaId);
+                ps.setObject(1, licenciaId);
                 ps.setObject(2, loteId);
                 ps.setInt(3, numero);
                 boolean entregada = numero == 1;
@@ -478,6 +488,34 @@ public final class CasoContableSeedService {
                 ps.addBatch();
             }
             ps.executeBatch();
+        }
+        return ids;
+    }
+
+    private void insertarKardex(Connection conn, UUID loteId, UUID licenciaId, String tipo,
+                                LocalDate fecha, int unidades, BigDecimal costoUnitario,
+                                BigDecimal importe, int saldoUnidades, BigDecimal saldoValor,
+                                UUID partidaId, String detalle, UUID creadoPor) throws SQLException {
+        try (PreparedStatement ps = conn.prepareStatement("""
+                INSERT INTO licencia_movimiento (id, lote_id, licencia_id, tipo, fecha, unidades,
+                    costo_unitario, importe, saldo_unidades, saldo_valor, partida_id, detalle,
+                    creado_por)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """)) {
+            ps.setObject(1, UUID.randomUUID());
+            ps.setObject(2, loteId);
+            ps.setObject(3, licenciaId);
+            ps.setString(4, tipo);
+            ps.setObject(5, fecha);
+            ps.setInt(6, unidades);
+            ps.setBigDecimal(7, costoUnitario);
+            ps.setBigDecimal(8, importe);
+            ps.setInt(9, saldoUnidades);
+            ps.setBigDecimal(10, saldoValor);
+            ps.setObject(11, partidaId);
+            ps.setString(12, detalle);
+            ps.setObject(13, creadoPor);
+            ps.executeUpdate();
         }
     }
 

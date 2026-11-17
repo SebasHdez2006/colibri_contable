@@ -36,13 +36,14 @@ import java.util.UUID;
 public class InventarioCostosView extends VBox {
 
     public enum Panel {
-        DIGITALES, SERVICIOS, MEDIDA, LICENCIAS, SAAS
+        DIGITALES, SERVICIOS, MEDIDA, LICENCIAS, SAAS, KARDEX
     }
 
     private final AppContext context;
     private final Label ordenLbl = new Label();
     private final ListView<String> lotes = new ListView<>();
     private final ComboBox<Tercero> cliente = new ComboBox<>();
+    private final ComboBox<InventarioCostoService.LicenciaEntregadaInfo> licenciaGestion = new ComboBox<>();
 
     /**
      * Crea la vista de costeo para el panel funcional indicado.
@@ -68,6 +69,7 @@ public class InventarioCostosView extends VBox {
             case MEDIDA -> getChildren().addAll(panelMedida(fecha));
             case LICENCIAS -> getChildren().addAll(panelLicencias());
             case SAAS -> getChildren().addAll(panelSaas(fecha));
+            case KARDEX -> getChildren().addAll(panelKardex());
         }
         refrescar();
     }
@@ -162,11 +164,150 @@ public class InventarioCostosView extends VBox {
                 ResponsiveLayouts.row(ResponsiveLayouts.field("Cliente", cliente),
                         ResponsiveLayouts.field("Precio neto (USD)", precio), vender));
 
+        licenciaGestion.setPromptText("Licencia entregada");
+        UiCatalogos.ayuda(licenciaGestion, "Licencia en estado ENTREGADA sobre la que se aplicará devolución o revocación.");
+        TextField motivoGestion = new TextField();
+        motivoGestion.setPromptText("Motivo (opcional)");
+        UiCatalogos.ayuda(motivoGestion, "Se asienta en el kárdex del lote como detalle del movimiento.");
+        Button devolver = new Button("Devolver al inventario");
+        devolver.setOnAction(e -> ejecutar(() -> {
+            var seleccion = licenciaGestion.getValue();
+            if (seleccion == null) {
+                throw new IllegalArgumentException("Seleccione la licencia entregada.");
+            }
+            if (!UiDialogs.confirmar("Confirmar devolución",
+                    "La licencia volverá a estar disponible por PEPS. Si su venta tiene partida "
+                            + "trazable en el kárdex, se revertirá el asiento completo "
+                            + "(ingreso, IVA, costo de ventas e inventario).")) {
+                return;
+            }
+            var reversa = context.inventario().devolverLicencia(seleccion.id(), fecha.getValue(),
+                    motivoGestion.getText());
+            UiDialogs.info("Licencia devuelta", reversa == null
+                    ? "La unidad reingresó al inventario. La venta original no tiene partida por "
+                            + "unidad: ajuste el ingreso manualmente si corresponde."
+                    : "La unidad reingresó al inventario y se contabilizó la reversa con folio "
+                            + reversa.getFolio() + ".");
+            motivoGestion.clear();
+            refrescar();
+        }));
+        Button revocar = new Button("Revocar derecho");
+        revocar.setOnAction(e -> ejecutar(() -> {
+            var seleccion = licenciaGestion.getValue();
+            if (seleccion == null) {
+                throw new IllegalArgumentException("Seleccione la licencia entregada.");
+            }
+            if (!UiDialogs.confirmar("Confirmar revocación",
+                    "El derecho de uso queda revocado y la unidad NO regresa al inventario. "
+                            + "El tratamiento del ingreso se realiza por separado.")) {
+                return;
+            }
+            context.inventario().revocarLicencia(seleccion.id(), fecha.getValue(),
+                    motivoGestion.getText());
+            UiDialogs.info("Licencia revocada",
+                    "El derecho quedó revocado; el movimiento consta en el kárdex del lote.");
+            motivoGestion.clear();
+            refrescar();
+        }));
+        VBox gestion = tarjeta("Devolución y revocación de licencias",
+                new Label("La devolución reingresa la unidad al stock PEPS; la revocación la da "
+                        + "de baja sin reingreso. Ambos hechos quedan en el kárdex."),
+                ResponsiveLayouts.row(ResponsiveLayouts.field("Licencia entregada", licenciaGestion),
+                        ResponsiveLayouts.field("Motivo", motivoGestion), devolver, revocar));
+
         lotes.setPlaceholder(new Label("Aún no se han liberado lotes de licencias."));
         lotes.setMaxHeight(Double.MAX_VALUE);
         VBox existencias = tarjeta("Inventario perpetuo PEPS (primero en entrar, primero en salir)",
                 lotes);
-        return new javafx.scene.Node[]{liberacion, venta, existencias};
+        return new javafx.scene.Node[]{liberacion, venta, gestion, existencias};
+    }
+
+    private javafx.scene.Node[] panelKardex() {
+        ComboBox<InventarioCostoService.LoteInfo> loteKardex = new ComboBox<>();
+        loteKardex.setConverter(new StringConverter<>() {
+            @Override public String toString(InventarioCostoService.LoteInfo value) {
+                return value == null ? ""
+                        : value.codigo() + " · " + value.disponibles() + " disponibles";
+            }
+            @Override public InventarioCostoService.LoteInfo fromString(String ignored) { return null; }
+        });
+        loteKardex.setPromptText("Lote del kárdex");
+        UiCatalogos.ayuda(loteKardex, "Lote cuyas entradas, salidas PEPS, devoluciones y revocaciones se listan en orden.");
+        TableView<InventarioCostoService.KardexInfo> tabla = new TableView<>();
+        TableColumn<InventarioCostoService.KardexInfo, String> cFecha = new TableColumn<>("Fecha");
+        cFecha.setCellValueFactory(c -> new SimpleStringProperty(
+                c.getValue().fecha() == null ? "" : c.getValue().fecha().toString()));
+        TableColumn<InventarioCostoService.KardexInfo, String> cTipo = new TableColumn<>("Movimiento");
+        cTipo.setCellValueFactory(c -> new SimpleStringProperty(
+                etiquetaMovimiento(c.getValue().tipo())));
+        TableColumn<InventarioCostoService.KardexInfo, String> cLic = new TableColumn<>("Licencia");
+        cLic.setCellValueFactory(c -> new SimpleStringProperty(
+                c.getValue().licenciaNumero() == null ? "—" : "#" + c.getValue().licenciaNumero()));
+        TableColumn<InventarioCostoService.KardexInfo, String> cEntrada = new TableColumn<>("Entrada");
+        cEntrada.setCellValueFactory(c -> new SimpleStringProperty(
+                c.getValue().unidades() > 0 ? String.valueOf(c.getValue().unidades()) : ""));
+        TableColumn<InventarioCostoService.KardexInfo, String> cSalida = new TableColumn<>("Salida");
+        cSalida.setCellValueFactory(c -> new SimpleStringProperty(
+                c.getValue().unidades() < 0 ? String.valueOf(-c.getValue().unidades()) : ""));
+        TableColumn<InventarioCostoService.KardexInfo, String> cCosto = new TableColumn<>("Costo unit.");
+        cCosto.setCellValueFactory(c -> new SimpleStringProperty(
+                c.getValue().unidades() == 0 ? "—" : dinero(c.getValue().costoUnitario())));
+        TableColumn<InventarioCostoService.KardexInfo, String> cImporte = new TableColumn<>("Importe");
+        cImporte.setCellValueFactory(c -> new SimpleStringProperty(
+                c.getValue().unidades() == 0 ? "—" : dinero(c.getValue().importe())));
+        TableColumn<InventarioCostoService.KardexInfo, String> cSaldoU = new TableColumn<>("Saldo und.");
+        cSaldoU.setCellValueFactory(c -> new SimpleStringProperty(
+                String.valueOf(c.getValue().saldoUnidades())));
+        TableColumn<InventarioCostoService.KardexInfo, String> cSaldoV = new TableColumn<>("Saldo valor");
+        cSaldoV.setCellValueFactory(c -> new SimpleStringProperty(
+                dinero(c.getValue().saldoValor())));
+        TableColumn<InventarioCostoService.KardexInfo, String> cDetalle = new TableColumn<>("Detalle");
+        cDetalle.setCellValueFactory(c -> {
+            String detalle = c.getValue().detalle() == null ? "" : c.getValue().detalle();
+            String folio = c.getValue().folio();
+            return new SimpleStringProperty(folio == null || folio.isBlank()
+                    ? detalle : folio + (detalle.isBlank() ? "" : " · " + detalle));
+        });
+        tabla.getColumns().addAll(cFecha, cTipo, cLic, cEntrada, cSalida, cCosto, cImporte,
+                cSaldoU, cSaldoV, cDetalle);
+        tabla.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        tabla.setPlaceholder(new Label("Seleccione un lote para ver su kárdex."));
+        tabla.setMinHeight(260);
+        tabla.setPrefHeight(420);
+        Runnable cargar = () -> {
+            var lote = loteKardex.getValue();
+            tabla.setItems(lote == null ? FXCollections.emptyObservableList()
+                    : FXCollections.observableArrayList(
+                            context.inventario().kardexDeLote(lote.id())));
+        };
+        loteKardex.getSelectionModel().selectedItemProperty().addListener((o, a, b) -> cargar.run());
+        Button actualizar = new Button("Actualizar");
+        actualizar.setOnAction(e -> cargar.run());
+        try {
+            var disponibles = context.inventario().listarLotes();
+            loteKardex.setItems(FXCollections.observableArrayList(disponibles));
+            if (!disponibles.isEmpty()) {
+                loteKardex.getSelectionModel().selectFirst();
+            }
+        } catch (Exception ignored) {
+            loteKardex.getItems().clear();
+        }
+        VBox card = tarjeta("Kárdex de licencias",
+                new Label("Movimientos cronológicos por lote con saldo de unidades y valor bajo PEPS. "
+                        + "La salida descuenta existencias; la devolución las repone y la revocación "
+                        + "no mueve unidades porque la licencia ya había salido con su venta."),
+                ResponsiveLayouts.row(ResponsiveLayouts.field("Lote", loteKardex), actualizar), tabla);
+        return new javafx.scene.Node[]{card};
+    }
+
+    private static String etiquetaMovimiento(String tipo) {
+        return switch (tipo == null ? "" : tipo) {
+            case "LIBERACION" -> "Liberación de lote";
+            case "ENTREGA" -> "Salida · entrega PEPS";
+            case "DEVOLUCION" -> "Devolución";
+            case "REVOCACION" -> "Revocación";
+            default -> tipo;
+        };
     }
 
     private javafx.scene.Node[] panelServicios(DatePicker fecha) {
@@ -396,6 +537,20 @@ public class InventarioCostosView extends VBox {
 
     private void configurarSelectores() {
         cliente.setConverter(converterTercero());
+        licenciaGestion.setConverter(new StringConverter<>() {
+            @Override public String toString(InventarioCostoService.LicenciaEntregadaInfo value) {
+                if (value == null) {
+                    return "";
+                }
+                String cliente = value.cliente() == null || value.cliente().isBlank()
+                        ? "" : " · " + value.cliente();
+                return value.codigoLote() + " · #" + value.numero() + cliente
+                        + (value.fechaEntrega() == null ? "" : " · " + value.fechaEntrega());
+            }
+            @Override public InventarioCostoService.LicenciaEntregadaInfo fromString(String ignored) {
+                return null;
+            }
+        });
     }
 
     private static StringConverter<Tercero> converterTercero() {
@@ -462,6 +617,8 @@ public class InventarioCostosView extends VBox {
                     "Versiones, lotes liberados y ventas con costo PEPS."};
             case SAAS -> new String[]{"Suscripción SaaS",
                     "Planes por usuario-mes, hitos y costos recurrentes."};
+            case KARDEX -> new String[]{"Kárdex de licencias",
+                    "Movimientos cronológicos por lote con saldo de unidades y valor."};
         };
     }
 
@@ -564,6 +721,7 @@ public class InventarioCostosView extends VBox {
         refrescarOrdenPrincipal();
         refrescarClientes();
         refrescarLotes();
+        refrescarLicenciasEntregadas();
     }
 
     /** Una ausencia de la orden demostrativa no debe impedir mostrar inventario real. */
@@ -596,6 +754,18 @@ public class InventarioCostosView extends VBox {
                             l.codigo(), l.disponibles(), l.costoUnitario())).toList()));
         } catch (Exception ignored) {
             lotes.getItems().clear();
+        }
+    }
+
+    private void refrescarLicenciasEntregadas() {
+        try {
+            var actuales = context.inventario().listarLicenciasEntregadas();
+            UUID seleccionada = licenciaGestion.getValue() == null ? null : licenciaGestion.getValue().id();
+            licenciaGestion.setItems(FXCollections.observableArrayList(actuales));
+            actuales.stream().filter(l -> l.id().equals(seleccionada))
+                    .findFirst().ifPresent(licenciaGestion::setValue);
+        } catch (Exception ignored) {
+            licenciaGestion.getItems().clear();
         }
     }
 

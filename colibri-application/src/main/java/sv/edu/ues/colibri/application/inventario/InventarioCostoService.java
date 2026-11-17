@@ -79,8 +79,33 @@ public class InventarioCostoService {
      * Unidad reservada por PEPS. El lote se conserva para restituir exactamente
      * la disponibilidad afectada si la contabilización posterior falla.
      */
-    private record ReservaLicencia(UUID licenciaId, UUID loteId, BigDecimal costoContable,
-            String codigoLote) {
+    private record ReservaLicencia(UUID licenciaId, UUID loteId, int numero,
+            BigDecimal costoContable, String codigoLote) {
+    }
+
+    /** Movimiento del kárdex de licencias de un lote. */
+    public record KardexInfo(long secuencia, LocalDate fecha, String tipo,
+            Integer licenciaNumero, int unidades, BigDecimal costoUnitario,
+            BigDecimal importe, int saldoUnidades, BigDecimal saldoValor,
+            String detalle, String folio) {
+    }
+
+    /** Licencia entregada pendiente de devolución o revocación. */
+    public record LicenciaEntregadaInfo(UUID id, String codigoLote, int numero,
+            String cliente, LocalDate fechaEntrega, BigDecimal costoUnitario) {
+    }
+
+    /** Estado actual de una licencia para los ciclos de devolución/revocación. */
+    private record LicenciaCicloVida(UUID id, UUID loteId, int numero,
+            String codigoLote, BigDecimal costoUnitario, String estado) {
+    }
+
+    /** Saldo corrido del kárdex de un lote. */
+    private record SaldoKardex(int unidades, BigDecimal valor) {
+    }
+
+    /** Licencia leída junto con la partida de su última entrega, si existe. */
+    private record DatosDevolucion(LicenciaCicloVida licencia, UUID partidaVentaId) {
     }
 
     /** Desglose del costo SaaS por proceso para un período y sus usuarios-mes. */
@@ -187,7 +212,7 @@ public class InventarioCostoService {
                     SELECT li.costo_unitario
                     FROM licencia li
                     JOIN lote_licencia lo ON lo.id=li.lote_id
-                    WHERE li.estado='DISPONIBLE'
+                    WHERE li.estado IN ('DISPONIBLE','DEVUELTA')
                     ORDER BY lo.fecha_liberacion NULLS LAST, lo.codigo_lote, li.numero
                     """);
                     ResultSet rs = ps.executeQuery()) {
@@ -340,6 +365,10 @@ public class InventarioCostoService {
                         }
                         ps.executeBatch();
                     }
+                    registrarKardex(conn, loteId, null, "LIBERACION", fecha, unidades, unitario,
+                            costoContable, partidaFinal.getId(),
+                            "Liberación de " + unidades + " licencias",
+                            auth.exigirContador().getId());
                 } catch (SQLException e) {
                     throw new PersistenceException("Error al crear lote/licencias", e);
                 }
@@ -394,18 +423,25 @@ public class InventarioCostoService {
                 PartidaDetalle.nueva(cuentaCostoVenta, reserva.costoContable(), BigDecimal.ZERO),
                 PartidaDetalle.nueva(cuentaInventario, BigDecimal.ZERO, reserva.costoContable()));
         Partida borrador = null;
+        Partida contabilizada = null;
         boolean entregaConfirmada = false;
         try {
             // La entrega se confirma antes de la contabilización. Si esta falla, el
             // bloque catch revierte la entrega y devuelve la unidad al lote, por lo
             // que no queda una partida de venta contabilizada sin licencia entregada.
-            entregarReserva(reserva.licenciaId(), clienteId, fecha);
+            entregarReserva(reserva, clienteId, fecha);
             entregaConfirmada = true;
             borrador = partidas.guardarBorrador(TipoPartida.DI, fecha, "Venta licencia lote " + reserva.codigoLote(),
                     "LIC-" + reserva.codigoLote(), "VTA-LIC-" + UUID.randomUUID(), new ArrayList<>(lineas), null);
-            return partidas.contabilizar(borrador.getId());
+            contabilizada = partidas.contabilizar(borrador.getId());
+            vincularPartidaKardex(reserva.licenciaId(), contabilizada.getId());
+            return contabilizada;
         } catch (RuntimeException ex) {
-            if (borrador != null) {
+            if (contabilizada != null) {
+                UUID partidaId = contabilizada.getId();
+                compensar(ex, () -> partidas.revertir(partidaId, fecha,
+                        "Venta de licencia no completada; partida revertida."));
+            } else if (borrador != null) {
                 UUID borradorId = borrador.getId();
                 compensar(ex, () -> partidas.anular(borradorId,
                         "Venta de licencia no completada; inventario restituido."));
@@ -456,7 +492,7 @@ public class InventarioCostoService {
                            lo.unidades_estimadas, lo.codigo_lote
                     FROM licencia li
                     JOIN lote_licencia lo ON lo.id = li.lote_id
-                    WHERE li.estado='DISPONIBLE' AND lo.unidades_disponibles > 0
+                    WHERE li.estado IN ('DISPONIBLE','DEVUELTA') AND lo.unidades_disponibles > 0
                     ORDER BY lo.fecha_liberacion NULLS LAST, lo.codigo_lote, li.numero
                     FOR UPDATE OF li, lo
                     LIMIT 1
@@ -471,7 +507,7 @@ public class InventarioCostoService {
                             rs.getInt("unidades_estimadas"), rs.getInt("numero"));
                     String codigo = rs.getString("codigo_lote");
                     try (PreparedStatement licencia = conn.prepareStatement(
-                            "UPDATE licencia SET estado='RESERVADA' WHERE id=? AND estado='DISPONIBLE'")) {
+                            "UPDATE licencia SET estado='RESERVADA' WHERE id=? AND estado IN ('DISPONIBLE','DEVUELTA')")) {
                         licencia.setObject(1, licenciaId);
                         if (licencia.executeUpdate() != 1) {
                             throw new DomainException("No se pudo reservar la licencia PEPS seleccionada");
@@ -486,7 +522,7 @@ public class InventarioCostoService {
                             throw new DomainException("No se pudo actualizar la disponibilidad del lote PEPS");
                         }
                     }
-                    return new ReservaLicencia(licenciaId, loteId, costo, codigo);
+                    return new ReservaLicencia(licenciaId, loteId, rs.getInt("numero"), costo, codigo);
                 }
             } catch (SQLException e) {
                 throw new PersistenceException("Error al reservar licencia por PEPS", e);
@@ -513,7 +549,7 @@ public class InventarioCostoService {
                 : base;
     }
 
-    private void entregarReserva(UUID licenciaId, UUID clienteId, LocalDate fecha) {
+    private void entregarReserva(ReservaLicencia reserva, UUID clienteId, LocalDate fecha) {
         jdbc.runInTransaction(conn -> {
             try (PreparedStatement ps = conn.prepareStatement("""
                     UPDATE licencia SET estado='ENTREGADA', cliente_id=?, fecha_entrega=?, documento_id=NULL
@@ -521,13 +557,17 @@ public class InventarioCostoService {
                     """)) {
                 ps.setObject(1, clienteId);
                 ps.setObject(2, fecha);
-                ps.setObject(3, licenciaId);
+                ps.setObject(3, reserva.licenciaId());
                 if (ps.executeUpdate() != 1) {
                     throw new DomainException("No se pudo confirmar la entrega de la licencia reservada");
                 }
             } catch (SQLException e) {
                 throw new PersistenceException("Error al entregar licencia", e);
             }
+            registrarKardex(conn, reserva.loteId(), reserva.licenciaId(), "ENTREGA", fecha,
+                    -1, reserva.costoContable(), reserva.costoContable().negate(), null,
+                    "Entrega PEPS · licencia #" + reserva.numero(),
+                    auth.exigirContador().getId());
         });
     }
 
@@ -570,10 +610,361 @@ public class InventarioCostoService {
                         throw new DomainException("No se pudo restituir la disponibilidad del lote");
                     }
                 }
+                // Sólo se retira el movimiento de esta entrega: las entregas
+                // ya contabilizadas conservan su partida en el kárdex.
+                try (PreparedStatement kardex = conn.prepareStatement("""
+                        DELETE FROM licencia_movimiento
+                        WHERE licencia_id=? AND tipo='ENTREGA' AND partida_id IS NULL
+                        """)) {
+                    kardex.setObject(1, licenciaId);
+                    kardex.executeUpdate();
+                }
             } catch (SQLException e) {
                 throw new PersistenceException("No se pudo cancelar la entrega de licencia", e);
             }
         });
+    }
+
+    /**
+     * Asienta el movimiento del kárdex con el saldo resultante del lote.
+     * Bloquea la fila del lote para serializar los saldos entre operaciones
+     * concurrentes sobre el mismo inventario.
+     */
+    private void registrarKardex(Connection conn, UUID loteId, UUID licenciaId, String tipo,
+            LocalDate fecha, int unidades, BigDecimal costoUnitario, BigDecimal importe,
+            UUID partidaId, String detalle, UUID creadoPor) throws SQLException {
+        try (PreparedStatement lock = conn.prepareStatement(
+                "SELECT id FROM lote_licencia WHERE id=? FOR UPDATE")) {
+            lock.setObject(1, loteId);
+            if (!lock.executeQuery().next()) {
+                throw new DomainException("El lote del movimiento de kárdex no existe.");
+            }
+        }
+        SaldoKardex saldo;
+        try (PreparedStatement ps = conn.prepareStatement("""
+                SELECT saldo_unidades, saldo_valor FROM licencia_movimiento
+                WHERE lote_id=? ORDER BY secuencia DESC LIMIT 1
+                """)) {
+            ps.setObject(1, loteId);
+            try (ResultSet rs = ps.executeQuery()) {
+                saldo = rs.next()
+                        ? new SaldoKardex(rs.getInt("saldo_unidades"), rs.getBigDecimal("saldo_valor"))
+                        : new SaldoKardex(0, BigDecimal.ZERO.setScale(2));
+            }
+        }
+        int saldoUnidades = saldo.unidades() + unidades;
+        BigDecimal saldoValor = saldo.valor().add(importe).setScale(2, RoundingMode.HALF_UP);
+        if (saldoUnidades < 0) {
+            throw new DomainException("El kárdex del lote quedaría con existencias negativas.");
+        }
+        try (PreparedStatement ps = conn.prepareStatement("""
+                INSERT INTO licencia_movimiento (id, lote_id, licencia_id, tipo, fecha, unidades,
+                    costo_unitario, importe, saldo_unidades, saldo_valor, partida_id, detalle,
+                    creado_por)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
+                """)) {
+            ps.setObject(1, UUID.randomUUID());
+            ps.setObject(2, loteId);
+            if (licenciaId == null) {
+                ps.setNull(3, java.sql.Types.OTHER);
+            } else {
+                ps.setObject(3, licenciaId);
+            }
+            ps.setString(4, tipo);
+            ps.setObject(5, fecha);
+            ps.setInt(6, unidades);
+            ps.setBigDecimal(7, costoUnitario);
+            ps.setBigDecimal(8, importe);
+            ps.setInt(9, saldoUnidades);
+            ps.setBigDecimal(10, saldoValor);
+            if (partidaId == null) {
+                ps.setNull(11, java.sql.Types.OTHER);
+            } else {
+                ps.setObject(11, partidaId);
+            }
+            ps.setString(12, detalle == null || detalle.isBlank() ? null : detalle.trim());
+            if (creadoPor == null) {
+                ps.setNull(13, java.sql.Types.OTHER);
+            } else {
+                ps.setObject(13, creadoPor);
+            }
+            ps.executeUpdate();
+        }
+    }
+
+    /** Vincula la partida contabilizada con el movimiento de entrega del kárdex. */
+    private void vincularPartidaKardex(UUID licenciaId, UUID partidaId) {
+        jdbc.runInTransaction(conn -> {
+            try (PreparedStatement ps = conn.prepareStatement("""
+                    UPDATE licencia_movimiento SET partida_id=?
+                    WHERE licencia_id=? AND tipo='ENTREGA' AND partida_id IS NULL
+                    """)) {
+                ps.setObject(1, partidaId);
+                ps.setObject(2, licenciaId);
+                ps.executeUpdate();
+            } catch (SQLException e) {
+                throw new PersistenceException("Error al vincular la partida del kárdex", e);
+            }
+        });
+    }
+
+    /**
+     * Lista las licencias entregadas disponibles para devolución o revocación.
+     */
+    public List<LicenciaEntregadaInfo> listarLicenciasEntregadas() {
+        auth.exigirContador();
+        return jdbc.inTransaction(conn -> {
+            try (PreparedStatement ps = conn.prepareStatement("""
+                    SELECT l.id, lo.codigo_lote, l.numero, COALESCE(t.razon_social, '') AS razon_social,
+                           l.fecha_entrega, l.costo_unitario
+                    FROM licencia l
+                    JOIN lote_licencia lo ON lo.id=l.lote_id
+                    LEFT JOIN tercero t ON t.id=l.cliente_id
+                    WHERE l.estado='ENTREGADA'
+                    ORDER BY lo.codigo_lote, l.numero
+                    """);
+                    ResultSet rs = ps.executeQuery()) {
+                List<LicenciaEntregadaInfo> list = new ArrayList<>();
+                while (rs.next()) {
+                    list.add(new LicenciaEntregadaInfo((UUID) rs.getObject("id"),
+                            rs.getString("codigo_lote"), rs.getInt("numero"),
+                            rs.getString("razon_social"),
+                            rs.getObject("fecha_entrega", LocalDate.class),
+                            rs.getBigDecimal("costo_unitario")));
+                }
+                return list;
+            } catch (SQLException e) {
+                throw new PersistenceException("Error al listar licencias entregadas", e);
+            }
+        });
+    }
+
+    /**
+     * Kárdex cronológico de un lote: liberaciones, entregas PEPS, devoluciones
+     * y revocaciones con el saldo de unidades y valor después de cada hecho.
+     */
+    public List<KardexInfo> kardexDeLote(UUID loteId) {
+        auth.exigirContador();
+        return jdbc.inTransaction(conn -> {
+            try (PreparedStatement ps = conn.prepareStatement("""
+                    SELECT m.secuencia, m.fecha, m.tipo, l.numero AS licencia_numero,
+                           m.unidades, m.costo_unitario, m.importe, m.saldo_unidades,
+                           m.saldo_valor, m.detalle, p.folio
+                    FROM licencia_movimiento m
+                    LEFT JOIN licencia l ON l.id=m.licencia_id
+                    LEFT JOIN partida p ON p.id=m.partida_id
+                    WHERE m.lote_id=?
+                    ORDER BY m.secuencia
+                    """)) {
+                ps.setObject(1, loteId);
+                try (ResultSet rs = ps.executeQuery()) {
+                    List<KardexInfo> list = new ArrayList<>();
+                    while (rs.next()) {
+                        list.add(new KardexInfo(rs.getLong("secuencia"),
+                                rs.getObject("fecha", LocalDate.class), rs.getString("tipo"),
+                                (Integer) rs.getObject("licencia_numero"), rs.getInt("unidades"),
+                                rs.getBigDecimal("costo_unitario"), rs.getBigDecimal("importe"),
+                                rs.getInt("saldo_unidades"), rs.getBigDecimal("saldo_valor"),
+                                rs.getString("detalle"), rs.getString("folio")));
+                    }
+                    return list;
+                }
+            } catch (SQLException e) {
+                throw new PersistenceException("Error al consultar el kárdex del lote", e);
+            }
+        });
+    }
+
+    /**
+     * Devuelve una licencia entregada al inventario disponible. Cuando la venta
+     * quedó trazada en el kárdex con su partida (ventas 1:1 registradas en la
+     * aplicación), se contabiliza además la reversión completa de ingreso, IVA,
+     * costo de ventas e inventario. Las ventas históricas agregadas del Anexo L
+     * no tienen partida por unidad: en ese caso sólo reingresa la unidad y la
+     * corrección del ingreso corresponde a un ajuste manual.
+     *
+     * @return la partida de reversa contabilizada, o {@code null} si la venta
+     *         original no tiene partida trazable
+     */
+    public Partida devolverLicencia(UUID licenciaId, LocalDate fecha, String motivo) {
+        auth.exigirContador();
+        if (fecha == null) {
+            throw new DomainException("La fecha de devolución es obligatoria");
+        }
+        DatosDevolucion datos = jdbc.inTransaction(conn -> {
+            LicenciaCicloVida licencia = cargarLicenciaCicloVida(conn, licenciaId);
+            UUID partidaVenta = null;
+            try (PreparedStatement ps = conn.prepareStatement("""
+                    SELECT partida_id FROM licencia_movimiento
+                    WHERE licencia_id=? AND tipo='ENTREGA' AND partida_id IS NOT NULL
+                    ORDER BY secuencia DESC LIMIT 1
+                    """)) {
+                ps.setObject(1, licenciaId);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        partidaVenta = (UUID) rs.getObject(1);
+                    }
+                }
+            } catch (SQLException e) {
+                throw new PersistenceException("Error al leer el kárdex de la licencia", e);
+            }
+            return new DatosDevolucion(licencia, partidaVenta);
+        });
+        if (!"ENTREGADA".equals(datos.licencia().estado())) {
+            throw new DomainException("Sólo una licencia entregada puede devolverse al inventario.");
+        }
+        List<PartidaDetalle> lineas = datos.partidaVentaId() == null ? null
+                : jdbc.inTransaction(conn -> lineasDeReversa(conn, datos.partidaVentaId()));
+        Partida reversa = null;
+        Partida borrador = null;
+        try {
+            if (lineas != null && !lineas.isEmpty()) {
+                borrador = partidas.guardarBorrador(TipoPartida.DI, fecha,
+                        "Devolución licencia " + datos.licencia().codigoLote() + " #"
+                                + datos.licencia().numero(),
+                        "DEV-LIC-" + datos.licencia().codigoLote(),
+                        "DEV-" + licenciaId + "-" + UUID.randomUUID(),
+                        new ArrayList<>(lineas), null);
+                reversa = partidas.contabilizar(borrador.getId());
+            }
+            UUID partidaReversaId = reversa == null ? null : reversa.getId();
+            LicenciaCicloVida licencia = datos.licencia();
+            jdbc.runInTransaction(conn -> {
+                try (PreparedStatement ps = conn.prepareStatement(
+                        "UPDATE licencia SET estado='DEVUELTA' WHERE id=? AND estado='ENTREGADA'")) {
+                    ps.setObject(1, licenciaId);
+                    if (ps.executeUpdate() != 1) {
+                        throw new DomainException(
+                                "La licencia ya no está entregada; no se devolvió al inventario.");
+                    }
+                } catch (SQLException e) {
+                    throw new PersistenceException("Error al devolver la licencia", e);
+                }
+                try (PreparedStatement ps = conn.prepareStatement(
+                        "UPDATE lote_licencia SET unidades_disponibles = unidades_disponibles + 1 WHERE id=?")) {
+                    ps.setObject(1, licencia.loteId());
+                    ps.executeUpdate();
+                } catch (SQLException e) {
+                    throw new PersistenceException("Error al reingresar la licencia al lote", e);
+                }
+                registrarKardex(conn, licencia.loteId(), licenciaId, "DEVOLUCION", fecha, 1,
+                        licencia.costoUnitario(), licencia.costoUnitario(), partidaReversaId,
+                        motivoKardex(motivo, "Devolución de licencia"),
+                        auth.exigirContador().getId());
+            });
+            return reversa;
+        } catch (RuntimeException ex) {
+            if (reversa != null) {
+                UUID id = reversa.getId();
+                compensar(ex, () -> partidas.revertir(id, fecha,
+                        "Devolución de licencia no completada; reversa descartada."));
+            } else if (borrador != null) {
+                UUID id = borrador.getId();
+                compensar(ex, () -> partidas.anular(id,
+                        "Devolución de licencia no completada."));
+            }
+            throw ex;
+        }
+    }
+
+    /**
+     * Revoca el derecho de una licencia entregada sin devolverla al inventario:
+     * la unidad ya salió con su venta y el tratamiento del ingreso se define
+     * contractualmente fuera del prototipo. El hecho queda asentado en el
+     * kárdex con saldo sin movimiento de existencias.
+     */
+    public void revocarLicencia(UUID licenciaId, LocalDate fecha, String motivo) {
+        auth.exigirContador();
+        if (fecha == null) {
+            throw new DomainException("La fecha de revocación es obligatoria");
+        }
+        jdbc.runInTransaction(conn -> {
+            LicenciaCicloVida licencia;
+            try (PreparedStatement ps = conn.prepareStatement("""
+                    SELECT l.id, l.lote_id, l.numero, lo.codigo_lote, l.costo_unitario, l.estado
+                    FROM licencia l JOIN lote_licencia lo ON lo.id=l.lote_id
+                    WHERE l.id=? FOR UPDATE OF l
+                    """)) {
+                ps.setObject(1, licenciaId);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (!rs.next()) {
+                        throw new DomainException("Licencia no encontrada.");
+                    }
+                    licencia = new LicenciaCicloVida((UUID) rs.getObject("id"),
+                            (UUID) rs.getObject("lote_id"), rs.getInt("numero"),
+                            rs.getString("codigo_lote"), rs.getBigDecimal("costo_unitario"),
+                            rs.getString("estado"));
+                }
+            } catch (SQLException e) {
+                throw new PersistenceException("Error al cargar la licencia", e);
+            }
+            if (!"ENTREGADA".equals(licencia.estado())) {
+                throw new DomainException("Sólo una licencia entregada puede revocarse.");
+            }
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "UPDATE licencia SET estado='REVOCADA' WHERE id=? AND estado='ENTREGADA'")) {
+                ps.setObject(1, licenciaId);
+                if (ps.executeUpdate() != 1) {
+                    throw new DomainException("La licencia ya no está entregada; no se revocó.");
+                }
+            } catch (SQLException e) {
+                throw new PersistenceException("Error al revocar la licencia", e);
+            }
+            registrarKardex(conn, licencia.loteId(), licenciaId, "REVOCACION", fecha, 0,
+                    licencia.costoUnitario(), BigDecimal.ZERO, null,
+                    motivoKardex(motivo, "Revocación de derecho de licencia"),
+                    auth.exigirContador().getId());
+        });
+    }
+
+    private LicenciaCicloVida cargarLicenciaCicloVida(Connection conn, UUID licenciaId) {
+        try (PreparedStatement ps = conn.prepareStatement("""
+                SELECT l.id, l.lote_id, l.numero, lo.codigo_lote, l.costo_unitario, l.estado
+                FROM licencia l JOIN lote_licencia lo ON lo.id=l.lote_id
+                WHERE l.id=?
+                """)) {
+            ps.setObject(1, licenciaId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) {
+                    throw new DomainException("Licencia no encontrada.");
+                }
+                return new LicenciaCicloVida((UUID) rs.getObject("id"),
+                        (UUID) rs.getObject("lote_id"), rs.getInt("numero"),
+                        rs.getString("codigo_lote"), rs.getBigDecimal("costo_unitario"),
+                        rs.getString("estado"));
+            }
+        } catch (SQLException e) {
+            throw new PersistenceException("Error al cargar la licencia", e);
+        }
+    }
+
+    /**
+     * Lee las líneas de la partida de venta invirtiendo Debe y Haber para
+     * producir la reversa exacta del asiento original.
+     */
+    private List<PartidaDetalle> lineasDeReversa(Connection conn, UUID partidaId) {
+        List<PartidaDetalle> lineas = new ArrayList<>();
+        try (PreparedStatement ps = conn.prepareStatement("""
+                SELECT codigo_cuenta, auxiliar, centro_costo, debe, haber
+                FROM partida_detalle WHERE partida_id=? ORDER BY linea
+                """)) {
+            ps.setObject(1, partidaId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    lineas.add(PartidaDetalle.nueva(rs.getString("codigo_cuenta"),
+                            rs.getString("auxiliar"), rs.getString("centro_costo"),
+                            rs.getBigDecimal("haber"), rs.getBigDecimal("debe")));
+                }
+            }
+        } catch (SQLException e) {
+            throw new PersistenceException("Error al leer las líneas de la venta", e);
+        }
+        return lineas;
+    }
+
+    private String motivoKardex(String motivo, String defecto) {
+        String texto = motivo == null || motivo.isBlank() ? defecto : motivo.trim();
+        return texto.length() > 300 ? texto.substring(0, 300) : texto;
     }
 
     /**

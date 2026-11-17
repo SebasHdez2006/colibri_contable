@@ -25,12 +25,16 @@ class ParsersTest(unittest.TestCase):
         self.assertEqual(x.separar_soporte('Bancos'), ('Bancos', None))
 
     def test_diario_sintetico(self):
-        filas = [['02 oct.', 'DI-2026-000001', '110202', 'Clientes (DTE-1)', '$10.00', ''],
-                 ['', '', '410101', 'Ingresos', '', '$10.00'],
+        filas = [['02 oct.', 'DI-2026-000001', '', 'Hito aceptado (DTE-1)', '', ''],
+                 ['', '', '110202', 'Clientes por desarrollo (OS-1)', '$10.00', ''],
+                 ['', '', '410101', 'Ingresos por servicios', '', '$10.00'],
                  ['', '', '', 'SUMAS IGUALES DEL EXTRACTO', '$10.00', '$10.00']]
         partidas, control = x.parsear_diario(filas)
         self.assertEqual(len(partidas), 1)
-        self.assertEqual(partidas[0]['soporte_texto'], 'DTE-1')
+        self.assertEqual(partidas[0]['concepto'], 'Hito aceptado (DTE-1)')
+        self.assertEqual(len(partidas[0]['lineas']), 2)
+        self.assertEqual(partidas[0]['lineas'][0]['soporte_texto'], 'OS-1')
+        self.assertEqual(partidas[0]['lineas'][0]['cuenta'], '110202')
         self.assertEqual(control, {'debe': D('10.00'), 'haber': D('10.00')})
 
 
@@ -38,9 +42,13 @@ class ParsersTest(unittest.TestCase):
 class DocumentoRealTest(unittest.TestCase):
     def test_validaciones_y_apertura(self):
         datos = x.construir(str(DOCX))
-        self.assertEqual(len(datos['diario']), 18)
-        self.assertEqual(datos['controles']['apertura_debe'], D('503615.83'))
+        self.assertEqual(len(datos['diario']), 48)
+        self.assertEqual(datos['controles']['apertura_debe'], D('972820.15'))
         self.assertEqual(datos['controles']['apertura_debe'], datos['controles']['apertura_haber'])
+        self.assertEqual(datos['controles']['balanza_debe'], D('1072672.90'))
+        self.assertEqual(datos['controles']['utilidad_neta'], D('51632.41'))
+        self.assertEqual(datos['controles']['catalogo_cuentas'], 181)
+        self.assertEqual(len(datos['noviembre']['cobertura']), 32)
 
 
 if __name__ == '__main__':

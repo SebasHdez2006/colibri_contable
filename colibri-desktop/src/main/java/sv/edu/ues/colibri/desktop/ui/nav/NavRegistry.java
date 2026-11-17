@@ -112,6 +112,7 @@ public final class NavRegistry {
                 h("nav-registros", "Ajustes", SCROLL, () -> new AjustesCierreView(ctx))));
         arbol.add(grupo("Inventario", Symbol.INVENTORY,
                 h("nav-inventario", "Digitales", SCROLL, () -> new InventarioCostosView(ctx, Panel.DIGITALES)),
+                h("nav-inventario", "Kárdex", SCROLL, () -> new InventarioCostosView(ctx, Panel.KARDEX)),
                 h("nav-inventario", "Servicios / Accesos", SCROLL,
                         () -> new InventarioCostosView(ctx, Panel.SERVICIOS))));
         arbol.add(grupo("Costos", Symbol.MONEY,

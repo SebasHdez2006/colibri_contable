@@ -7,12 +7,16 @@ import sv.edu.ues.colibri.persistence.jdbc.JdbcSupport;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -154,24 +158,36 @@ public final class AnexoLSeedService {
 
         for (JsonNode l : seed.get("lotes")) {
             UUID lote = UUID.randomUUID();
+            LocalDate liberacion = fecha(l.get("fecha_liberacion"));
             run(c, "INSERT INTO lote_licencia (id, version_id, codigo_lote, unidades_estimadas, costo_total, "
                             + "costo_unitario, unidades_disponibles, fecha_liberacion, partida_id) VALUES (?, "
                             + "(SELECT pv.id FROM producto_version pv JOIN producto p ON p.id = pv.producto_id "
                             + "WHERE p.codigo = 'COL-INV' AND pv.version_label = ?), ?, ?, ?, ?, ?, ?, ?)",
                     lote, l.get("version").asText(), l.get("codigo_lote").asText(),
                     l.get("unidades_estimadas").asInt(), dec(l.get("costo_total")), dec(l.get("costo_unitario")),
-                    l.get("unidades_disponibles").asInt(), fecha(l.get("fecha_liberacion")),
+                    l.get("unidades_disponibles").asInt(), liberacion,
                     l.hasNonNull("folio") ? partidas.get(l.get("folio").asText()) : null);
+            List<LicenciaKardex> unidades = new ArrayList<>();
             for (JsonNode x : l.get("licencias")) {
+                UUID licenciaId = UUID.randomUUID();
                 boolean entregada = "ENTREGADA".equals(x.get("estado").asText());
-                LocalDate entrega = x.hasNonNull("fecha") ? fecha(x.get("fecha")) : null;
+                LocalDate entrega = x.hasNonNull("fecha_entrega") ? fecha(x.get("fecha_entrega"))
+                        : (x.hasNonNull("fecha") ? fecha(x.get("fecha")) : null);
+                BigDecimal costo = dec(x.get("costo_unitario"));
                 run(c, "INSERT INTO licencia (id, lote_id, numero, estado, cliente_id, contrato_id, documento_id, "
                                 + "fecha_entrega, fecha_activacion, costo_unitario) VALUES (?, ?, ?, ?, ?, NULL, ?, ?, ?, ?)",
-                        UUID.randomUUID(), lote, x.get("numero").asInt(), x.get("estado").asText(),
+                        licenciaId, lote, x.get("numero").asInt(), x.get("estado").asText(),
                         entregada ? terceros.get(x.get("cliente").asText()) : null,
                         entregada ? documentos.get(x.get("documento").asText()) : null,
-                        entrega, entrega, dec(x.get("costo_unitario")));
+                        entrega, entrega, costo);
+                unidades.add(new LicenciaKardex(licenciaId, x.get("numero").asInt(),
+                        x.get("estado").asText(),
+                        entrega != null ? entrega : liberacion, costo));
             }
+            sembrarKardexLote(c, lote, liberacion, dec(l.get("costo_total")),
+                    dec(l.get("costo_unitario")),
+                    l.hasNonNull("folio") ? partidas.get(l.get("folio").asText()) : null,
+                    unidades.size(), contador, unidades);
         }
         for (JsonNode o : seed.get("ordenes")) {
             UUID orden = UUID.randomUUID();
@@ -206,14 +222,35 @@ public final class AnexoLSeedService {
                     periodos.get(q.get("periodo_mes").asInt()), dec(q.get("importe")),
                     partidas.get(q.get("folio").asText()));
         }
+        Map<String, UUID> intangibles = new HashMap<>();
         for (JsonNode a : seed.get("activos_intangibles")) {
+            UUID id = UUID.randomUUID();
+            intangibles.put(a.get("codigo").asText(), id);
             run(c, "INSERT INTO activo_intangible (id, codigo, nombre, cuenta_activo, cuenta_amort_acum, cuenta_gasto, "
                             + "costo, vida_meses, fecha_uso, valor_residual, amortizacion_acum, activo) "
-                            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE)", UUID.randomUUID(),
+                            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE)", id,
                     a.get("codigo").asText(), a.get("nombre").asText(), a.get("cuenta_activo").asText(),
                     a.get("cuenta_amort_acum").asText(), a.get("cuenta_gasto").asText(), dec(a.get("costo")),
                     a.get("vida_meses").asInt(), fecha(a.get("fecha_uso")), dec(a.get("valor_residual")),
                     dec(a.get("amortizacion_acum")));
+        }
+        for (JsonNode q : seed.get("cuotas_amortizacion")) {
+            run(c, "INSERT INTO amortizacion_cuota (id, activo_id, periodo_id, importe, partida_id) "
+                            + "VALUES (?, ?, ?, ?, ?)", UUID.randomUUID(), intangibles.get(q.get("activo").asText()),
+                    periodos.get(q.get("periodo_mes").asInt()), dec(q.get("importe")),
+                    partidas.get(q.get("folio").asText()));
+        }
+        for (JsonNode e : seed.get("estimaciones_cartera")) {
+            run(c, "INSERT INTO estimacion_cartera_cuota (id, periodo_id, base_estimacion, porcentaje, importe, "
+                            + "partida_id) VALUES (?, ?, ?, ?, ?, ?)", UUID.randomUUID(),
+                    periodos.get(e.get("periodo_mes").asInt()), dec(e.get("base_estimacion")),
+                    dec(e.get("porcentaje")), dec(e.get("importe")), partidas.get(e.get("folio").asText()));
+        }
+        for (JsonNode u : seed.get("saas_usuario_mes")) {
+            run(c, "INSERT INTO saas_usuario_mes (plan_id, periodo, usuarios_mes) VALUES "
+                            + "((SELECT id FROM plan_servicio WHERE codigo = ?), ?, ?)",
+                    u.get("plan").asText(), LocalDate.parse(u.get("periodo").asText()),
+                    u.get("usuarios_mes").asInt());
         }
         for (JsonNode p : seed.get("planillas")) {
             run(c, "INSERT INTO planilla_periodo (id, periodo_id, fecha_contable, empleados, salario_nominal, "
@@ -237,6 +274,66 @@ public final class AnexoLSeedService {
         for (JsonNode mes : raiz.at("/ejercicio/periodos_cerrados")) {
             run(c, "UPDATE periodo SET estado = 'CERRADO' WHERE id = ?", periodos.get(mes.asInt()));
         }
+    }
+
+    /**
+     * Reconstruye el kárdex histórico de un lote semilla: la liberación suma
+     * todas las unidades y cada licencia entregada, devuelta o revocada deja
+     * su movimiento en orden cronológico. Las ventas del Anexo L son partidas
+     * agregadas por lote, por lo que las entregas no llevan partida propia y
+     * una devolución posterior no puede revertir el asiento original.
+     */
+    private static void sembrarKardexLote(Connection c, UUID loteId, LocalDate liberacion,
+            BigDecimal costoTotal, BigDecimal costoUnitarioLote, UUID partidaLote, int unidadesLote,
+            UUID contador, List<LicenciaKardex> unidades) throws SQLException {
+        int saldoU = unidadesLote;
+        BigDecimal saldoV = costoTotal.setScale(2, RoundingMode.HALF_UP);
+        kardex(c, loteId, null, "LIBERACION", liberacion, unidadesLote, costoUnitarioLote,
+                costoTotal.setScale(2, RoundingMode.HALF_UP), saldoU, saldoV, partidaLote,
+                "Liberación de lote", contador);
+        List<LicenciaKardex> movimientos = unidades.stream()
+                .filter(u -> "ENTREGADA".equals(u.estado()) || "DEVUELTA".equals(u.estado())
+                        || "REVOCADA".equals(u.estado()))
+                .sorted(Comparator.comparing(LicenciaKardex::fecha)
+                        .thenComparingInt(LicenciaKardex::numero))
+                .toList();
+        for (LicenciaKardex u : movimientos) {
+            switch (u.estado()) {
+                case "ENTREGADA" -> {
+                    saldoU -= 1;
+                    BigDecimal importe = u.costo().negate().setScale(2, RoundingMode.HALF_UP);
+                    saldoV = saldoV.add(importe);
+                    kardex(c, loteId, u.id(), "ENTREGA", u.fecha(), -1, u.costo(), importe,
+                            saldoU, saldoV, null, null, contador);
+                }
+                case "DEVUELTA" -> {
+                    saldoU += 1;
+                    BigDecimal importe = u.costo().setScale(2, RoundingMode.HALF_UP);
+                    saldoV = saldoV.add(importe);
+                    kardex(c, loteId, u.id(), "DEVOLUCION", u.fecha(), 1, u.costo(), importe,
+                            saldoU, saldoV, null, "Devolución histórica", contador);
+                }
+                case "REVOCADA" -> kardex(c, loteId, u.id(), "REVOCACION", u.fecha(), 0, u.costo(),
+                        BigDecimal.ZERO.setScale(2), saldoU, saldoV, null,
+                        "Revocación histórica", contador);
+                default -> { }
+            }
+        }
+    }
+
+    private static void kardex(Connection c, UUID loteId, UUID licenciaId, String tipo,
+            LocalDate fecha, int unidades, BigDecimal costoUnitario, BigDecimal importe,
+            int saldoU, BigDecimal saldoV, UUID partidaId, String detalle, UUID contador)
+            throws SQLException {
+        run(c, "INSERT INTO licencia_movimiento (id, lote_id, licencia_id, tipo, fecha, unidades, "
+                        + "costo_unitario, importe, saldo_unidades, saldo_valor, partida_id, detalle, "
+                        + "creado_por) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                UUID.randomUUID(), loteId, licenciaId, tipo, fecha, unidades, costoUnitario, importe,
+                saldoU, saldoV, partidaId, detalle, contador);
+    }
+
+    private record LicenciaKardex(UUID id, int numero, String estado, LocalDate fecha,
+            BigDecimal costo) {
     }
 
     private static String recortar(String texto, int max) {
