@@ -45,7 +45,7 @@ class CostosCalculatorTest {
         assertAmount("155.25", planilla.aportesPatronales());
         assertAmount("1104.00", planilla.costoIntegral());
         assertAmount("1.22666667", planilla.factorRecargo());
-        assertAmount("0.92000000", planilla.factorRecargoEficiencia());
+        assertAmount("1.63555556", planilla.factorRecargoEficiencia());
         assertAmount("37.76", CostosCalculator.salarioDiarioPrivado(bd("207.69")));
         assertAmount("41.54", CostosCalculator.salarioDiarioCincoDias(bd("207.69")));
         assertAmount("585.00", CostosCalculator.remuneracionVacaciones(bd("30")));

@@ -22,6 +22,7 @@ $root = Split-Path -Parent $PSScriptRoot
 $modulo = Join-Path $root "colibri-desktop"
 $classes = Join-Path $modulo "target\classes"
 $cpFile = Join-Path $modulo "target\cp-runtime.txt"
+$jarDesktop = Join-Path $modulo "target\colibri-desktop-1.0.0-SNAPSHOT.jar"
 $mvnw = Join-Path $root "mvnw.cmd"
 
 $logDir = Join-Path $env:LOCALAPPDATA "Colibri\logs"
@@ -75,11 +76,31 @@ Log "Java runtime: $javaw"
 
 # ------------------------------------------------------------- Build ------
 $ejecutable = Join-Path $classes "sv\edu\ues\colibri\desktop\ColibriApp.class"
-if ($Compilar -or -not (Test-Path $ejecutable)) {
+# No basta con comprobar que exista una clase: esa condición dejaba iniciar
+# una versión antigua después de editar CSS, vistas o cualquiera de los módulos
+# dependientes. Un lanzamiento normal recompila cuando el JAR es anterior a una
+# fuente, recurso o POM relevante. -Compilar sigue disponible para forzarlo.
+$insumosBuild = @()
+foreach ($proyecto in @($root, $root + "\colibri-domain", $root + "\colibri-persistence",
+        $root + "\colibri-application", $root + "\colibri-reports", $modulo)) {
+    $pom = Join-Path $proyecto "pom.xml"
+    if (Test-Path $pom) { $insumosBuild += Get-Item $pom }
+    $src = Join-Path $proyecto "src"
+    if (Test-Path $src) {
+        $insumosBuild += Get-ChildItem $src -Recurse -File
+    }
+}
+$insumoMasReciente = $insumosBuild | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+$artefactoVencido = -not (Test-Path $jarDesktop) -or
+    ($insumoMasReciente -and $insumoMasReciente.LastWriteTime -gt (Get-Item $jarDesktop).LastWriteTime)
+if ($Compilar -or -not (Test-Path $ejecutable) -or $artefactoVencido) {
     if (-not (Test-Path $mvnw)) {
         Fallar "No existe mvnw.cmd en la raíz del proyecto."
     }
-    Log "Compilando Colibrí (puede tardar la primera vez)..."
+    $motivoBuild = if ($Compilar) { "solicitada manualmente" } elseif ($artefactoVencido) {
+        "porque hay fuentes o recursos más recientes que el JAR"
+    } else { "porque no existe el build" }
+    Log "Compilando Colibrí ($motivoBuild; puede tardar la primera vez)..."
     Push-Location $root
     $eap = $ErrorActionPreference
     $ErrorActionPreference = "Continue"   # mvnw escribe avisos en stderr

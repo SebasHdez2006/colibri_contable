@@ -152,10 +152,12 @@ public final class UiTheme {
      */
     public static void decorateButton(Button button) {
         String text = Objects.requireNonNullElse(button.getText(), "").toLowerCase(Locale.ROOT);
-        boolean automaticIcon = Boolean.TRUE.equals(button.getProperties().get("colibri-auto-icon"));
-        if (button.getGraphic() == null || automaticIcon) {
-            button.setGraphic(BrandIcon.create(iconFor(text)));
-            button.getProperties().put("colibri-auto-icon", true);
+        // Las acciones se expresan con texto completo. La iconografía automática
+        // hacía que botones como "Nueva plantilla" o "Ver líneas" parecieran
+        // controles crípticos y no aporta información adicional al lector.
+        if (Boolean.TRUE.equals(button.getProperties().get("colibri-auto-icon"))) {
+            button.setGraphic(null);
+            button.getProperties().remove("colibri-auto-icon");
         }
 
         button.getStyleClass().removeAll(

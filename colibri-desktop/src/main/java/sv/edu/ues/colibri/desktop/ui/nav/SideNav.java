@@ -5,7 +5,6 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.OverrunStyle;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Separator;
 import javafx.scene.control.Tooltip;
@@ -68,11 +67,11 @@ public final class SideNav extends BorderPane {
 
         Label nombre = new Label(titulo);
         nombre.getStyleClass().add("side-brand-name");
-        nombre.setTextOverrun(OverrunStyle.ELLIPSIS);
+        nombre.setWrapText(true);
         nombre.setMaxWidth(Double.MAX_VALUE);
         Label producto = new Label(subtitulo);
         producto.getStyleClass().add("side-brand-subtitle");
-        producto.setTextOverrun(OverrunStyle.ELLIPSIS);
+        producto.setWrapText(true);
         producto.setMaxWidth(Double.MAX_VALUE);
         textoMarca = new VBox(nombre, producto);
         textoMarca.getStyleClass().add("side-brand-text");
@@ -87,8 +86,8 @@ public final class SideNav extends BorderPane {
         logo.setMouseTransparent(true);
 
         alternar.getStyleClass().add("menu-toggle");
-        alternar.setGraphic(BrandIcon.create(BrandIcon.Symbol.MENU));
-        alternar.getProperties().put("colibri-auto-icon", true);
+        alternar.setText("Menú");
+        alternar.getProperties().put("colibri-auto-icon", false);
         alternar.setAccessibleHelp("Alterna entre el menú de navegación expandido y contraído.");
         alternar.setAccessibleText("Contraer menú de navegación");
         alternar.setOnAction(e -> this.alAlternar.run());
@@ -204,7 +203,7 @@ public final class SideNav extends BorderPane {
         }
         Label texto = new Label(item.etiqueta());
         texto.getStyleClass().add("nav-label");
-        texto.setTextOverrun(OverrunStyle.ELLIPSIS);
+        texto.setWrapText(true);
         texto.setMinWidth(0);
         texto.setMouseTransparent(true);
         HBox.setHgrow(texto, Priority.ALWAYS);

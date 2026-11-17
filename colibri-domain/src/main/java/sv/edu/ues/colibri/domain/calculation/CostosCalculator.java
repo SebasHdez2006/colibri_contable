@@ -215,7 +215,10 @@ public final class CostosCalculator {
         BigDecimal aportes = dinero(isssPatronal.add(previsionalPatronal).add(incafAsignado));
         BigDecimal integral = dinero(salario.add(prestaciones).add(aportes).add(contractuales));
         BigDecimal recargo = dividir(integral, salario);
-        BigDecimal recargoEficiencia = dividir(integral.multiply(factorEficiencia), salario);
+        // Una eficiencia menor implica menos tiempo productivo disponible para
+        // absorber el mismo costo integral. Por tanto el recargo debe crecer,
+        // no reducirse: costo integral / (salario x eficiencia).
+        BigDecimal recargoEficiencia = dividir(integral, salario.multiply(factorEficiencia));
         return new ResumenPlanilla(salario, isssLaboral, previsionalLaboral, liquido,
                 isssPatronal, previsionalPatronal, incafTotal, incafAsignado, aportes,
                 prestaciones, contractuales, integral, recargo, recargoEficiencia);

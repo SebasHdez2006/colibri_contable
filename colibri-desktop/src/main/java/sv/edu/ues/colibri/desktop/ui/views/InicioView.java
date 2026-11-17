@@ -3,11 +3,9 @@ package sv.edu.ues.colibri.desktop.ui.views;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.OverrunStyle;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
@@ -370,13 +368,12 @@ public class InicioView extends VBox {
         detalle.getStyleClass().add("chart-monthly-summary");
         for (PanelInicioService.PuntoMes punto : serie) {
             BigDecimal resultado = punto.ingresos().subtract(punto.egresos());
-            String textoCompleto = punto.etiqueta() + "  ·  I " + dinero(punto.ingresos())
-                    + "  ·  E " + dinero(punto.egresos()) + "  ·  R " + dinero(resultado);
+            String textoCompleto = punto.etiqueta() + "  ·  Ingresos: " + dinero(punto.ingresos())
+                    + "  ·  Egresos: " + dinero(punto.egresos()) + "  ·  Resultado: "
+                    + dinero(resultado);
             Label mes = new Label(textoCompleto);
             mes.getStyleClass().add("chart-monthly-item");
-            mes.setTextOverrun(OverrunStyle.ELLIPSIS);
-            mes.setMaxWidth(Double.MAX_VALUE);
-            mes.setTooltip(new Tooltip(textoCompleto));
+            mes.setWrapText(true);
             detalle.getChildren().add(mes);
         }
         return detalle;

@@ -7,7 +7,7 @@ Requisitos para operar el sistema:
 1. Inicie Colibrí y entre con un usuario autorizado.
 2. Verifique que el chip de la esquina superior derecha indique un período **Abierto**. Si muestra “Sin período abierto”, cree o abra uno en **Parametrización → Períodos** antes de intentar registrar movimientos.
 3. Configure el catálogo, los centros de costo y los perfiles de contabilización necesarios. El sistema mostrará una alerta cuando falte una selección o un importe no sea válido.
-4. Use el control con icono de sol/luna, situado al final de los controles del pie izquierdo, para cambiar entre tema claro y oscuro. Ambos temas mantienen el mismo significado de los colores.
+4. En la parte superior encontrará su perfil, el rol, los botones con texto para reducir, restablecer o aumentar zoom, el control **Tema claro** o **Tema oscuro** y **Cerrar sesión**. Pulse el texto del tema para alternarlo; ambos temas mantienen el mismo significado de los colores.
 
 ### Convenciones visuales
 

@@ -63,7 +63,17 @@ public class PlantillasView extends VBox {
         agregarColumna(tabla, "Tipo", p -> p.tipo().getEtiqueta());
         agregarColumna(tabla, "Concepto", PlantillaPartida::concepto);
         agregarColumna(tabla, "Líneas", p -> String.valueOf(p.detalles().size()));
+        tabla.getColumns().get(0).setPrefWidth(130);
+        tabla.getColumns().get(1).setPrefWidth(250);
+        tabla.getColumns().get(2).setPrefWidth(160);
+        tabla.getColumns().get(3).setPrefWidth(420);
+        tabla.getColumns().get(4).setPrefWidth(90);
         tabla.setPlaceholder(new Label("Sin plantillas. Cree la primera con «Nueva plantilla»."));
+        // La tabla de plantillas suele tener pocas filas. Limitarla evita una
+        // cuadrícula vacía enorme y deja las acciones visibles sin desplazarse.
+        tabla.setMinHeight(170);
+        tabla.setPrefHeight(230);
+        tabla.setMaxHeight(280);
         VBox.setVgrow(tabla, Priority.ALWAYS);
 
         Button nueva = new Button("Nueva plantilla");

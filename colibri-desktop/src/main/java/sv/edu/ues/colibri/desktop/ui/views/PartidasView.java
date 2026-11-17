@@ -276,22 +276,21 @@ public class PartidasView extends VBox {
                                 + partida.getFechaContable() + " " + partida.getEstado() + " "
                                 + partida.getOrigen()));
         listaCard.getStyleClass().addAll("surface-card", "journal-list");
-        listaCard.setPrefWidth(320);
-        listaCard.setMinWidth(300);
-        recientes.setMinHeight(160);
-        VBox.setVgrow(recientes, Priority.ALWAYS);
+        listaCard.setMinWidth(0);
+        listaCard.setMaxWidth(Double.MAX_VALUE);
+        recientes.setMinHeight(260);
+        recientes.setPrefHeight(330);
+        recientes.setMaxHeight(420);
 
-        // Columna central: captura, líneas, cuadre, acciones e inspector
-        // inferior con el detalle de la partida seleccionada.
-        VBox centro = new VBox(12, captura, lineasCard, balanceBar, acciones,
+        // La consulta y el editor ocupan filas completas. Antes se apretaban
+        // dentro de dos columnas, lo que cortaba folios, conceptos y campos
+        // de captura incluso en una ventana de escritorio normal.
+        VBox editor = new VBox(12, captura, lineasCard, balanceBar, acciones,
                 inspectorInferior(comprobante, evidencia));
-        centro.setMinWidth(0);
-        HBox.setHgrow(centro, Priority.ALWAYS);
+        editor.setMinWidth(0);
+        editor.setMaxWidth(Double.MAX_VALUE);
 
-        HBox columnas = new HBox(16, listaCard, centro);
-        columnas.setAlignment(Pos.TOP_LEFT);
-
-        getChildren().addAll(titulo, subtitulo, columnas);
+        getChildren().addAll(titulo, subtitulo, listaCard, editor);
 
         recientes.getSelectionModel().getSelectedItems()
                 .addListener((ListChangeListener<Partida>) c ->
@@ -1159,11 +1158,13 @@ public class PartidasView extends VBox {
         rFecha.setPrefWidth(100);
         rFecha.setCellValueFactory(c -> new SimpleStringProperty(
                 c.getValue().getFechaContable().toString()));
-        TableColumn<Partida, String> rFolio = new TableColumn<>("Folio/Estado");
-        rFolio.setPrefWidth(150);
+        TableColumn<Partida, String> rFolio = new TableColumn<>("Folio");
+        rFolio.setPrefWidth(160);
         rFolio.setCellValueFactory(c -> new SimpleStringProperty(
-                (c.getValue().getFolio() != null ? c.getValue().getFolio() : "(sin folio)")
-                        + " / " + c.getValue().getEstado()));
+                c.getValue().getFolio() != null ? c.getValue().getFolio() : "Sin folio"));
+        TableColumn<Partida, String> rEstado = new TableColumn<>("Estado");
+        rEstado.setPrefWidth(130);
+        rEstado.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getEstado().toString()));
         TableColumn<Partida, String> rConc = new TableColumn<>("Concepto");
         rConc.setPrefWidth(240);
         rConc.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getConcepto()));
@@ -1171,7 +1172,7 @@ public class PartidasView extends VBox {
         rOrigen.setPrefWidth(90);
         rOrigen.setCellValueFactory(c -> new SimpleStringProperty(
                 c.getValue().getOrigen() != null ? c.getValue().getOrigen().name() : ""));
-        recientes.getColumns().addAll(rFecha, rFolio, rConc, rOrigen);
+        recientes.getColumns().addAll(rFecha, rFolio, rEstado, rConc, rOrigen);
         recientes.setMinHeight(100);
         recientes.setOnMouseClicked(ev -> {
             if (ev.getClickCount() == 2) {

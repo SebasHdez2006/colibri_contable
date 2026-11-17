@@ -1,7 +1,6 @@
 package sv.edu.ues.colibri.desktop.ui;
 
 import javafx.application.Platform;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -9,7 +8,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
-import javafx.scene.control.OverrunStyle;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
@@ -34,7 +32,6 @@ import sv.edu.ues.colibri.domain.model.Contador;
 import sv.edu.ues.colibri.domain.model.Periodo;
 
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Shell principal de la aplicación de escritorio.
@@ -84,7 +81,10 @@ public class MainShell extends BorderPane implements Navegador {
                 this::abrirConSesion, this::alternarMenu);
         setLeft(menu);
         paleta = new PaletaComandos(arbol, this::abrirConSesion, this::cerrarSesion);
-        menu.setPie(construirPie());
+        // El perfil y los controles de sesión viven en la cabecera. Dejar el
+        // pie del menú vacío evita el bloque comprimido que ocultaba nombres y
+        // convertía acciones importantes en botones sólo con iconos.
+        menu.setPie(null);
 
         BorderPane centro = new BorderPane();
         centro.setTop(crearBarra());
@@ -147,11 +147,10 @@ public class MainShell extends BorderPane implements Navegador {
         return migasFlyout;
     }
 
-    private HBox crearBarra() {
+    private VBox crearBarra() {
         breadcrumb.getStyleClass().addAll("top-context", "breadcrumb-bar");
 
         Button buscar = new Button("Buscar");
-        buscar.setGraphic(BrandIcon.create(BrandIcon.Symbol.SEARCH));
         buscar.getStyleClass().addAll("button", "secondary-button", "search-pill");
         buscar.setOnAction(e -> paleta.alternar());
         buscar.setAccessibleHelp("Abrir la paleta de comandos (Ctrl+K)");
@@ -161,18 +160,23 @@ public class MainShell extends BorderPane implements Navegador {
         busqueda.setAlignment(Pos.CENTER_RIGHT);
         busqueda.getStyleClass().add("search-box");
 
-        HBox controles = new HBox(12, busqueda);
-        controles.setAlignment(Pos.CENTER_RIGHT);
+        HBox accionesPagina = new HBox(12, busqueda);
+        accionesPagina.setAlignment(Pos.CENTER_RIGHT);
         Node chip = crearChipPeriodo();
         if (chip != null) {
-            controles.getChildren().add(0, chip);
+            accionesPagina.getChildren().add(0, chip);
         }
 
         HBox spacer = new HBox();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        HBox bar = new HBox(breadcrumb, spacer, controles);
+        HBox navegacion = new HBox(breadcrumb, spacer, accionesPagina);
+        navegacion.setAlignment(Pos.CENTER_LEFT);
+        navegacion.getStyleClass().add("top-navigation-row");
+
+        HBox herramientas = crearHerramientasSesion();
+        VBox bar = new VBox(8, navegacion, herramientas);
         bar.getStyleClass().add("top-bar");
-        bar.setAlignment(Pos.CENTER_LEFT);
+        bar.setFillWidth(true);
         return bar;
     }
 
@@ -214,58 +218,29 @@ public class MainShell extends BorderPane implements Navegador {
         onLogout.run();
     }
 
-    private Node construirPie() {
-        VBox pie = new VBox(10);
-        pie.getStyleClass().add("pie-content");
-        pie.setPadding(new Insets(12, 14, 12, 14));
+    /**
+     * Controles de usuario visibles y con texto completo en la parte superior.
+     * Ninguna acción depende de un icono aislado ni de una etiqueta truncada.
+     */
+    private HBox crearHerramientasSesion() {
+        HBox herramientas = new HBox(10);
+        herramientas.getStyleClass().add("top-session-tools");
+        herramientas.setAlignment(Pos.CENTER_RIGHT);
         var sesion = context.auth().getSesionActual();
         if (sesion == null) {
-            return pie;
+            return herramientas;
         }
-        if (menu.isColapsado()) {
-            pie.setAlignment(Pos.CENTER);
-            pie.getChildren().add(avatar(sesion.getNombre()));
-            HBox zoom = new HBox(6,
-                    botonZoom(BrandIcon.Symbol.MINUS, "Reducir zoom", this::zoomOut),
-                    botonZoom(BrandIcon.Symbol.PLUS, "Aumentar zoom", this::zoomIn));
-            zoom.setAlignment(Pos.CENTER);
-            zoom.getStyleClass().add("footer-zoom");
-            Button salir = botonZoom(BrandIcon.Symbol.LOGOUT, "Cerrar sesión", this::cerrarSesion);
-            zoomIndicator = null;
-            pie.getChildren().addAll(zoom, new TemaSwitch(), salir);
-            return pie;
-        }
-        VBox datos = new VBox(1,
-                etiqueta(sesion.getNombre(), "pie-name"),
-                etiqueta(sesion.getRol().etiqueta(), "pie-role"));
-        datos.setMinWidth(0);
-        HBox.setHgrow(datos, Priority.ALWAYS);
+        Label nombre = new Label(sesion.getNombre());
+        nombre.getStyleClass().add("top-profile-name");
+        Label rol = new Label(sesion.getRol().etiqueta());
+        rol.getStyleClass().add("top-profile-role");
+        VBox datos = new VBox(1, nombre, rol);
+        datos.getStyleClass().add("top-profile");
         Button salir = new Button("Cerrar sesión");
-        salir.setGraphic(BrandIcon.create(BrandIcon.Symbol.LOGOUT));
-        salir.getStyleClass().addAll("button", "secondary-button", "pie-logout");
+        salir.getStyleClass().addAll("button", "secondary-button", "top-session-button");
         salir.setOnAction(e -> cerrarSesion());
-        HBox usuario = new HBox(10, avatar(sesion.getNombre()), datos, salir);
-        usuario.setAlignment(Pos.CENTER_LEFT);
-        pie.getChildren().add(usuario);
-        pie.getChildren().add(crearControlesZoom());
-        return pie;
-    }
-
-    private Label avatar(String nombre) {
-        String[] partes = nombre.trim().split("\\s+");
-        String iniciales = (partes.length > 0 && !partes[0].isEmpty() ? partes[0].substring(0, 1) : "?")
-                + (partes.length > 1 && !partes[1].isEmpty() ? partes[1].substring(0, 1) : "");
-        Label l = new Label(iniciales.toUpperCase(Locale.ROOT));
-        l.getStyleClass().add("avatar");
-        return l;
-    }
-
-    private Label etiqueta(String texto, String clase) {
-        Label l = new Label(texto);
-        l.getStyleClass().add(clase);
-        l.setTextOverrun(OverrunStyle.ELLIPSIS);
-        l.setMaxWidth(Double.MAX_VALUE);
-        return l;
+        herramientas.getChildren().addAll(datos, crearControlesZoom(), new TemaSwitch(), salir);
+        return herramientas;
     }
 
     private void abrirConSesion(NavItem item) {
@@ -287,17 +262,10 @@ public class MainShell extends BorderPane implements Navegador {
         NavItem padre = arbol.stream().filter(g -> g.hijos().contains(item)).findFirst().orElse(null);
         if (padre == null) {
             Label solo = new Label(item.etiqueta());
-            solo.setMinWidth(0);
-            solo.setMaxWidth(Double.MAX_VALUE);
-            solo.setTextOverrun(OverrunStyle.ELLIPSIS);
-            HBox.setHgrow(solo, Priority.ALWAYS);
             breadcrumb.getChildren().add(solo);
             return;
         }
         Hyperlink modulo = new Hyperlink(padre.etiqueta());
-        modulo.setMinWidth(0);
-        modulo.setMaxWidth(140);
-        modulo.setTextOverrun(OverrunStyle.ELLIPSIS);
         modulo.setAccessibleHelp("Desplegar las secciones de " + padre.etiqueta());
         // El nombre del módulo despliega sus secciones para saltar entre
         // ellas sin pasar por el menú lateral.
@@ -313,10 +281,6 @@ public class MainShell extends BorderPane implements Navegador {
         separador.getStyleClass().add("breadcrumb-sep");
         Label seccion = new Label(item.etiqueta());
         seccion.getStyleClass().add("breadcrumb-current");
-        seccion.setMinWidth(0);
-        seccion.setMaxWidth(Double.MAX_VALUE);
-        seccion.setTextOverrun(OverrunStyle.ELLIPSIS);
-        HBox.setHgrow(seccion, Priority.ALWAYS);
         Tooltip.install(seccion, new Tooltip(item.etiqueta()));
         breadcrumb.getChildren().addAll(modulo, separador, seccion);
     }
@@ -324,7 +288,6 @@ public class MainShell extends BorderPane implements Navegador {
     private void alternarMenu() {
         colapsadoAutomatico = false;
         menu.setColapsado(!menu.isColapsado());
-        menu.setPie(construirPie());
         // Notifica a la vista activa del nuevo ancho disponible tras el colapso/expansión.
         Platform.runLater(() -> {
             if (host.vista() instanceof Parent parent) {
@@ -347,23 +310,22 @@ public class MainShell extends BorderPane implements Navegador {
         zoomIndicator = new Label("100%");
         zoomIndicator.getStyleClass().add("zoom-pill");
 
-        Button zoomOut = botonZoom(BrandIcon.Symbol.MINUS, "Reducir zoom", this::zoomOut);
-        Button zoomReset = botonZoom(BrandIcon.Symbol.REFRESH, "Restablecer zoom", this::zoomReset);
-        Button zoomIn = botonZoom(BrandIcon.Symbol.PLUS, "Aumentar zoom", this::zoomIn);
+        Button zoomOut = botonZoom("Reducir zoom", this::zoomOut);
+        Button zoomReset = botonZoom("Restablecer", this::zoomReset);
+        Button zoomIn = botonZoom("Aumentar zoom", this::zoomIn);
 
-        HBox controles = new HBox(zoomOut, zoomIndicator, zoomReset, zoomIn, new TemaSwitch());
+        HBox controles = new HBox(zoomOut, zoomIndicator, zoomReset, zoomIn);
         controles.getStyleClass().add("zoom-controls");
         controles.setAlignment(Pos.CENTER);
         return controles;
     }
 
-    private Button botonZoom(BrandIcon.Symbol simbolo, String ayuda, Runnable action) {
-        Button button = new Button();
-        button.setGraphic(BrandIcon.create(simbolo));
-        button.setAccessibleText(ayuda);
-        button.setAccessibleHelp(ayuda);
+    private Button botonZoom(String texto, Runnable action) {
+        Button button = new Button(texto);
+        button.setAccessibleText(texto);
+        button.setAccessibleHelp(texto);
         button.setOnAction(e -> action.run());
-        button.getStyleClass().add("zoom-button");
+        button.getStyleClass().addAll("zoom-button", "top-zoom-button");
         UiTheme.decorateButton(button);
         return button;
     }

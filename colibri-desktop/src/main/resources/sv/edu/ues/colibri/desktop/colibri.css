@@ -124,6 +124,7 @@
 .muted-caption, .view-subtitle, .section-note, .muted-label {
     -fx-font-size: 0.93em;
     -fx-text-fill: -colibri-muted;
+    -fx-wrap-text: true;
 }
 .view-subtitle { -fx-padding: 0 0 0.57em 0; }
 .numeric-cell, .numeric-cell.table-cell { -fx-alignment: center-right; }
@@ -196,7 +197,7 @@
     -fx-font-size: 0.82em;
     -fx-font-weight: 700;
     -fx-text-fill: -colibri-cyan-accessible;
-    -fx-text-overrun: ellipsis;
+    -fx-wrap-text: true;
 }
 .dashboard-period-value {
     -fx-font-size: 1.13em;
@@ -234,10 +235,10 @@
 }
 .operational-row:last-child { -fx-border-width: 0; }
 .operational-key { -fx-font-size: 0.82em; -fx-font-weight: 700; -fx-text-fill: -colibri-muted; }
-.operational-value { -fx-font-size: 1em; -fx-font-weight: 600; -fx-text-fill: -colibri-ink; -fx-text-overrun: ellipsis; }
+.operational-value { -fx-font-size: 1em; -fx-font-weight: 600; -fx-text-fill: -colibri-ink; -fx-wrap-text: true; }
 .commercial-row { -fx-padding: 0.5em 0 0.64em 0; -fx-border-color: -colibri-line; -fx-border-width: 0 0 0.07em 0; }
 .commercial-row:last-child { -fx-border-width: 0; }
-.commercial-value { -fx-font-size: 1.12em; -fx-font-weight: 700; -fx-text-fill: -color-fg; -fx-text-overrun: ellipsis; }
+.commercial-value { -fx-font-size: 1.12em; -fx-font-weight: 700; -fx-text-fill: -color-fg; -fx-wrap-text: true; }
 .dashboard-actions { -fx-padding: 0.5em 0 0 0; -fx-background-color: -colibri-transparent; }
 .dashboard-chart-card { -fx-padding: 1.43em 1.43em 1.14em 1.43em; }
 .dashboard-income-chart .chart-plot-background { -fx-background-color: -colibri-subtle; }
@@ -265,7 +266,7 @@
     -fx-padding: 0.52em 0.7em;
     -fx-text-fill: -colibri-muted;
     -fx-font-size: 0.82em;
-    -fx-text-overrun: ellipsis;
+    -fx-wrap-text: true;
 }
 .customer-ranking { -fx-spacing: 0.71em; }
 .customer-total { -fx-text-fill: -colibri-muted; -fx-font-size: 0.88em; }
@@ -347,7 +348,8 @@
 /* Barra superior y navegación. */
 .top-bar {
     -fx-background-color: -colibri-surface;
-    -fx-padding: 1.0em 2.0em;
+    -fx-padding: 0.64em 2.0em 0.71em 2.0em;
+    -fx-spacing: 0.5em;
     -fx-border-color: -colibri-transparent -colibri-transparent -colibri-line -colibri-transparent;
     -fx-border-width: 0 0 0.07em 0;
     -fx-alignment: center-left;
@@ -355,56 +357,56 @@
 .top-context { -fx-font-size: 1em; -fx-font-weight: 600; -fx-text-fill: -colibri-ink; }
 .breadcrumb-bar { -fx-spacing: 0.43em; -fx-alignment: center-left; }
 .breadcrumb-sep { -fx-text-fill: -colibri-muted; }
-.breadcrumb-current { -fx-font-weight: 700; -fx-text-overrun: ellipsis; }
+.breadcrumb-current { -fx-font-weight: 700; }
+.top-navigation-row { -fx-alignment: center-left; }
+.top-session-tools { -fx-alignment: center-right; -fx-spacing: 0.57em; }
+.top-profile {
+    -fx-background-color: -color-bg-subtle;
+    -fx-background-radius: 0.57em;
+    -fx-border-color: -color-border-subtle;
+    -fx-border-radius: 0.57em;
+    -fx-padding: 0.36em 0.79em;
+    -fx-min-width: 10.71em;
+}
+.top-profile-name { -fx-font-size: 0.86em; -fx-font-weight: 700; -fx-text-fill: -color-fg; }
+.top-profile-role { -fx-font-size: 0.76em; -fx-font-weight: 600; -fx-text-fill: -color-fg-muted; }
+.top-session-button { -fx-min-height: 2.36em; -fx-padding: 0.43em 0.79em; }
 .zoom-controls {
     -fx-alignment: center-right;
-    -fx-spacing: 0.43em;
+    -fx-spacing: 0.36em;
+    -fx-background-color: -color-bg-subtle;
+    -fx-background-radius: 0.57em;
+    -fx-border-color: -color-border-subtle;
+    -fx-border-radius: 0.57em;
+    -fx-padding: 0.21em;
 }
 .zoom-button {
-    -fx-min-width: 2.43em;
-    -fx-min-height: 2.43em;
-    -fx-padding: 0.43em;
+    -fx-min-height: 2.14em;
+    -fx-padding: 0.36em 0.57em;
 }
 .tema-switch {
-    -fx-pref-width: 2.71em;
-    -fx-pref-height: 1.5em;
-    -fx-min-width: 2.71em;
-    -fx-min-height: 1.5em;
-    -fx-max-width: 2.71em;
-    -fx-max-height: 1.5em;
-    -fx-background-color: -color-border-control;
-    -fx-background-radius: 0.75em;
+    -fx-pref-width: 7.86em;
+    -fx-min-width: 7.86em;
+    -fx-pref-height: 2.36em;
+    -fx-min-height: 2.36em;
+    -fx-background-color: -color-bg-subtle;
+    -fx-border-color: -color-border-control;
+    -fx-background-radius: 0.57em;
+    -fx-border-radius: 0.57em;
     -fx-cursor: hand;
 }
-.tema-switch--claro {
-    -fx-background-color: -color-interactive;
-}
+.tema-switch:hover { -fx-background-color: -color-interactive-subtle; -fx-border-color: -color-interactive; }
 .tema-switch:focused {
     -fx-border-color: -color-focus-ring;
-    -fx-border-width: 0.07em;
-    -fx-border-radius: 0.82em;
+    -fx-border-width: 0.14em;
+    -fx-effect: dropshadow(gaussian, -color-focus-faint, 8, 0.18, 0, 0);
 }
-.tema-switch-knob {
-    -fx-pref-width: 1.07em;
-    -fx-pref-height: 1.07em;
-    -fx-min-width: 1.07em;
-    -fx-min-height: 1.07em;
-    -fx-background-color: -color-bg-raised;
-    -fx-background-radius: 0.54em;
-    -fx-effect: dropshadow(gaussian, -color-shadow, 4, 0.2, 0, 0.5);
-}
-.tema-switch-icon {
-    -fx-text-fill: -color-on-primary;
-    -fx-font-size: 0.78em;
+.tema-switch-label {
+    -fx-text-fill: -color-fg;
+    -fx-font-size: 0.82em;
     -fx-font-weight: 700;
     -fx-alignment: center;
-    -fx-min-width: 1.07em;
-    -fx-min-height: 1.07em;
-    -fx-pref-width: 1.07em;
-    -fx-pref-height: 1.07em;
 }
-.tema-switch--oscuro .tema-switch-knob { -fx-background-color: -color-bg-raised; }
-.tema-switch--oscuro .tema-switch-icon { -fx-text-fill: -color-interactive; }
 .zoom-pill {
     -fx-background-color: -colibri-cyan-tint-strong;
     -fx-background-radius: 82.97em;
@@ -420,7 +422,7 @@
     -fx-text-fill: -color-fg;
     -fx-font-size: 0.93em;
     -fx-font-weight: 600;
-    -fx-text-overrun: ellipsis;
+    -fx-wrap-text: true;
 }
 .side-menu { -fx-background-color: -colibri-transparent; -fx-padding: 1.43em 0.71em 1.43em 0.71em; -fx-spacing: 0.43em; }
 .side-brand { -fx-padding: 0.14em 0.14em 1.14em 0.14em; -fx-spacing: 0.64em; -fx-alignment: center-left; }
@@ -440,7 +442,7 @@
     -fx-font-size: 0.82em;
     -fx-font-weight: 700;
     -fx-text-fill: -colibri-cyan-bright;
-    -fx-text-overrun: ellipsis;
+    -fx-wrap-text: true;
 }
 .side-menu .separator { -fx-padding: 0.29em 0.14em; }
 .side-menu .separator .line { -fx-border-color: -colibri-nav-divider; -fx-border-width: 0.07em 0 0 0; }
@@ -451,7 +453,7 @@
     -fx-border-color: -colibri-transparent;
     -fx-background-radius: 0.57em;
     -fx-padding: 0.43em;
-    -fx-min-width: 2.29em;
+    -fx-min-width: 3.86em;
     -fx-min-height: 2.29em;
     -fx-cursor: hand;
 }
@@ -460,9 +462,9 @@
 .menu-toggle:hover .brand-icon-shape { -fx-fill: -colibri-cyan-bright; }
 
 .side-nav {
-    -fx-pref-width: 18.86em;
-    -fx-min-width: 18.86em;
-    -fx-max-width: 18.86em;
+    -fx-pref-width: 20.71em;
+    -fx-min-width: 20.71em;
+    -fx-max-width: 20.71em;
     -fx-background-color: linear-gradient(to bottom, -colibri-navy 0%, -colibri-navy-gradient-end 100%);
     -fx-transition-property: -fx-pref-width;
     -fx-transition-duration: 220ms;
@@ -481,14 +483,14 @@
 .nav-entry { -fx-spacing: 0.21em; }
 .nav-children { -fx-padding: 0 0 0.43em 1.86em; -fx-spacing: 0.14em; }
 .nav-content { -fx-spacing: 0.64em; -fx-alignment: center-left; }
-.nav-label { -fx-text-fill: -colibri-nav-text; }
+.nav-label { -fx-text-fill: -colibri-nav-text; -fx-wrap-text: true; }
 .nav-chevron .brand-icon-shape { -fx-fill: -colibri-nav-subtle; }
 .nav-button:hover .nav-label { -fx-text-fill: -colibri-on-navy; }
 .nav-button-active .nav-label, .nav-group-active .nav-label {
     -fx-text-fill: -colibri-on-navy;
     -fx-font-weight: 600;
 }
-.nav-child-button { -fx-padding: 0.71em 0.86em 0.71em 2.14em; -fx-font-size: 0.88em; }
+.nav-child-button { -fx-padding: 0.71em 0.86em 0.71em 1.71em; -fx-font-size: 0.88em; }
 .nav-group-button { -fx-font-weight: 600; }
 .nav-group-active {
     -fx-background-color: -colibri-nav-active;
@@ -764,7 +766,7 @@
 .tab-pane .tab:selected .tab-label { -fx-text-fill: -color-fg; }
 .topic-tabs { -fx-tab-min-height: 42; }
 .topic-tabs .tab { -fx-padding: 0.64em 1.0em; }
-.topic-tabs .tab-label { -fx-text-overrun: ellipsis; }
+.topic-tabs .tab-label { -fx-wrap-text: true; }
 .topic-tabs .tab-content-area { -fx-padding: 1.0em 0 0 0; }
 
 /* Inicio de sesión y diálogos. */
