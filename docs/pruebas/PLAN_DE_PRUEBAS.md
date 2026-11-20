@@ -81,7 +81,7 @@ Lista de verificación de todas las pruebas ejecutables sobre el prototipo, orga
 | ID | Prueba | Tipo | Resultado esperado |
 |---|---|---|---|
 | INI-01 | Abrir Inicio con datos del escenario | F | KPIs muestran ingresos del mes, utilidad y cartera con variación vs. mes anterior |
-| INI-02 | Gráfica de ingresos vs egresos | F | Serie por meses; un mes con volumen extremo se separa como hito sin ocultar los demás |
+| INI-02 | Gráfica de ingresos vs egresos | F | Selectores «Desde»/«hasta» limitan el rango de años con movimientos; al cambiar cualquiera la serie se recarga y un rango invertido intercambia los valores; serie mensual con meses vacíos en cero; un mes con volumen extremo se separa como hito sin ocultar los demás |
 | INI-03 | Clientes principales, producto más vendido y usuarios SaaS | F | Tablas con datos del período |
 | INI-04 | Panel de costos y suscripciones | F | Tarifas por plan, usuarios-mes SaaS y comparativo CIF (las órdenes ya no viven aquí) |
 | INI-05 | Bloque "Por hacer" | F | Muestra estado del catálogo, borradores pendientes y alertas operativas |
@@ -89,7 +89,9 @@ Lista de verificación de todas las pruebas ejecutables sobre el prototipo, orga
 | INI-07 | Botón "Ir a registros" | A | Navega al Libro diario |
 | INI-08 | Lectura analítica sobre la gráfica de barras | F | Muestra resultado acumulado del rango y conteo de meses superávit/déficit/equilibrio; las fichas mensuales se tiñen según el signo |
 | INI-09 | Tarjeta "Órdenes de servicio" dedicada | F | Lista presupuesto vs. costo real, variación % y estado; encabezado resume en curso vs. finalizadas; "—" cuando el presupuesto es 0; búsqueda filtra; estado vacío con pista de dónde crear órdenes |
-| INI-10 | Gráfica de dispersión con diagonal y tolerancia | F | Un punto por mes (ingresos X, egresos Y); diagonal de equilibrio, banda ±10 % sombreada, puntos por zona (superávit/tolerancia/déficit), leyenda y pie con conteo; se repinta al redimensionar y al cambiar tema; ambas tarjetas de gráfica van centradas con ancho máximo en vez de estirarse a todo lo ancho |
+| INI-10 | Gráfica de dispersión con diagonal y tolerancia | F | Un punto por mes (ingresos X, egresos Y); diagonal de equilibrio, banda ±10 % sombreada, puntos por zona (superávit/tolerancia/déficit), leyenda y pie con conteo; comparte la fila con la dispersión de costos y ambas se repintan al redimensionar y al cambiar tema |
+| INI-11 | Dispersión de costos presupuesto vs. costo real | F | Selector «Ver costos de» alterna Proyectos a la medida / Licencias digitales / Acceso SaaS; cada punto es un objeto de la línea (presupuesto X, costo real Y); diagonal y=x, banda ±10 %, zonas bajo presupuesto/tolerancia/sobrecosto y pie con conteos y variación media |
+| INI-12 | Tabla de estructura de costos | F | Una fila por proyecto, lote de licencias y plan SaaS con precio unitario, materia prima, mano de obra, CIF y costo total; «—» en el precio de lotes sin ventas; la búsqueda filtra por código, detalle o tipo |
 
 ## 4. Temas contables
 
@@ -466,9 +468,9 @@ Lista de verificación de todas las pruebas ejecutables sobre el prototipo, orga
 | EST-07 | Una sola estimación en la comparación | A | Variabilidad cero **[Auto]** |
 | EST-08 | Bases/proporciones inválidas en estimación | E | Rechazadas **[Auto: rechazaBasesYProporcionesInvalidas]** |
 | EST-09 | Panel "Políticas de costos y ventas" | A | Texto de referencia de solo lectura |
-| EST-10 | Catálogo Anexo M con filtro | A | Filtra los 122 instrumentos por texto; son referencia documental |
+| EST-10 | Catálogo de políticas, procesos y procedimientos | A | Filtra los 122 instrumentos por texto; es referencia documental, no movimientos |
 | EST-11 | Verificar que nada de esta pantalla genera partidas | A | Límite conocido: cálculos gerenciales sin asiento |
-| EST-12 | Tabla de políticas/procesos: columna "Breve descripción" | A | Los textos largos se muestran con saltos de línea, no en una sola línea interminable |
+| EST-12 | Botón «Ver» en la tabla de instrumentos | A | Despliega bajo la tabla un panel con número, tipo, sección, nombre y descripción completa; «Ocultar descripción» lo repliega; la columna Instrumento muestra el nombre completo envuelto |
 
 ## 10. Reportes
 
@@ -626,7 +628,7 @@ Lista de verificación de todas las pruebas ejecutables sobre el prototipo, orga
 |---|---|
 | Autenticación y sesión | 16 |
 | Ventana principal y navegación | 15 |
-| Inicio | 10 |
+| Inicio | 12 |
 | Temas contables | 3 |
 | Empresa | 6 |
 | Parametrización | 45 |
@@ -637,6 +639,6 @@ Lista de verificación de todas las pruebas ejecutables sobre el prototipo, orga
 | Soporte técnico | 32 |
 | No funcionales | 10 |
 | Casos de borde combinados | 10 |
-| **Total** | **380** |
+| **Total** | **382** |
 
 De estas, **21 suites automatizadas** (≈60 pruebas unitarias/de integración) ya corren con `mvnw clean test`; el resto son verificaciones manuales de UI y de extremo a extremo que alimentan la sección de pruebas del informe y el guion de demostración.

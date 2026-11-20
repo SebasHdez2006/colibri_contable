@@ -1,9 +1,11 @@
 package sv.edu.ues.colibri.desktop.ui.views;
 
+import javafx.collections.FXCollections;
 import javafx.geometry.Pos;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TableColumn;
@@ -18,8 +20,11 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
+import javafx.util.StringConverter;
 import sv.edu.ues.colibri.application.AppContext;
+import sv.edu.ues.colibri.application.inventario.InventarioCostoService;
 import sv.edu.ues.colibri.application.panel.PanelInicioService;
+import sv.edu.ues.colibri.desktop.ui.UiCatalogos;
 import sv.edu.ues.colibri.desktop.ui.UiTables;
 import sv.edu.ues.colibri.desktop.ui.UiTheme;
 import sv.edu.ues.colibri.domain.model.Partida;
@@ -27,12 +32,15 @@ import sv.edu.ues.colibri.domain.model.Periodo;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.time.Month;
 import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 /**
@@ -106,9 +114,9 @@ public class InicioView extends VBox {
         filaKpi.setMinHeight(130);
         bento.getRowConstraints().addAll(new RowConstraints(), filaKpi,
                 new RowConstraints(), new RowConstraints(), new RowConstraints(),
-                new RowConstraints());
+                new RowConstraints(), new RowConstraints());
 
-        bento.add(centrarEnGrilla(graficaBarras(resumen.serieMensual()), 980), 0, 0, 3, 1);
+        bento.add(centrarEnGrilla(graficaBarras(periodo), 980), 0, 0, 3, 1);
         bento.add(cifraFinanciera("Ingresos", dinero(resumen.ingresosMes()),
                 variacionTexto(resumen.variacionIngresos(), resumen.ingresosMesAnterior()),
                 resumen.variacionIngresos().signum() < 0 ? "negative" : "positive"), 0, 1);
@@ -125,7 +133,15 @@ public class InicioView extends VBox {
         bento.add(graficaClientes(resumen), 1, 2, 2, 1);
         bento.add(tablaOrdenes(resumen), 0, 3, 3, 1);
         bento.add(costos(resumen), 0, 4, 3, 1);
-        bento.add(centrarEnGrilla(graficaDispercion(resumen.serieMensual()), 680), 0, 5, 3, 1);
+        // La dispersión de ingresos/egresos crece con el espacio disponible y
+        // la de costos ocupa una columna fija a su derecha.
+        HBox dispersores = new HBox(16, graficaDispercion(resumen.serieMensual()),
+                graficaCostos());
+        dispersores.setAlignment(Pos.TOP_LEFT);
+        dispersores.setFillHeight(false);
+        HBox.setHgrow(dispersores.getChildren().get(0), Priority.ALWAYS);
+        bento.add(dispersores, 0, 5, 3, 1);
+        bento.add(tablaEstructuraCostos(), 0, 6, 3, 1);
 
         getChildren().addAll(cabecera, bento);
     }
@@ -265,17 +281,113 @@ public class InicioView extends VBox {
         return envoltura;
     }
 
-    private VBox graficaBarras(List<PanelInicioService.PuntoMes> serie) {
+    /**
+     * Gráfica de barras con selectores de rango «desde año X hasta año Y»:
+     * al cambiar cualquiera de los dos combos se vuelve a consultar la serie
+     * mensual del rango completo y se repinta la tarjeta.
+     */
+    private VBox graficaBarras(Periodo periodo) {
         Label heading = new Label("Ingresos vs. egresos · superávit o déficit por mes");
         heading.getStyleClass().add("section-heading");
         VBox card = new VBox(8, heading);
         card.getStyleClass().addAll("surface-card", "dashboard-chart-card");
-        if (serie.isEmpty()) {
-            card.getChildren().add(detalle("Aún no hay partidas contabilizadas en los últimos meses.",
-                    "status-pill"));
-            return card;
+
+        int anioHasta = periodo != null ? periodo.getFechaFin().getYear()
+                : LocalDate.now().getYear();
+        int anioDesde = periodo != null ? periodo.getFechaInicio().minusMonths(5).getYear()
+                : anioHasta;
+        List<Integer> anios = aniosGrafica(anioDesde, anioHasta);
+        ComboBox<Integer> desde = comboAnios(anios, anioDesde);
+        ComboBox<Integer> hasta = comboAnios(anios, anioHasta);
+        HBox rango = new HBox(8, new Label("Desde"), desde, new Label("hasta"), hasta);
+        rango.setAlignment(Pos.CENTER_LEFT);
+        card.getChildren().add(rango);
+
+        VBox contenido = new VBox(8);
+        contenido.setFillWidth(true);
+        card.getChildren().add(contenido);
+
+        // Si el usuario invierte el rango se intercambian los valores para
+        // que la consulta siempre sea válida; la bandera evita recursión.
+        final boolean[] ajustando = {false};
+        Runnable repintar = () -> {
+            if (ajustando[0]) {
+                return;
+            }
+            int d = desde.getValue() == null ? anioHasta : desde.getValue();
+            int h = hasta.getValue() == null ? anioHasta : hasta.getValue();
+            if (d > h) {
+                ajustando[0] = true;
+                desde.setValue(h);
+                hasta.setValue(d);
+                ajustando[0] = false;
+            }
+            pintarBarras(contenido, Math.min(d, h), Math.max(d, h));
+        };
+        desde.valueProperty().addListener((o, a, b) -> repintar.run());
+        hasta.valueProperty().addListener((o, a, b) -> repintar.run());
+        repintar.run();
+        return card;
+    }
+
+    /** Años disponibles para los selectores: los que tienen movimientos más el rango por defecto. */
+    private List<Integer> aniosGrafica(int defectoDesde, int defectoHasta) {
+        TreeSet<Integer> anios;
+        try {
+            anios = new TreeSet<>(context.panel().aniosConMovimientos());
+        } catch (Exception ex) {
+            sv.edu.ues.colibri.desktop.AppLog.error(
+                    "No se pudieron listar los años con movimientos", ex);
+            anios = new TreeSet<>();
         }
-        card.getChildren().add(lecturaTendencia(serie));
+        anios.add(defectoDesde);
+        anios.add(defectoHasta);
+        return List.copyOf(anios);
+    }
+
+    private ComboBox<Integer> comboAnios(List<Integer> anios, int valor) {
+        ComboBox<Integer> combo = new ComboBox<>(FXCollections.observableArrayList(anios));
+        combo.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(Integer anio) {
+                return anio == null ? "" : String.valueOf(anio);
+            }
+
+            @Override
+            public Integer fromString(String texto) {
+                try {
+                    return Integer.valueOf(texto.trim());
+                } catch (RuntimeException ex) {
+                    return null;
+                }
+            }
+        });
+        combo.setValue(valor);
+        combo.setMinWidth(90);
+        UiCatalogos.ayuda(combo, "Año del rango de comparación de la gráfica.");
+        return combo;
+    }
+
+    /** Reconstruye el contenido de la gráfica de barras para el rango elegido. */
+    private void pintarBarras(VBox contenido, int anioDesde, int anioHasta) {
+        contenido.getChildren().clear();
+        List<PanelInicioService.PuntoMes> serie;
+        try {
+            serie = context.panel().serieMensualEntre(LocalDate.of(anioDesde, 1, 1),
+                    LocalDate.of(anioHasta, 12, 31));
+        } catch (Exception ex) {
+            sv.edu.ues.colibri.desktop.AppLog.error(
+                    "No se pudo cargar la serie mensual del rango elegido", ex);
+            serie = List.of();
+        }
+        boolean sinDatos = serie.isEmpty() || serie.stream().allMatch(p ->
+                p.ingresos().signum() == 0 && p.egresos().signum() == 0);
+        if (sinDatos) {
+            contenido.getChildren().add(detalle(
+                    "Aún no hay partidas contabilizadas en el rango elegido.", "status-pill"));
+            return;
+        }
+        contenido.getChildren().add(lecturaTendencia(serie));
         SerieVisible serieVisible = separarHito(serie);
         javafx.scene.chart.CategoryAxis ejeX = new javafx.scene.chart.CategoryAxis();
         javafx.scene.chart.NumberAxis ejeY = new javafx.scene.chart.NumberAxis();
@@ -315,19 +427,18 @@ public class InicioView extends VBox {
                     p.egresos().doubleValue()));
         }
         chart.getData().addAll(ingresos, egresos);
-        card.getChildren().add(chart);
+        contenido.getChildren().add(chart);
         VBox.setVgrow(chart, Priority.ALWAYS);
         if (serieVisible.hito() != null) {
             PanelInicioService.PuntoMes hito = serieVisible.hito();
             Label aviso = new Label("Hito " + hito.etiqueta() + ": ingresos "
                     + dinero(hito.ingresos()) + " y egresos " + dinero(hito.egresos())
-                    + ". Se muestra aparte para conservar legible la tendencia reciente.");
+                    + ". Se muestra aparte para conservar legible la tendencia.");
             aviso.setWrapText(true);
             aviso.getStyleClass().add("chart-outlier-note");
-            card.getChildren().add(aviso);
+            contenido.getChildren().add(aviso);
         }
-        card.getChildren().add(resumenMensual(serie));
-        return card;
+        contenido.getChildren().add(resumenMensual(serie));
     }
 
     /** Ranking de clientes del período más la actividad comercial resumida. */
@@ -628,7 +739,8 @@ public class InicioView extends VBox {
         card.getChildren().add(area);
         card.getChildren().add(leyendaDispercion());
         card.getChildren().add(resumenDispercion(serie));
-        Runnable repintar = () -> repintarDispercion(lienzo, serie);
+        Runnable repintar = () -> repintarDispercion(lienzo, aPuntosDispercion(serie),
+                "Ingresos (USD)", "Egresos (USD)");
         lienzo.widthProperty().addListener((o, a, b) -> repintar.run());
         lienzo.heightProperty().addListener((o, a, b) -> repintar.run());
         // El tema puede cambiar con el lienzo ya montado: se repinta cuando la
@@ -699,7 +811,260 @@ public class InicioView extends VBox {
         return Zona.TOLERADO;
     }
 
-    private void repintarDispercion(Canvas lienzo, List<PanelInicioService.PuntoMes> serie) {
+    /**
+     * Zona de la dispersión de costos según la razón costo real/presupuesto:
+     * bajo presupuesto es favorable (ahorro), sobrecosto es desfavorable.
+     */
+    private Zona zonaCostos(InventarioCostoService.PuntoCostoPresupuesto punto) {
+        double presupuesto = punto.presupuesto().doubleValue();
+        double real = punto.costoReal().doubleValue();
+        if (presupuesto <= 0) {
+            return real > 0 ? Zona.DEFICIT : Zona.TOLERADO;
+        }
+        double razon = real / presupuesto;
+        if (razon < 1 - TOLERANCIA_DISPERSION) {
+            return Zona.SUPERAVIT;
+        }
+        if (razon > 1 + TOLERANCIA_DISPERSION) {
+            return Zona.DEFICIT;
+        }
+        return Zona.TOLERADO;
+    }
+
+    /**
+     * Dispersión «presupuesto vs. costo real»: un punto por proyecto, lote de
+     * licencias o plan SaaS según la línea elegida en el selector. Misma
+     * lectura que la dispersión de ingresos: la diagonal y = x es el costo
+     * exactamente presupuestado y la banda ±10 % la tolerancia aceptable.
+     */
+    private VBox graficaCostos() {
+        Label heading = new Label("Dispersión · costos: presupuesto vs. costo real");
+        heading.getStyleClass().add("section-heading");
+        VBox card = new VBox(8, heading);
+        card.getStyleClass().addAll("surface-card", "dashboard-chart-card");
+        card.setPrefWidth(500);
+        card.setMaxWidth(500);
+        card.setMinWidth(340);
+
+        ComboBox<String> linea = new ComboBox<>(FXCollections.observableArrayList(
+                "Proyectos a la medida", "Licencias digitales", "Acceso SaaS"));
+        linea.setValue("Proyectos a la medida");
+        UiCatalogos.ayuda(linea, "Línea de costo a comparar: proyecto a la medida, "
+                + "licencias digitales o acceso SaaS.");
+        HBox selector = new HBox(8, new Label("Ver costos de"), linea);
+        selector.setAlignment(Pos.CENTER_LEFT);
+        card.getChildren().add(selector);
+
+        Label vacio = detalle("No hay objetos con datos de costo en esta línea.",
+                "status-pill");
+        vacio.setVisible(false);
+        vacio.setManaged(false);
+
+        // Mismo lienzo cuadrado que la dispersión de ingresos/egresos: la
+        // diagonal presupuesto = costo real sale a 45° con escalas idénticas.
+        javafx.scene.layout.StackPane area = new javafx.scene.layout.StackPane();
+        area.prefHeightProperty().bind(area.widthProperty());
+        area.setMinHeight(240);
+        Canvas lienzo = new Canvas();
+        area.getChildren().add(lienzo);
+        lienzo.widthProperty().bind(area.widthProperty());
+        lienzo.heightProperty().bind(area.heightProperty());
+        area.getStyleClass().add("dashboard-scatter");
+
+        FlowPane leyenda = leyendaCostos();
+        Label resumen = detalle("", "status-pill");
+        card.getChildren().addAll(vacio, area, leyenda, resumen);
+
+        AtomicReference<List<InventarioCostoService.PuntoCostoPresupuesto>> puntos =
+                new AtomicReference<>(List.of());
+        Runnable repintar = () -> repintarDispercion(lienzo, aPuntosCosto(puntos.get()),
+                "Presupuesto (USD)", "Costo real (USD)");
+        lienzo.widthProperty().addListener((o, a, b) -> repintar.run());
+        lienzo.heightProperty().addListener((o, a, b) -> repintar.run());
+        lienzo.sceneProperty().addListener((o, a, s) -> {
+            if (s != null && s.getRoot() != null) {
+                s.getRoot().getStyleClass().addListener(
+                        (javafx.beans.InvalidationListener) obs -> {
+                            if (lienzo.getScene() != null) {
+                                repintar.run();
+                            }
+                        });
+            }
+        });
+
+        Runnable cargar = () -> {
+            List<InventarioCostoService.PuntoCostoPresupuesto> datos =
+                    cargarCostos(linea.getValue());
+            puntos.set(datos);
+            boolean hay = !datos.isEmpty();
+            vacio.setVisible(!hay);
+            vacio.setManaged(!hay);
+            area.setVisible(hay);
+            area.setManaged(hay);
+            leyenda.setVisible(hay);
+            leyenda.setManaged(hay);
+            resumen.setText(resumenCostos(datos));
+            resumen.getStyleClass().setAll(haySobrecosto(datos)
+                    ? "warning-pill" : "status-pill");
+            resumen.setVisible(hay);
+            resumen.setManaged(hay);
+            repintar.run();
+        };
+        linea.valueProperty().addListener((o, a, b) -> cargar.run());
+        cargar.run();
+        return card;
+    }
+
+    private FlowPane leyendaCostos() {
+        FlowPane leyenda = new FlowPane(16, 6);
+        leyenda.getStyleClass().add("scatter-leyenda");
+        leyenda.getChildren().addAll(
+                itemLeyenda("linea", "Presupuesto exacto y = x"),
+                itemLeyenda("banda", "Tolerancia ±10 %"),
+                itemLeyenda("exito", "Bajo presupuesto"),
+                itemLeyenda("neutro", "En tolerancia"),
+                itemLeyenda("fallo", "Sobrecosto"));
+        return leyenda;
+    }
+
+    /** Consulta los puntos presupuesto vs. costo real de la línea elegida. */
+    private List<InventarioCostoService.PuntoCostoPresupuesto> cargarCostos(String etiqueta) {
+        String linea = switch (etiqueta) {
+            case "Licencias digitales" -> "LICENCIA";
+            case "Acceso SaaS" -> "ACCESO";
+            default -> "PROYECTO";
+        };
+        try {
+            return context.inventario().presupuestoVsCostoReal(linea);
+        } catch (Exception ex) {
+            sv.edu.ues.colibri.desktop.AppLog.error(
+                    "No se pudieron cargar los costos de " + linea, ex);
+            return List.of();
+        }
+    }
+
+    /** Conteo interpretativo de objetos por zona para el pie de la gráfica. */
+    private String resumenCostos(List<InventarioCostoService.PuntoCostoPresupuesto> puntos) {
+        long ahorro = puntos.stream().filter(p -> zonaCostos(p) == Zona.SUPERAVIT).count();
+        long tolerado = puntos.stream().filter(p -> zonaCostos(p) == Zona.TOLERADO).count();
+        long sobre = puntos.stream().filter(p -> zonaCostos(p) == Zona.DEFICIT).count();
+        List<BigDecimal> variaciones = puntos.stream()
+                .filter(p -> p.presupuesto().signum() > 0)
+                .map(p -> p.costoReal().subtract(p.presupuesto())
+                        .divide(p.presupuesto(), 4, RoundingMode.HALF_UP)
+                        .multiply(BigDecimal.valueOf(100))
+                        .setScale(1, RoundingMode.HALF_UP))
+                .toList();
+        BigDecimal media = variaciones.isEmpty() ? BigDecimal.ZERO
+                : variaciones.stream().reduce(BigDecimal.ZERO, BigDecimal::add)
+                        .divide(BigDecimal.valueOf(variaciones.size()), 1, RoundingMode.HALF_UP);
+        return ahorro + " bajo presupuesto · " + tolerado + " en tolerancia · " + sobre
+                + " con sobrecosto · variación media " + media + "%";
+    }
+
+    private boolean haySobrecosto(List<InventarioCostoService.PuntoCostoPresupuesto> puntos) {
+        return puntos.stream().anyMatch(p -> zonaCostos(p) == Zona.DEFICIT);
+    }
+
+    /**
+     * Tabla de estructura de costos: una fila por proyecto, lote de licencias
+     * o plan SaaS con su precio unitario y el costo desagregado por rubro.
+     */
+    private VBox tablaEstructuraCostos() {
+        Label heading = new Label("Estructura de costos · precio unitario vs. costo por objeto");
+        heading.getStyleClass().add("section-heading");
+        VBox card = new VBox(8, heading);
+        card.getStyleClass().addAll("surface-card", "dashboard-chart-card");
+        Label nota = detalle("Precio unitario y costo por rubro de cada proyecto, licencia "
+                + "y acceso. En licencias el costo del lote se reconoce íntegro al liberarse "
+                + "(sin desglose MOD/CIF); en accesos SaaS el costo es el asignado por "
+                + "usuario-mes.", "section-note");
+        card.getChildren().add(nota);
+        List<InventarioCostoService.EstructuraCostoInfo> filas = cargarEstructura();
+        if (filas.isEmpty()) {
+            card.getChildren().add(estadoVacio("Sin objetos de costo registrados.",
+                    "Los proyectos, licencias y accesos se crean en Costos e Inventario."));
+            return card;
+        }
+        TableView<InventarioCostoService.EstructuraCostoInfo> tabla = new TableView<>();
+        tabla.setPlaceholder(new Label("Sin objetos de costo para mostrar."));
+        tabla.getStyleClass().add("dashboard-data-table");
+        agregarColumna(tabla, "Objeto", InventarioCostoService.EstructuraCostoInfo::codigo);
+        agregarColumna(tabla, "Detalle", InventarioCostoService.EstructuraCostoInfo::detalle);
+        TableColumn<InventarioCostoService.EstructuraCostoInfo, String> tipo =
+                new TableColumn<>("Tipo");
+        tipo.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(
+                switch (c.getValue().tipo()) {
+                    case "PROYECTO" -> "Proyecto";
+                    case "LICENCIA" -> "Licencia";
+                    default -> "Acceso";
+                }));
+        tabla.getColumns().add(tipo);
+        agregarColumnaDinero(tabla, "Precio unitario",
+                InventarioCostoService.EstructuraCostoInfo::precioUnitario);
+        agregarColumnaDinero(tabla, "Materia prima",
+                InventarioCostoService.EstructuraCostoInfo::materiaPrima);
+        agregarColumnaDinero(tabla, "Mano de obra",
+                InventarioCostoService.EstructuraCostoInfo::manoObra);
+        agregarColumnaDinero(tabla, "CIF",
+                InventarioCostoService.EstructuraCostoInfo::cif);
+        agregarColumnaDinero(tabla, "Costo total",
+                InventarioCostoService.EstructuraCostoInfo::costoTotal);
+        tabla.getItems().setAll(filas);
+        tabla.setPrefHeight(altoTabla(filas.size()));
+        card.getChildren().add(UiTables.conBusqueda(tabla, "objetos de costo",
+                f -> f.codigo() + " " + f.detalle() + " " + f.tipo()));
+        return card;
+    }
+
+    private List<InventarioCostoService.EstructuraCostoInfo> cargarEstructura() {
+        try {
+            return context.inventario().estructuraCostos();
+        } catch (Exception ex) {
+            sv.edu.ues.colibri.desktop.AppLog.error(
+                    "No se pudo cargar la estructura de costos", ex);
+            return List.of();
+        }
+    }
+
+    /** Columna monetaria: «—» cuando el objeto aún no tiene precio registrado. */
+    private <T> void agregarColumnaDinero(TableView<T> tabla, String titulo,
+            Function<T, BigDecimal> valor) {
+        TableColumn<T, String> columna = new TableColumn<>(titulo);
+        columna.setCellValueFactory(c -> {
+            BigDecimal monto = valor.apply(c.getValue());
+            return new javafx.beans.property.SimpleStringProperty(
+                    monto == null ? "—" : dinero(monto));
+        });
+        tabla.getColumns().add(columna);
+    }
+
+    /** Punto genérico de dispersión con coordenadas, zona y rótulo ya resueltos. */
+    private record PuntoDispercion(double x, double y, Zona zona, String rotulo) {
+    }
+
+    private List<PuntoDispercion> aPuntosDispercion(List<PanelInicioService.PuntoMes> serie) {
+        boolean multiAnio = serie.stream().map(PanelInicioService.PuntoMes::anio)
+                .distinct().count() > 1;
+        List<PuntoDispercion> puntos = new ArrayList<>();
+        for (PanelInicioService.PuntoMes punto : serie) {
+            String rotulo = mesCorto(punto.mes())
+                    + (multiAnio ? " " + (punto.anio() % 100) : "");
+            puntos.add(new PuntoDispercion(punto.ingresos().doubleValue(),
+                    punto.egresos().doubleValue(), zonaDispercion(punto), rotulo));
+        }
+        return puntos;
+    }
+
+    private List<PuntoDispercion> aPuntosCosto(
+            List<InventarioCostoService.PuntoCostoPresupuesto> puntos) {
+        return puntos.stream().map(p -> new PuntoDispercion(
+                p.presupuesto().doubleValue(), p.costoReal().doubleValue(),
+                zonaCostos(p), p.etiqueta())).toList();
+    }
+
+    private void repintarDispercion(Canvas lienzo, List<PuntoDispercion> puntos,
+            String rotuloX, String rotuloY) {
         double w = lienzo.getWidth();
         double h = lienzo.getHeight();
         if (w < 80 || h < 80) {
@@ -723,9 +1088,8 @@ public class InicioView extends VBox {
         double oy = sup + (ph - lado) / 2;
 
         double maxV = 0;
-        for (PanelInicioService.PuntoMes punto : serie) {
-            maxV = Math.max(maxV, Math.max(punto.ingresos().doubleValue(),
-                    punto.egresos().doubleValue()));
+        for (PuntoDispercion punto : puntos) {
+            maxV = Math.max(maxV, Math.max(punto.x(), punto.y()));
         }
         double bruto = techoLindo(maxV * 1.10);
         final double techo = bruto <= 0 ? 1 : bruto;
@@ -797,14 +1161,12 @@ public class InicioView extends VBox {
         g.lineTo(aX.applyAsDouble(techo), aY.applyAsDouble(techo));
         g.stroke();
 
-        // Puntos mensuales con su etiqueta.
-        boolean multiAnio = serie.stream().map(PanelInicioService.PuntoMes::anio)
-                .distinct().count() > 1;
+        // Puntos con su rótulo.
         int idx = 0;
-        for (PanelInicioService.PuntoMes punto : serie) {
-            double px = aX.applyAsDouble(punto.ingresos().doubleValue());
-            double py = aY.applyAsDouble(punto.egresos().doubleValue());
-            Color relleno = switch (zonaDispercion(punto)) {
+        for (PuntoDispercion punto : puntos) {
+            double px = aX.applyAsDouble(punto.x());
+            double py = aY.applyAsDouble(punto.y());
+            Color relleno = switch (punto.zona()) {
                 case SUPERAVIT -> p.exito();
                 case TOLERADO -> p.neutro();
                 case DEFICIT -> p.fallo();
@@ -814,7 +1176,7 @@ public class InicioView extends VBox {
             g.setStroke(p.marco());
             g.setLineWidth(1);
             g.strokeOval(px - 5.5, py - 5.5, 11, 11);
-            String txt = mesCorto(punto.mes()) + (multiAnio ? " " + (punto.anio() % 100) : "");
+            String txt = punto.rotulo();
             g.setFont(Font.font(10));
             double tw = anchoTexto(g, txt);
             double lx = px + 9;
@@ -833,12 +1195,10 @@ public class InicioView extends VBox {
 
         // Títulos de ejes.
         g.setFill(p.eje());
-        String rotuloX = "Ingresos (USD)";
         g.fillText(rotuloX, ox + lado - anchoTexto(g, rotuloX), h - 6);
         g.save();
         g.translate(16, oy + lado / 2);
         g.rotate(-90);
-        String rotuloY = "Egresos (USD)";
         g.fillText(rotuloY, -anchoTexto(g, rotuloY) / 2, 0);
         g.restore();
     }

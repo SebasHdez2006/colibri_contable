@@ -179,9 +179,15 @@ public final class EstimacionCostosView extends VBox {
         tabla.setPlaceholder(new Label("Sin instrumentos para el filtro."));
         tabla.setMinHeight(280);
         tabla.setPrefHeight(320);
-        // Las descripciones son párrafos: filas más altas y texto envuelto
-        // en varias líneas en lugar de una sola línea interminable.
-        tabla.setFixedCellSize(54);
+        // Sin la columna de descripción las filas son más bajas; el nombre
+        // envuelve en dos líneas cuando el ancho no alcanza para una sola.
+        tabla.setFixedCellSize(52);
+
+        // Panel de detalle bajo la tabla: se llena al pulsar «Ver» en una fila.
+        VBox detalleInstrumento = new VBox(8);
+        detalleInstrumento.getStyleClass().add("detalle-instrumento");
+        detalleInstrumento.setVisible(false);
+        detalleInstrumento.setManaged(false);
 
         TableColumn<InstrumentosInstitucionales.Instrumento, String> cNum =
                 new TableColumn<>("N.º");
@@ -194,6 +200,28 @@ public final class EstimacionCostosView extends VBox {
         TableColumn<InstrumentosInstitucionales.Instrumento, String> cNom =
                 new TableColumn<>("Instrumento");
         cNom.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().nombre()));
+        cNom.setCellFactory(col -> new javafx.scene.control.TableCell<>() {
+            private final Label texto = new Label();
+
+            {
+                texto.setWrapText(true);
+                texto.prefWidthProperty().bind(col.widthProperty().subtract(14));
+                texto.minWidthProperty().bind(col.widthProperty().subtract(14));
+            }
+
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setGraphic(null);
+                    setText(null);
+                    return;
+                }
+                texto.setText(item);
+                setGraphic(texto);
+                setText(null);
+            }
+        });
         cNom.setMinWidth(320);
         cNom.setSortable(false);
 
@@ -230,41 +258,41 @@ public final class EstimacionCostosView extends VBox {
         cTip.setMinWidth(100);
         cTip.setSortable(false);
 
-        TableColumn<InstrumentosInstitucionales.Instrumento, String> cDesc =
-                new TableColumn<>("Breve descripción");
-        cDesc.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().descripcion()));
-        cDesc.setCellFactory(col -> new javafx.scene.control.TableCell<>() {
-            private final Label texto = new Label();
-            private final javafx.scene.control.Tooltip completo = new javafx.scene.control.Tooltip();
+        TableColumn<InstrumentosInstitucionales.Instrumento, Void> cDetalle =
+                new TableColumn<>("Descripción");
+        cDetalle.setCellFactory(col -> new javafx.scene.control.TableCell<>() {
+            private final Button boton = new Button("Ver");
 
             {
-                texto.setWrapText(true);
-                texto.getStyleClass().add("desc-celda");
-                texto.prefWidthProperty().bind(col.widthProperty().subtract(18));
-                texto.minWidthProperty().bind(col.widthProperty().subtract(18));
+                boton.setTooltip(new javafx.scene.control.Tooltip(
+                        "Ver la descripción completa del instrumento"));
+                boton.setOnAction(evento -> {
+                    var fila = getTableRow();
+                    if (fila != null && fila.getItem() != null) {
+                        mostrarDescripcion(fila.getItem(), detalleInstrumento);
+                    }
+                });
             }
 
             @Override
-            protected void updateItem(String item, boolean empty) {
+            protected void updateItem(Void item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setGraphic(null);
-                    setText(null);
-                    setTooltip(null);
-                    return;
-                }
-                texto.setText(item);
-                completo.setText(item);
-                setGraphic(texto);
-                setText(null);
-                setTooltip(completo);
+                setGraphic(empty ? null : boton);
             }
         });
-        cDesc.setMinWidth(320);
-        cDesc.setSortable(false);
+        cDetalle.setPrefWidth(96);
+        cDetalle.setMinWidth(88);
+        cDetalle.setSortable(false);
+        cDetalle.setResizable(false);
 
-        tabla.getColumns().addAll(cNum, cNom, cTip, cDesc);
+        tabla.getColumns().addAll(cNum, cNom, cTip, cDetalle);
         tabla.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
+        // La columna del nombre absorbe el ancho sobrante de la tabla para
+        // que los instrumentos largos se lean completos; el resto de
+        // columnas conservan su ancho fijo.
+        cNom.prefWidthProperty().bind(javafx.beans.binding.Bindings.createDoubleBinding(
+                () -> Math.max(320.0, tabla.getWidth() - 300.0),
+                tabla.widthProperty()));
 
         buscar.textProperty().addListener((obs, anterior, nuevo) -> {
             String consulta = normalizar(nuevo);
@@ -277,10 +305,38 @@ public final class EstimacionCostosView extends VBox {
         });
 
         return ResponsiveLayouts.sectionCard(
-                "Políticas, procesos y procedimientos (Anexo M)",
+                "Políticas, procesos y procedimientos",
                 "Catálogo de referencia del marco institucional: lineamientos internos "
                         + "de la empresa, no movimientos contables.",
-                resumen, buscar, tabla);
+                resumen, buscar, tabla, detalleInstrumento);
+    }
+
+    /**
+     * Muestra la descripción completa del instrumento elegido en el panel
+     * inferior de la tabla; el botón «Ocultar» lo repliega.
+     */
+    private void mostrarDescripcion(InstrumentosInstitucionales.Instrumento instrumento,
+            VBox detalle) {
+        detalle.getChildren().clear();
+        Label meta = new Label("N.º " + instrumento.numero() + " · " + instrumento.tipo()
+                + " · " + instrumento.seccion());
+        meta.getStyleClass().add("section-note");
+        Label nombre = new Label(instrumento.nombre());
+        nombre.setWrapText(true);
+        nombre.getStyleClass().add("poliza-heading");
+        Text cuerpo = new Text(instrumento.descripcion());
+        cuerpo.getStyleClass().add("poliza-body");
+        TextFlow descripcion = new TextFlow(cuerpo);
+        descripcion.setLineSpacing(6);
+        descripcion.getStyleClass().add("poliza-texto");
+        Button cerrar = new Button("Ocultar descripción");
+        cerrar.setOnAction(evento -> {
+            detalle.setVisible(false);
+            detalle.setManaged(false);
+        });
+        detalle.getChildren().addAll(meta, nombre, descripcion, cerrar);
+        detalle.setVisible(true);
+        detalle.setManaged(true);
     }
 
     /**

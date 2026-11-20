@@ -15,7 +15,9 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Consultas agregadas para el tablero de la pantalla de inicio.
@@ -133,6 +135,63 @@ public class PanelInicioService {
                 clientesTop(conn, inicio, fin),
                 alertas(conn, periodo),
                 serieMensual(conn, inicio.minusMonths(5).withDayOfMonth(1), fin)));
+    }
+
+    /**
+     * Serie mensual de ingresos y egresos entre dos fechas, usada por la
+     * gráfica de barras cuando el usuario elige el rango de años a comparar.
+     * Los meses sin movimiento se rellenan con cero para que el eje del
+     * rango elegido sea continuo y comparable mes a mes.
+     *
+     * @param desde inicio del rango (inclusive)
+     * @param hasta fin del rango (inclusive)
+     * @return un punto por cada mes del rango, ordenado cronológicamente
+     */
+    public List<PuntoMes> serieMensualEntre(LocalDate desde, LocalDate hasta) {
+        auth.exigirContador();
+        if (desde == null || hasta == null || desde.isAfter(hasta)) {
+            return List.of();
+        }
+        LocalDate ini = desde.withDayOfMonth(1);
+        LocalDate fin = hasta.withDayOfMonth(1);
+        List<PuntoMes> conDatos = jdbc.inTransaction(conn -> serieMensual(conn, ini, fin));
+        Map<String, PuntoMes> porMes = new HashMap<>();
+        for (PuntoMes p : conDatos) {
+            porMes.put(p.etiqueta(), p);
+        }
+        List<PuntoMes> serie = new ArrayList<>();
+        for (LocalDate mes = ini; !mes.isAfter(fin); mes = mes.plusMonths(1)) {
+            PuntoMes punto = porMes.get("%04d-%02d".formatted(mes.getYear(), mes.getMonthValue()));
+            serie.add(punto != null ? punto
+                    : new PuntoMes(mes.getYear(), mes.getMonthValue(), BigDecimal.ZERO, BigDecimal.ZERO));
+        }
+        return serie;
+    }
+
+    /**
+     * Años con al menos una partida contabilizada, para poblar los selectores
+     * de rango de la gráfica de barras del tablero.
+     */
+    public List<Integer> aniosConMovimientos() {
+        auth.exigirContador();
+        return jdbc.inTransaction(conn -> {
+            try (PreparedStatement ps = conn.prepareStatement("""
+                    SELECT DISTINCT EXTRACT(YEAR FROM p.fecha_contable)::int AS anio
+                    FROM partida_detalle d
+                    JOIN partida p ON p.id = d.partida_id
+                    WHERE p.estado = 'CONTABILIZADA'
+                    ORDER BY anio
+                    """);
+                 ResultSet rs = ps.executeQuery()) {
+                List<Integer> lista = new ArrayList<>();
+                while (rs.next()) {
+                    lista.add(rs.getInt("anio"));
+                }
+                return lista;
+            } catch (SQLException e) {
+                throw new PersistenceException("Error al listar años con movimientos", e);
+            }
+        });
     }
 
     private List<PuntoMes> serieMensual(Connection conn, LocalDate desde, LocalDate hasta) {

@@ -139,8 +139,7 @@ La documentación se organiza por tema dentro de `docs/`:
 | `docs/pruebas/REVISION_UX_2026-11-18.md` | Revisión de usabilidad por módulo y correcciones aplicadas. |
 | `docs/auditoria/AUDITORIA_CORRECCIONES_RESUMEN.md` | Resumen de las correcciones de la auditoría forense contable. |
 | `docs/auditoria/INVENTARIO_CLASES_CRITICAS.md` | Inventario de clases con cálculos monetarios previo a la auditoría. |
-| `docs/diagramas/` | Diagramas del sistema: arquitectura, ERD (PNG y Mermaid), módulos Maven y metamodelo. |
-| `docs/capturas/` | Capturas de pantalla de la aplicación por rol. |
+| `docs/diagramas/` | Diagramas del sistema: arquitectura, ERD (PNG y Mermaid), módulos Maven, metamodelo y capturas de pantalla de la aplicación por rol. |
 
 Los informes con fecha en el nombre (`*_AAAA-MM-DD.md`) son evidencias de una ejecución concreta; describen el estado del sistema en esa fecha y no se reescriben cuando el código avanza. La especificación de la auditoría forense se conserva en `.kiro/specs/auditoria-forense-contable/`.
 

@@ -1126,3 +1126,10 @@
 .instrumento-politica { -fx-background-color: -color-primary-subtle; -fx-text-fill: -color-primary; }
 .instrumento-proceso { -fx-background-color: -color-interactive-subtle; -fx-text-fill: -color-interactive; }
 .instrumento-procedimiento { -fx-background-color: -color-note-subtle; -fx-text-fill: -color-note; }
+.detalle-instrumento {
+    -fx-background-color: -colibri-row;
+    -fx-background-radius: 0.71em;
+    -fx-border-color: -colibri-line;
+    -fx-border-radius: 0.71em;
+    -fx-padding: 0.9em 1em;
+}

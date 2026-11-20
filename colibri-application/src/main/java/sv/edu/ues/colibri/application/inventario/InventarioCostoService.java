@@ -161,6 +161,30 @@ public class InventarioCostoService {
             BigDecimal saldoUeps) {
     }
 
+    /**
+     * Punto del diagrama «presupuesto vs. costo real» del tablero de inicio:
+     * un objeto de la línea elegida con su presupuesto y su costo real.
+     * En proyectos es la orden de servicio; en licencias el lote; en accesos
+     * el plan SaaS con su facturación presupuestada y su costo asignado.
+     */
+    public record PuntoCostoPresupuesto(String etiqueta, String detalle,
+            BigDecimal presupuesto, BigDecimal costoReal) {
+    }
+
+    /**
+     * Fila de la tabla de estructura de costos del tablero: precio unitario
+     * y costo desagregado por rubro (materia prima / servicios directos, mano
+     * de obra y CIF) de un proyecto, licencia o acceso. El precio unitario es
+     * por proyecto, por licencia o por usuario-mes según la línea.
+     */
+    public record EstructuraCostoInfo(String tipo, String codigo, String detalle,
+            BigDecimal precioUnitario, BigDecimal materiaPrima, BigDecimal manoObra,
+            BigDecimal cif) {
+        public BigDecimal costoTotal() {
+            return materiaPrima.add(manoObra).add(cif);
+        }
+    }
+
     private record PlanRef(UUID id, String codigo, String nombre, String modalidad,
             String tipoFacturacion) {
     }
@@ -1677,6 +1701,274 @@ public class InventarioCostoService {
                 throw new PersistenceException("Error al consultar los costos históricos", e);
             }
         });
+    }
+
+    /**
+     * Puntos del diagrama «presupuesto vs. costo real» del tablero de inicio,
+     * uno por objeto de la línea elegida: PROYECTO (órdenes de servicio),
+     * LICENCIA (lotes) o ACCESO (planes SaaS).
+     *
+     * @param linea PROYECTO, LICENCIA o ACCESO
+     * @return puntos presupuestado vs. real ordenados por código
+     */
+    public List<PuntoCostoPresupuesto> presupuestoVsCostoReal(String linea) {
+        auth.exigirContador();
+        String seleccion = linea == null ? "" : linea.trim().toUpperCase(Locale.ROOT);
+        return switch (seleccion) {
+            case "PROYECTO" -> jdbc.inTransaction(this::puntosPresupuestoProyecto);
+            case "LICENCIA" -> jdbc.inTransaction(this::puntosPresupuestoLicencia);
+            case "ACCESO" -> puntosPresupuestoAcceso();
+            default -> throw new DomainException(
+                    "Línea de costo no soportada: " + (linea == null ? "" : linea));
+        };
+    }
+
+    /** Órdenes de servicio: presupuesto de la orden contra su costo real contabilizado. */
+    private List<PuntoCostoPresupuesto> puntosPresupuestoProyecto(Connection conn) {
+        try (PreparedStatement ps = conn.prepareStatement("""
+                SELECT o.codigo, o.descripcion, o.presupuesto,
+                       COALESCE((SELECT SUM(c.importe)
+                                 FROM orden_consumo c
+                                 JOIN partida p ON p.id = c.partida_id
+                                 WHERE c.orden_id = o.id AND p.estado='CONTABILIZADA'), 0) AS costo
+                FROM orden_servicio o
+                WHERE o.estado <> 'CANCELADA'
+                ORDER BY o.codigo
+                """);
+             ResultSet rs = ps.executeQuery()) {
+            List<PuntoCostoPresupuesto> lista = new ArrayList<>();
+            while (rs.next()) {
+                lista.add(new PuntoCostoPresupuesto(rs.getString("codigo"),
+                        rs.getString("descripcion"), rs.getBigDecimal("presupuesto"),
+                        rs.getBigDecimal("costo")));
+            }
+            return lista;
+        } catch (SQLException e) {
+            throw new PersistenceException("Error al comparar presupuesto y costo de órdenes", e);
+        }
+    }
+
+    /**
+     * Lotes de licencia: el costo presupuestado del lote (su costo total PEPS)
+     * contra el costo real neto de las unidades entregadas según el kárdex.
+     */
+    private List<PuntoCostoPresupuesto> puntosPresupuestoLicencia(Connection conn) {
+        try (PreparedStatement ps = conn.prepareStatement("""
+                SELECT lo.codigo_lote,
+                       p.nombre || ' · v' || pv.version_label AS detalle,
+                       lo.costo_total AS presupuesto,
+                       COALESCE((SELECT -SUM(m.importe)
+                                 FROM licencia_movimiento m
+                                 WHERE m.lote_id = lo.id
+                                   AND m.tipo IN ('ENTREGA','DEVOLUCION')), 0) AS costo
+                FROM lote_licencia lo
+                JOIN producto_version pv ON pv.id = lo.version_id
+                JOIN producto p ON p.id = pv.producto_id
+                ORDER BY lo.codigo_lote
+                """);
+             ResultSet rs = ps.executeQuery()) {
+            List<PuntoCostoPresupuesto> lista = new ArrayList<>();
+            while (rs.next()) {
+                lista.add(new PuntoCostoPresupuesto(rs.getString("codigo_lote"),
+                        rs.getString("detalle"), rs.getBigDecimal("presupuesto"),
+                        rs.getBigDecimal("costo")));
+            }
+            return lista;
+        } catch (SQLException e) {
+            throw new PersistenceException("Error al comparar presupuesto y costo de lotes", e);
+        }
+    }
+
+    /**
+     * Planes SaaS: la facturación presupuestada (tarifa pactada por usuario-mes
+     * multiplicada por los usuarios-mes acumulados) contra el costo real que el
+     * plan absorbió del pool de procesos 510201–510203 en el mismo horizonte.
+     */
+    private List<PuntoCostoPresupuesto> puntosPresupuestoAcceso() {
+        return costosSaasPorPlan().stream()
+                .map(p -> new PuntoCostoPresupuesto(p.codigo(), p.nombre(),
+                        p.tarifaBase().multiply(BigDecimal.valueOf(p.usuariosMes()))
+                                .setScale(2, RoundingMode.HALF_UP),
+                        p.totalAsignado()))
+                .toList();
+    }
+
+    /**
+     * Costo SaaS asignado a cada plan con usuarios-mes en todo el horizonte
+     * registrado: tarifa pactada, usuarios-mes acumulados y su parte del pool
+     * de procesos 510201–510203.
+     */
+    private List<PlanCostoSaas> costosSaasPorPlan() {
+        LocalDate[] rango = jdbc.inTransaction(conn -> {
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "SELECT MIN(periodo) AS desde, MAX(periodo) AS hasta FROM saas_usuario_mes")) {
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (!rs.next() || rs.getObject("desde") == null) {
+                        return new LocalDate[] {null, null};
+                    }
+                    return new LocalDate[] {rs.getObject("desde", LocalDate.class),
+                            rs.getObject("hasta", LocalDate.class)};
+                }
+            } catch (SQLException e) {
+                throw new PersistenceException("Error al leer el rango de usuarios-mes", e);
+            }
+        });
+        if (rango[0] == null) {
+            return List.of();
+        }
+        List<PlanCostoSaas> planes = jdbc.inTransaction(conn -> {
+            try (PreparedStatement ps = conn.prepareStatement("""
+                    SELECT s.plan_id, p.codigo, p.nombre, p.tarifa_base,
+                           SUM(s.usuarios_mes) AS usuarios_mes
+                    FROM saas_usuario_mes s
+                    JOIN plan_servicio p ON p.id = s.plan_id
+                    WHERE p.modalidad='SAAS'
+                    GROUP BY s.plan_id, p.codigo, p.nombre, p.tarifa_base
+                    ORDER BY p.codigo
+                    """);
+                 ResultSet rs = ps.executeQuery()) {
+                List<PlanCostoSaas> lista = new ArrayList<>();
+                while (rs.next()) {
+                    lista.add(new PlanCostoSaas((UUID) rs.getObject("plan_id"),
+                            rs.getString("codigo"), rs.getString("nombre"),
+                            rs.getBigDecimal("tarifa_base"), rs.getInt("usuarios_mes"), null));
+                }
+                return lista;
+            } catch (SQLException e) {
+                throw new PersistenceException("Error al listar planes SaaS con usuarios-mes", e);
+            }
+        });
+        if (planes.isEmpty()) {
+            return List.of();
+        }
+        List<SaasParticipacion> participaciones = planes.stream()
+                .map(p -> new SaasParticipacion(p.planId(), p.codigo(), p.usuariosMes()))
+                .toList();
+        int usuariosTotales = planes.stream().mapToInt(PlanCostoSaas::usuariosMes).sum();
+        CostoSaasInfo proceso = calcularCostoSaas(rango[0], rango[1], usuariosTotales);
+        List<PlanCostoSaas> resultado = new ArrayList<>();
+        for (PlanCostoSaas plan : planes) {
+            BigDecimal total = asignarPorUsuariosMes(proceso.alojamiento(), participaciones, plan.planId())
+                    .add(asignarPorUsuariosMes(proceso.soporte(), participaciones, plan.planId()))
+                    .add(asignarPorUsuariosMes(proceso.infraestructuraCompartida(),
+                            participaciones, plan.planId()));
+            resultado.add(new PlanCostoSaas(plan.planId(), plan.codigo(), plan.nombre(),
+                    plan.tarifaBase(), plan.usuariosMes(),
+                    total.setScale(2, RoundingMode.HALF_UP)));
+        }
+        return resultado;
+    }
+
+    /** Plan SaaS con tarifa pactada, usuarios-mes y costo asignado del pool. */
+    private record PlanCostoSaas(UUID planId, String codigo, String nombre,
+            BigDecimal tarifaBase, int usuariosMes, BigDecimal totalAsignado) {
+    }
+
+    /**
+     * Estructura de costos del tablero: una fila por proyecto, lote de
+     * licencias o plan SaaS con su precio unitario y el costo desagregado por
+     * rubro (materia prima / servicios directos, mano de obra y CIF).
+     *
+     * @return filas ordenadas por línea comercial y código
+     */
+    public List<EstructuraCostoInfo> estructuraCostos() {
+        auth.exigirContador();
+        List<EstructuraCostoInfo> lista = new ArrayList<>();
+        lista.addAll(jdbc.inTransaction(this::filasEstructuraProyecto));
+        lista.addAll(jdbc.inTransaction(this::filasEstructuraLicencia));
+        lista.addAll(filasEstructuraAcceso());
+        return lista;
+    }
+
+    /** Órdenes de servicio: precio de venta contra MOD, servicios directos y CIF. */
+    private List<EstructuraCostoInfo> filasEstructuraProyecto(Connection conn) {
+        try (PreparedStatement ps = conn.prepareStatement("""
+                SELECT o.codigo, o.descripcion, o.precio_venta,
+                       COALESCE(SUM(CASE WHEN c.tipo IN ('SERVICIO','OTRO')
+                            AND p.estado='CONTABILIZADA' THEN c.importe END), 0) AS mp,
+                       COALESCE(SUM(CASE WHEN c.tipo='MOD'
+                            AND p.estado='CONTABILIZADA' THEN c.importe END), 0) AS mod,
+                       COALESCE(SUM(CASE WHEN c.tipo='CIF'
+                            AND p.estado='CONTABILIZADA' THEN c.importe END), 0) AS cif
+                FROM orden_servicio o
+                LEFT JOIN orden_consumo c ON c.orden_id = o.id
+                LEFT JOIN partida p ON p.id = c.partida_id
+                WHERE o.estado <> 'CANCELADA'
+                GROUP BY o.id, o.codigo, o.descripcion, o.precio_venta
+                ORDER BY o.codigo
+                """);
+             ResultSet rs = ps.executeQuery()) {
+            List<EstructuraCostoInfo> lista = new ArrayList<>();
+            while (rs.next()) {
+                lista.add(new EstructuraCostoInfo("PROYECTO", rs.getString("codigo"),
+                        rs.getString("descripcion"), rs.getBigDecimal("precio_venta"),
+                        rs.getBigDecimal("mp"), rs.getBigDecimal("mod"), rs.getBigDecimal("cif")));
+            }
+            return lista;
+        } catch (SQLException e) {
+            throw new PersistenceException("Error al leer la estructura de costos de órdenes", e);
+        }
+    }
+
+    /**
+     * Lotes de licencia: precio unitario de venta promedio de las unidades
+     * entregadas (partidas de venta trazadas en el kárdex) contra el costo
+     * unitario del lote. El costo de un lote se reconoce íntegro al liberarse,
+     * por lo que no hay desglose MOD/CIF: va completo en materia prima.
+     */
+    private List<EstructuraCostoInfo> filasEstructuraLicencia(Connection conn) {
+        try (PreparedStatement ps = conn.prepareStatement("""
+                SELECT lo.codigo_lote,
+                       p.nombre || ' · v' || pv.version_label AS detalle,
+                       lo.costo_unitario,
+                       v.precio_promedio
+                FROM lote_licencia lo
+                JOIN producto_version pv ON pv.id = lo.version_id
+                JOIN producto p ON p.id = pv.producto_id
+                LEFT JOIN (
+                    SELECT lm.lote_id, AVG(px.precio) AS precio_promedio
+                    FROM licencia_movimiento lm
+                    JOIN partida pt ON pt.id = lm.partida_id AND pt.estado='CONTABILIZADA'
+                    JOIN (
+                        SELECT d.partida_id, SUM(d.haber - d.debe) AS precio
+                        FROM partida_detalle d
+                        WHERE d.codigo_cuenta LIKE '4%'
+                        GROUP BY d.partida_id
+                    ) px ON px.partida_id = lm.partida_id
+                    WHERE lm.tipo='ENTREGA' AND lm.partida_id IS NOT NULL
+                    GROUP BY lm.lote_id
+                ) v ON v.lote_id = lo.id
+                ORDER BY lo.codigo_lote
+                """);
+             ResultSet rs = ps.executeQuery()) {
+            List<EstructuraCostoInfo> lista = new ArrayList<>();
+            while (rs.next()) {
+                BigDecimal costoUnitario = rs.getBigDecimal("costo_unitario");
+                lista.add(new EstructuraCostoInfo("LICENCIA", rs.getString("codigo_lote"),
+                        rs.getString("detalle"), rs.getBigDecimal("precio_promedio"),
+                        costoUnitario, BigDecimal.ZERO, BigDecimal.ZERO));
+            }
+            return lista;
+        } catch (SQLException e) {
+            throw new PersistenceException("Error al leer la estructura de costos de licencias", e);
+        }
+    }
+
+    /**
+     * Planes SaaS: tarifa pactada por usuario-mes contra el costo asignado
+     * por usuario-mes del pool de procesos. El costo SaaS es indirecto por
+     * naturaleza (alojamiento, soporte e infraestructura), por eso va en CIF.
+     */
+    private List<EstructuraCostoInfo> filasEstructuraAcceso() {
+        List<EstructuraCostoInfo> lista = new ArrayList<>();
+        for (PlanCostoSaas plan : costosSaasPorPlan()) {
+            BigDecimal unitario = plan.totalAsignado()
+                    .divide(BigDecimal.valueOf(plan.usuariosMes()), 4, RoundingMode.HALF_UP);
+            lista.add(new EstructuraCostoInfo("ACCESO", plan.codigo(),
+                    plan.nombre() + " · " + plan.usuariosMes() + " usuario(s)-mes",
+                    plan.tarifaBase(), BigDecimal.ZERO, BigDecimal.ZERO, unitario));
+        }
+        return lista;
     }
 
     /**
