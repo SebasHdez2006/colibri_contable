@@ -6,6 +6,7 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import sv.edu.ues.colibri.domain.util.MonetaryCalculator;
 
 /**
  * Servicio gerencial para estimar costos, esfuerzo y precio sin generar asientos contables.
@@ -198,8 +199,10 @@ public final class EstimacionCostosService {
     public BigDecimal cocomo(BigDecimal kloc, BigDecimal sumaFactoresEscala, BigDecimal multiplicadoresEsfuerzo, BigDecimal horasPorMes) {
         exigirPositivo(kloc, "KLOC"); exigirNoNegativo(sumaFactoresEscala, "factores de escala"); exigirPositivo(multiplicadoresEsfuerzo, "multiplicadores de esfuerzo"); exigirPositivo(horasPorMes, "horas por mes");
         double exponente = COCOMO_B.doubleValue() + 0.01d * sumaFactoresEscala.doubleValue();
+        // Math.pow es trascendental: se calcula en double y se reincorpora a
+        // BigDecimal con precisión intermedia controlada (Invariante 1).
         double personaMes = COCOMO_A.doubleValue() * Math.pow(kloc.doubleValue(), exponente) * multiplicadoresEsfuerzo.doubleValue();
-        return bd(personaMes).multiply(horasPorMes);
+        return MonetaryCalculator.multiply(bd(personaMes), horasPorMes);
     }
 
     /**
@@ -250,7 +253,7 @@ public final class EstimacionCostosService {
     public BigDecimal slimPutnam(BigDecimal tamano, BigDecimal productividadCk, BigDecimal duracionAnos) {
         exigirPositivo(tamano, "tamaño SLIM"); exigirPositivo(productividadCk, "productividad Ck"); exigirPositivo(duracionAnos, "duración en años");
         double personaAnos = Math.pow(tamano.doubleValue() / (productividadCk.doubleValue() * Math.pow(duracionAnos.doubleValue(), 4d / 3d)), 3d);
-        return bd(personaAnos).multiply(bd("2080"));
+        return MonetaryCalculator.multiply(bd(personaAnos), bd("2080"));
     }
 
     private Resultado costear(Metodo metodo, BigDecimal horas, BigDecimal tarifaHora, BigDecimal cifPorcentaje, BigDecimal margenPorcentaje) {

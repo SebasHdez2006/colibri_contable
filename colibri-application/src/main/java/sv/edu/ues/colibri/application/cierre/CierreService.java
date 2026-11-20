@@ -294,6 +294,7 @@ public class CierreService {
             throw new DomainException("No se puede cerrar el período mientras existan cédulas de ajuste "
                     + "pendientes de vincular a su partida.");
         }
+        exigirSinPartidasPendientes(p);
         periodos.marcarCerrado(p);
     }
 
@@ -314,6 +315,7 @@ public class CierreService {
             throw new DomainException("No se puede cerrar el período mientras existan cédulas de ajuste "
                     + "pendientes de vincular a su partida.");
         }
+        exigirSinPartidasPendientes(periodo);
         periodos.marcarCerrado(periodo);
     }
 
@@ -341,6 +343,7 @@ public class CierreService {
             throw new DomainException("No se puede cerrar el período mientras existan cédulas de ajuste "
                     + "pendientes de vincular a su partida.");
         }
+        exigirSinPartidasPendientes(p);
         periodos.marcarCerrado(p);
         resumen.add("Período " + p.getMes() + " cerrado.");
         return String.join("\n", resumen);
@@ -1105,6 +1108,20 @@ public class CierreService {
     }
 
     /** Un cierre no debe congelar una cédula creada antes de su asiento. */
+    /**
+     * Impide cerrar un período que aún tiene partidas en borrador o aprobadas:
+     * quedarían imposibilitadas de contabilizarse al bloquearse el mes.
+     */
+    private void exigirSinPartidasPendientes(Periodo periodo) {
+        int pendientes = jdbc.inTransaction(conn ->
+                partidaRepository.contarPendientesPorPeriodo(conn, periodo.getId()));
+        if (pendientes > 0) {
+            throw new DomainException("No se puede cerrar el período mientras existan " + pendientes
+                    + " partida(s) en borrador o aprobadas sin contabilizar. "
+                    + "Contabilícelas, anúlelas o reviértalas antes del cierre.");
+        }
+    }
+
     private boolean hayCedulasPendientes(UUID periodoId) {
         return jdbc.inTransaction(conn -> {
             try (PreparedStatement ps = conn.prepareStatement("""

@@ -81,15 +81,15 @@ Los criterios de este documento expresan el alcance académico esperado y no cer
 
 <!-- Esta sección resume el estado observado del sistema para separar la rúbrica académica del inventario real de funcionalidades. -->
 
-Estado de referencia: 17 de noviembre de 2026. Esta síntesis separa los criterios del curso de las capacidades observables en la versión presentada. Los límites que siguen deben exponerse junto con cualquier demostración.
+Estado de referencia: 19 de noviembre de 2026. Esta síntesis separa los criterios del curso de las capacidades observables en la versión presentada. Los límites que siguen deben exponerse junto con cualquier demostración.
 
 | Área | Estado implementado y límites |
 |---|---|
 | Catálogo, períodos, parámetros y seguridad | Catálogo jerárquico, períodos, perfiles contables, centros de costo, roles y bitácora de accesos. Las dimensiones por cuenta, la auditoría completa de cambios y el uso efectivo de todos los parámetros no están implementados de forma integral. |
 | Registro contable e IVA | Partidas de doble partida, documentos internos, IVA neto/incluido y liquidación mensual parametrizada. Importación de asientos CSV a borrador. Sin emisión ni transmisión oficial de DTE. |
 | Ajustes y cierres | Depreciación lineal, amortización de intangibles, provisión de incobrables, deterioro/reversión de inventario, liquidación de IVA y cierre/bloqueo de período. No hay cierre fiscal anual completo. |
-| Inventario y costos | Licencias descargables con salida PEPS y kárdex; promedio y UEPS son comparativos sin asientos. Hay datos y cálculos para órdenes a medida, SaaS por usuarios-mes/plan y servicios por plan facturado, pero no un ciclo operativo completo de órdenes ni consolidación automática de costo por versión. |
-| Libros y estados | Diario, Mayor, Balanza, Cuenta T, Hoja de trabajo, Situación financiera, Resultados, libros de IVA y auxiliares en el selector manual. Cambios en el patrimonio y Flujos de efectivo se generan en el ZIP. El flujo de efectivo es parcial; la distinción de IVA CCF/consumidor final y los auxiliares dimensionales tienen límites conocidos. |
+| Inventario y costos | Licencias descargables con salida PEPS, devolución, revocación y kárdex; promedio y UEPS son comparativos sin asientos. Hay datos y cálculos para órdenes a medida (con ciclo de estados, edición y rentabilidad, pero sin bloqueo de costeo por entrega), SaaS por usuarios-mes/plan y servicios por plan facturado; no hay consolidación automática de costo por versión. |
+| Libros y estados | Diario, Mayor, Balanza, Cuenta T, Hoja de trabajo, Situación financiera, Resultados, Cambios en el patrimonio y Flujos de efectivo seleccionables; libros de IVA con separación excluyente CCF/consumidor final; auxiliares con saldo acumulado por dimensión pero sin filtro por dimensión específica. |
 | Exportación y respaldo | PDF, XLSX y ZIP de un rango. También hay exportación por combinaciones de varios períodos a una carpeta, no a un ZIP multiperíodo. El respaldo es manual con `pg_dump`; no hay programación, cifrado ni restauración desde la interfaz. |
 
 Los porcentajes y temas de la rúbrica siguen siendo criterios de evaluación del proyecto. No constituyen un inventario de funciones ya entregadas ni una conclusión de cumplimiento normativo.

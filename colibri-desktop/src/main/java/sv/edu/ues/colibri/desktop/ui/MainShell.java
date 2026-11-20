@@ -8,6 +8,9 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuButton;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
@@ -59,6 +62,9 @@ public class MainShell extends BorderPane implements Navegador {
     private Popup migasFlyout;
     private PaletaComandos paleta;
     private Label zoomIndicator;
+    private HBox herramientasSesion;
+    private MenuButton accionesCompactas;
+    private MenuItem accionTemaCompacta;
     private boolean colapsadoAutomatico;
     private double zoomFactor = 1.0;
 
@@ -95,6 +101,7 @@ public class MainShell extends BorderPane implements Navegador {
         sceneProperty().addListener((observable, anterior, actual) -> instalarAtajos(actual));
         Breakpoints bp = Breakpoints.instalar(this);
         bp.nivelProperty().addListener((o, anterior, nivel) -> ajustarMenuAlAncho(nivel));
+        ajustarMenuAlAncho(bp.nivel());
         aplicarZoom();
 
         abrirConSesion(arbol.getFirst().esGrupo() ? arbol.getFirst().hijos().getFirst() : arbol.getFirst());
@@ -160,7 +167,8 @@ public class MainShell extends BorderPane implements Navegador {
         busqueda.setAlignment(Pos.CENTER_RIGHT);
         busqueda.getStyleClass().add("search-box");
 
-        HBox accionesPagina = new HBox(12, busqueda);
+        accionesCompactas = crearAccionesCompactas();
+        HBox accionesPagina = new HBox(12, accionesCompactas, busqueda);
         accionesPagina.setAlignment(Pos.CENTER_RIGHT);
         Node chip = crearChipPeriodo();
         if (chip != null) {
@@ -173,8 +181,8 @@ public class MainShell extends BorderPane implements Navegador {
         navegacion.setAlignment(Pos.CENTER_LEFT);
         navegacion.getStyleClass().add("top-navigation-row");
 
-        HBox herramientas = crearHerramientasSesion();
-        VBox bar = new VBox(8, navegacion, herramientas);
+        herramientasSesion = crearHerramientasSesion();
+        VBox bar = new VBox(8, navegacion, herramientasSesion);
         bar.getStyleClass().add("top-bar");
         bar.setFillWidth(true);
         return bar;
@@ -239,8 +247,52 @@ public class MainShell extends BorderPane implements Navegador {
         Button salir = new Button("Cerrar sesión");
         salir.getStyleClass().addAll("button", "secondary-button", "top-session-button");
         salir.setOnAction(e -> cerrarSesion());
-        herramientas.getChildren().addAll(datos, crearControlesZoom(), new TemaSwitch(), salir);
+        TemaSwitch tema = new TemaSwitch();
+        herramientas.getChildren().addAll(datos, crearControlesZoom(), tema, salir);
+        accionesCompactas.getItems().setAll(crearItemsAccionesCompactas(tema));
         return herramientas;
+    }
+
+    /**
+     * Agrupa las utilidades de sesión cuando no hay ancho suficiente para
+     * mostrar sus etiquetas completas. Las acciones siguen siendo textuales y
+     * mantienen los mismos atajos de teclado que la barra amplia.
+     */
+    private MenuButton crearAccionesCompactas() {
+        MenuButton menuCompacto = new MenuButton("Opciones");
+        menuCompacto.getStyleClass().add("compact-session-menu");
+        menuCompacto.setAccessibleText("Opciones de sesión");
+        menuCompacto.setAccessibleHelp("Abrir acciones de zoom, tema y cierre de sesión");
+        menuCompacto.setOnShowing(e -> actualizarAccionTemaCompacta());
+        menuCompacto.setVisible(false);
+        menuCompacto.setManaged(false);
+        return menuCompacto;
+    }
+
+    private List<MenuItem> crearItemsAccionesCompactas(TemaSwitch tema) {
+        MenuItem reducir = new MenuItem("Reducir zoom");
+        reducir.setOnAction(e -> zoomOut());
+        MenuItem restablecer = new MenuItem("Restablecer zoom");
+        restablecer.setOnAction(e -> zoomReset());
+        MenuItem aumentar = new MenuItem("Aumentar zoom");
+        aumentar.setOnAction(e -> zoomIn());
+        accionTemaCompacta = new MenuItem();
+        actualizarAccionTemaCompacta();
+        accionTemaCompacta.setOnAction(e -> {
+            tema.alternar();
+            actualizarAccionTemaCompacta();
+        });
+        MenuItem salir = new MenuItem("Cerrar sesión");
+        salir.setOnAction(e -> cerrarSesion());
+        return List.of(reducir, restablecer, aumentar, new SeparatorMenuItem(), accionTemaCompacta,
+                new SeparatorMenuItem(), salir);
+    }
+
+    private void actualizarAccionTemaCompacta() {
+        if (accionTemaCompacta != null) {
+            accionTemaCompacta.setText(UiTheme.temaOscuro()
+                    ? "Cambiar a tema claro" : "Cambiar a tema oscuro");
+        }
     }
 
     private void abrirConSesion(NavItem item) {
@@ -297,12 +349,22 @@ public class MainShell extends BorderPane implements Navegador {
     }
 
     private void ajustarMenuAlAncho(Breakpoints.Nivel nivel) {
-        if (nivel == Breakpoints.Nivel.COMPACT && !menu.isColapsado()) {
+        boolean anchoReducido = nivel != Breakpoints.Nivel.WIDE;
+        if (anchoReducido && !menu.isColapsado()) {
             colapsadoAutomatico = true;
             menu.setColapsado(true);
-        } else if (nivel != Breakpoints.Nivel.COMPACT && colapsadoAutomatico) {
+        } else if (!anchoReducido && colapsadoAutomatico) {
             colapsadoAutomatico = false;
             menu.setColapsado(false);
+        }
+        boolean compacto = nivel == Breakpoints.Nivel.COMPACT;
+        if (herramientasSesion != null) {
+            herramientasSesion.setVisible(!compacto);
+            herramientasSesion.setManaged(!compacto);
+        }
+        if (accionesCompactas != null) {
+            accionesCompactas.setVisible(compacto);
+            accionesCompactas.setManaged(compacto);
         }
     }
 

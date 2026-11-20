@@ -15,7 +15,9 @@ import sv.edu.ues.colibri.persistence.repo.PeriodoRepository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.time.YearMonth;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Servicio de negocio para empresa, ejercicios y períodos contables.
@@ -217,5 +219,123 @@ public class PeriodoAppService {
      */
     public void ponerEnRevision(Periodo periodo) {
         cambiarEstadoPeriodo(periodo, EstadoPeriodo.EN_REVISION);
+    }
+
+    /**
+     * Crea un ejercicio contable anual con sus doce períodos mensuales.
+     * Todos los meses quedan cerrados excepto {@code mesInicial}, que queda
+     * abierto para comenzar la captura. Registra la acción en bitácora.
+     *
+     * @param anio año del ejercicio
+     * @param mesInicial mes (1-12) que queda abierto
+     * @return ejercicio creado
+     */
+    public Ejercicio crearEjercicio(int anio, int mesInicial) {
+        var contador = authService.exigirContador();
+        if (anio < 2000 || anio > 2100) {
+            throw new DomainException("El año del ejercicio debe estar entre 2000 y 2100.");
+        }
+        if (mesInicial < 1 || mesInicial > 12) {
+            throw new DomainException("El mes inicial debe estar entre 1 y 12.");
+        }
+        return jdbc.inTransaction(conn -> {
+            Empresa empresa = empresaRepository.obtenerUnica(conn)
+                    .orElseThrow(() -> new DomainException("Empresa no configurada"));
+            boolean existe = periodoRepository.listarEjercicios(conn).stream()
+                    .anyMatch(e -> e.getEmpresaId().equals(empresa.getId()) && e.getAnio() == anio);
+            if (existe) {
+                throw new DomainException("Ya existe el ejercicio " + anio + " para la empresa.");
+            }
+            int versionCatalogo = periodoRepository.versionCatalogoVigente(conn);
+            Ejercicio ejercicio = new Ejercicio(UUID.randomUUID(), empresa.getId(), anio,
+                    LocalDate.of(anio, 1, 1), LocalDate.of(anio, 12, 31), true, versionCatalogo);
+            periodoRepository.insertarEjercicio(conn, ejercicio);
+            for (int mes = 1; mes <= 12; mes++) {
+                YearMonth ym = YearMonth.of(anio, mes);
+                Periodo periodo = new Periodo(UUID.randomUUID(), ejercicio.getId(), mes,
+                        ym.atDay(1), ym.atEndOfMonth(),
+                        mes == mesInicial ? EstadoPeriodo.ABIERTO : EstadoPeriodo.CERRADO, 1);
+                periodoRepository.insertarPeriodo(conn, periodo);
+            }
+            bitacoraRepository.registrar(conn, BitacoraEntrada.de(
+                    contador.getId(), "CREAR_EJERCICIO", "EJERCICIO", ejercicio.getId().toString(),
+                    null, "Ejercicio " + anio + " con 12 períodos; abierto el mes " + mesInicial, null));
+            return ejercicio;
+        });
+    }
+
+    /**
+     * Crea un período mensual faltante dentro de un ejercicio existente.
+     * El período nace cerrado: debe abrirse de forma explícita antes de capturar.
+     *
+     * @param ejercicio ejercicio al que pertenece el período
+     * @param mes mes calendario (1-12)
+     * @return período creado
+     */
+    public Periodo crearPeriodo(Ejercicio ejercicio, int mes) {
+        var contador = authService.exigirContador();
+        if (ejercicio == null) {
+            throw new DomainException("Seleccione el ejercicio del nuevo período.");
+        }
+        if (mes < 1 || mes > 12) {
+            throw new DomainException("El mes del período debe estar entre 1 y 12.");
+        }
+        return jdbc.inTransaction(conn -> {
+            YearMonth ym = YearMonth.of(ejercicio.getAnio(), mes);
+            LocalDate inicio = ym.atDay(1).isBefore(ejercicio.getFechaInicio())
+                    ? ejercicio.getFechaInicio() : ym.atDay(1);
+            LocalDate fin = ym.atEndOfMonth().isAfter(ejercicio.getFechaFin())
+                    ? ejercicio.getFechaFin() : ym.atEndOfMonth();
+            if (inicio.isAfter(fin)) {
+                throw new DomainException("El mes " + mes + " no corresponde al ejercicio "
+                        + ejercicio.getAnio() + ".");
+            }
+            boolean duplicado = periodoRepository.listarPorEjercicio(conn, ejercicio.getId()).stream()
+                    .anyMatch(pp -> pp.getMes() == mes);
+            if (duplicado) {
+                throw new DomainException("El ejercicio " + ejercicio.getAnio()
+                        + " ya tiene el mes " + mes + ".");
+            }
+            Periodo periodo = new Periodo(UUID.randomUUID(), ejercicio.getId(), mes,
+                    inicio, fin, EstadoPeriodo.CERRADO, 1);
+            periodoRepository.insertarPeriodo(conn, periodo);
+            bitacoraRepository.registrar(conn, BitacoraEntrada.de(
+                    contador.getId(), "CREAR_PERIODO", "PERIODO", periodo.getId().toString(),
+                    null, "Mes " + mes + " (" + inicio + " a " + fin + ") en ejercicio "
+                            + ejercicio.getAnio(), null));
+            return periodo;
+        });
+    }
+
+    /**
+     * Activa o desactiva un ejercicio anual. Un ejercicio inactivo deja de
+     * participar en la captura de operaciones. No se puede desactivar mientras
+     * conserve un período abierto: primero debe cerrarse o moverse la captura
+     * a otro ejercicio.
+     *
+     * @param ejercicio ejercicio a actualizar
+     * @param activo nuevo estado
+     */
+    public void cambiarEstadoEjercicio(Ejercicio ejercicio, boolean activo) {
+        var contador = authService.exigirContador();
+        if (ejercicio == null) {
+            throw new DomainException("Seleccione el ejercicio a actualizar.");
+        }
+        jdbc.runInTransaction(conn -> {
+            if (!activo) {
+                boolean hayAbierto = periodoRepository.listarPorEjercicio(conn, ejercicio.getId())
+                        .stream().anyMatch(p -> p.getEstado() == EstadoPeriodo.ABIERTO);
+                if (hayAbierto) {
+                    throw new DomainException("No se puede desactivar el ejercicio "
+                            + ejercicio.getAnio() + " mientras tenga períodos abiertos.");
+                }
+            }
+            String anterior = ejercicio.isActivo() ? "ACTIVO" : "INACTIVO";
+            ejercicio.setActivo(activo);
+            periodoRepository.actualizarActivoEjercicio(conn, ejercicio.getId(), activo);
+            bitacoraRepository.registrar(conn, BitacoraEntrada.de(
+                    contador.getId(), "ESTADO_EJERCICIO", "EJERCICIO", ejercicio.getId().toString(),
+                    anterior, activo ? "ACTIVO" : "INACTIVO", null));
+        });
     }
 }

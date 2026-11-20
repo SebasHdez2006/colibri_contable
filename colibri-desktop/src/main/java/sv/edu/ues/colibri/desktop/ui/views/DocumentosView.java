@@ -65,7 +65,12 @@ public class DocumentosView extends VBox {
     private final TextField razonField = new TextField();
     private final CheckBox cli = new CheckBox("Cliente");
     private final CheckBox prov = new CheckBox("Proveedor");
+    private final CheckBox activoT = new CheckBox("Activo");
     private final Button guardarT = new Button("Guardar tercero");
+    private final Button editarT = new Button("Editar seleccionado");
+    private final Button nuevoT = new Button("Nuevo");
+    private final Label modoTercero = new Label("Modo: nuevo tercero");
+    private Tercero terceroEnEdicion = null;
     private final Label estadoPeriodo = new Label();
 
     /**
@@ -158,7 +163,9 @@ public class DocumentosView extends VBox {
                 "Identifique al cliente o proveedor. Los combos de anticipo y DTE se "
                         + "filtran por el tercero seleccionado en la tabla.",
                 ResponsiveLayouts.row(ResponsiveLayouts.field("NIT", nitField),
-                        ResponsiveLayouts.field("Razón social", razonField), cli, prov, guardarT));
+                        ResponsiveLayouts.field("Razón social", razonField), cli, prov, activoT,
+                        editarT, nuevoT, guardarT),
+                modoTercero);
 
         VBox cardOperacion = ResponsiveLayouts.sectionCard("Operación y documento",
                 "Elija la plantilla, el importe y la fecha; use «Previsualizar» para ver las "
@@ -208,19 +215,49 @@ public class DocumentosView extends VBox {
         razonField.setPromptText("Razón social");
         guardarT.setOnAction(e -> {
             try {
-                Tercero t = new Tercero(UUID.randomUUID(), nitField.getText().trim(), null,
-                        razonField.getText().trim(), null, cli.isSelected(), prov.isSelected(), true);
+                Tercero t = terceroEnEdicion == null
+                        ? new Tercero(UUID.randomUUID(), nitField.getText().trim(), null,
+                                razonField.getText().trim(), null, cli.isSelected(), prov.isSelected(),
+                                activoT.isSelected())
+                        : new Tercero(terceroEnEdicion.getId(), nitField.getText().trim(),
+                                terceroEnEdicion.getNrc(), razonField.getText().trim(),
+                                terceroEnEdicion.getNombreComercial(), cli.isSelected(),
+                                prov.isSelected(), activoT.isSelected());
                 context.operaciones().guardarTercero(t);
-                nitField.clear();
-                razonField.clear();
-                cli.setSelected(false);
-                prov.setSelected(false);
+                limpiarFormularioTercero();
                 refrescar();
                 UiDialogs.info("Tercero", "Guardado: " + t.getRazonSocial());
             } catch (Exception ex) {
                 UiDialogs.error(ex.getMessage());
             }
         });
+        editarT.setOnAction(e -> {
+            Tercero sel = tablaTerceros.getSelectionModel().getSelectedItem();
+            if (sel == null) {
+                UiDialogs.error("Seleccione un tercero de la tabla para editarlo.");
+                return;
+            }
+            terceroEnEdicion = sel;
+            nitField.setText(sel.getNit());
+            razonField.setText(sel.getRazonSocial());
+            cli.setSelected(sel.isCliente());
+            prov.setSelected(sel.isProveedor());
+            activoT.setSelected(sel.isActivo());
+            guardarT.setText("Actualizar tercero");
+            modoTercero.setText("Editando: " + sel.getNit() + " · " + sel.getRazonSocial());
+        });
+        nuevoT.setOnAction(e -> limpiarFormularioTercero());
+    }
+
+    private void limpiarFormularioTercero() {
+        terceroEnEdicion = null;
+        nitField.clear();
+        razonField.clear();
+        cli.setSelected(false);
+        prov.setSelected(false);
+        activoT.setSelected(true);
+        guardarT.setText("Guardar tercero");
+        modoTercero.setText("Modo: nuevo tercero");
     }
 
     private void ejecutarOperacion() {

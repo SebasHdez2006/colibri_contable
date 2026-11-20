@@ -998,41 +998,52 @@ public class LibroContableService {
      * @return mapa con indicadores de resumen
      */
     public Map<String, BigDecimal> resumenEstados(LocalDate desde, LocalDate hasta) {
-        List<LineaMayor> bal = balanza(desde, hasta);
-        BigDecimal ingresos = BigDecimal.ZERO;
-        BigDecimal costos = BigDecimal.ZERO;
-        BigDecimal gastos = BigDecimal.ZERO;
-        BigDecimal activos = BigDecimal.ZERO;
-        BigDecimal pasivos = BigDecimal.ZERO;
-        BigDecimal patrimonio = BigDecimal.ZERO;
-        for (LineaMayor l : bal) {
-            String c = l.cuenta();
-            BigDecimal saldo = l.saldo();
-            if (c.startsWith("4")) {
-                ingresos = ingresos.add(l.haber().subtract(l.debe()));
-            } else if (c.startsWith("51")) {
-                costos = costos.add(l.debe().subtract(l.haber()));
-            } else if (c.startsWith("6") || c.startsWith("7")) {
-                gastos = gastos.add(l.debe().subtract(l.haber()));
-            } else if (c.startsWith("1")) {
-                activos = activos.add(saldo);
-            } else if (c.startsWith("2")) {
-                pasivos = pasivos.add(l.haber().subtract(l.debe()));
-            } else if (c.startsWith("3")) {
-                patrimonio = patrimonio.add(l.haber().subtract(l.debe()));
-            }
-        }
-        BigDecimal resultado = ingresos.subtract(costos).subtract(gastos);
-        Map<String, BigDecimal> map = new LinkedHashMap<>();
-        map.put("ingresos", ingresos);
-        map.put("costos", costos);
-        map.put("gastos", gastos);
-        map.put("resultado", resultado);
-        map.put("activos", activos);
-        map.put("pasivos", pasivos);
-        map.put("patrimonio", patrimonio);
-        map.put("pasivoPatrimonio", pasivos.add(patrimonio).add(resultado));
-        return map;
+        auth.exigirContador();
+        return jdbc.inTransaction(conn -> {
+            // Flujos del período con el mismo criterio de estadoResultados.
+            List<CuentaMovimiento> periodo = movimientos(conn, desde, hasta);
+            // Saldos acumulados con el mismo criterio de estadoSituacion.
+            List<CuentaMovimiento> saldos = movimientosHasta(conn, hasta);
+            // Resultado del ejercicio (año en curso hasta la fecha de corte),
+            // idéntico al que estadoSituacion incorpora al patrimonio.
+            LocalDate inicioEjercicio = LocalDate.of(hasta.getYear(), 1, 1);
+            List<CuentaMovimiento> ejercicio = movimientos(conn, inicioEjercicio, hasta);
+
+            BigDecimal ingresos = periodo.stream().filter(c -> c.codigo().startsWith("4"))
+                    .map(CuentaMovimiento::saldoAcreedor).reduce(BigDecimal.ZERO, BigDecimal::add);
+            BigDecimal costos = periodo.stream().filter(c -> c.codigo().startsWith("5"))
+                    .map(CuentaMovimiento::saldoDeudor).reduce(BigDecimal.ZERO, BigDecimal::add);
+            BigDecimal gastos = periodo.stream().filter(c -> c.codigo().startsWith("6"))
+                    .map(CuentaMovimiento::saldoDeudor).reduce(BigDecimal.ZERO, BigDecimal::add);
+            BigDecimal resultado = resultadoNeto(periodo);
+
+            BigDecimal activos = saldos.stream()
+                    .filter(c -> "ACTIVO_CORRIENTE".equals(c.rubro())
+                            || "ACTIVO_NO_CORRIENTE".equals(c.rubro()))
+                    .map(CuentaMovimiento::saldoDeudor).reduce(BigDecimal.ZERO, BigDecimal::add);
+            BigDecimal pasivos = saldos.stream()
+                    .filter(c -> "PASIVO_CORRIENTE".equals(c.rubro())
+                            || "PASIVO_NO_CORRIENTE".equals(c.rubro()))
+                    .map(CuentaMovimiento::saldoAcreedor).reduce(BigDecimal.ZERO, BigDecimal::add);
+            // 310401 es la cuenta de cierre del resultado del ejercicio; se excluye
+            // para no duplicarlo (mismo criterio que estadoSituacion).
+            BigDecimal patrimonio = saldos.stream()
+                    .filter(c -> "PATRIMONIO".equals(c.rubro()) && !"310401".equals(c.codigo()))
+                    .map(CuentaMovimiento::saldoAcreedor).reduce(BigDecimal.ZERO, BigDecimal::add);
+            BigDecimal resultadoEjercicio = resultadoNeto(ejercicio);
+            BigDecimal patrimonioTotal = patrimonio.add(resultadoEjercicio);
+
+            Map<String, BigDecimal> map = new LinkedHashMap<>();
+            map.put("ingresos", ingresos);
+            map.put("costos", costos);
+            map.put("gastos", gastos);
+            map.put("resultado", resultado);
+            map.put("activos", activos);
+            map.put("pasivos", pasivos);
+            map.put("patrimonio", patrimonioTotal);
+            map.put("pasivoPatrimonio", pasivos.add(patrimonioTotal));
+            return map;
+        });
     }
 
     public record LineaIva(LocalDate fecha, String tipo, String nit, String tercero, String codigo,
@@ -1040,7 +1051,8 @@ public class LibroContableService {
     }
 
     public record LineaAuxiliar(LocalDate fecha, String folio, String cuenta, String dimension,
-                                String concepto, BigDecimal debe, BigDecimal haber) {
+                                String concepto, BigDecimal debe, BigDecimal haber,
+                                BigDecimal saldo) {
     }
 
     /**
@@ -1056,7 +1068,7 @@ public class LibroContableService {
         String filtro = switch (tipoLibro) {
             case "COMPRAS" -> "AND d.tipo IN ('CCF','FACTURA','NC','ND') AND de.tipo_evento = 'COMPRA'";
             case "VENTAS_CCF" -> "AND d.tipo = 'CCF' AND de.tipo_evento IN ('VENTA','ANTICIPO')";
-            default -> "AND d.tipo IN ('FACTURA','CCF') AND de.tipo_evento IN ('VENTA','ANTICIPO')";
+            default -> "AND d.tipo IN ('FACTURA','NC','ND') AND de.tipo_evento IN ('VENTA','ANTICIPO')";
         };
         return jdbc.inTransaction(conn -> {
             String sql = """
@@ -1111,6 +1123,26 @@ public class LibroContableService {
             default -> "";
         };
         return jdbc.inTransaction(conn -> {
+            Map<String, BigDecimal> saldos = new LinkedHashMap<>();
+            String sqlInicial = """
+                    SELECT COALESCE(%s,''), COALESCE(SUM(d.debe - d.haber),0)
+                    FROM partida_detalle d
+                    JOIN partida p ON p.id = d.partida_id
+                    WHERE p.estado IN ('CONTABILIZADA','REVERTIDA')
+                      AND p.fecha_contable < ?
+                    %s
+                    GROUP BY %s
+                    """.formatted(dimension, filtroCuenta, dimension);
+            try (PreparedStatement ps = conn.prepareStatement(sqlInicial)) {
+                ps.setObject(1, desde);
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        saldos.put(rs.getString(1), rs.getBigDecimal(2));
+                    }
+                }
+            } catch (SQLException e) {
+                throw new PersistenceException("Error al calcular saldo inicial del auxiliar", e);
+            }
             String sql = """
                     SELECT p.fecha_contable, p.folio, d.codigo_cuenta, COALESCE(%s,''), p.concepto, d.debe, d.haber
                     FROM partida_detalle d
@@ -1126,9 +1158,13 @@ public class LibroContableService {
                 try (ResultSet rs = ps.executeQuery()) {
                     List<LineaAuxiliar> list = new ArrayList<>();
                     while (rs.next()) {
+                        String dim = rs.getString(4);
+                        BigDecimal saldo = saldos.getOrDefault(dim, BigDecimal.ZERO)
+                                .add(rs.getBigDecimal(6)).subtract(rs.getBigDecimal(7));
+                        saldos.put(dim, saldo);
                         list.add(new LineaAuxiliar(rs.getObject(1, LocalDate.class), rs.getString(2),
-                                rs.getString(3), rs.getString(4), rs.getString(5),
-                                rs.getBigDecimal(6), rs.getBigDecimal(7)));
+                                rs.getString(3), dim, rs.getString(5),
+                                rs.getBigDecimal(6), rs.getBigDecimal(7), saldo));
                     }
                     return list;
                 }

@@ -63,7 +63,10 @@ public final class ResponsiveLayouts {
         VBox field = new VBox(4, label, control);
         field.getStyleClass().add("form-field");
         field.setFillWidth(true);
-        field.setMinWidth(160);
+        // 160 px dejaba cortar etiquetas y prompts habituales aun en un
+        // escritorio ancho. A 200 px el FlowPane refluirá antes de sacrificar
+        // legibilidad; en móvil mantiene el envolvimiento natural.
+        field.setMinWidth(200);
         field.setMaxWidth(Double.MAX_VALUE);
         return field;
     }

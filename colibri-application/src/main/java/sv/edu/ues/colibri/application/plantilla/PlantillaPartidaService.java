@@ -4,10 +4,12 @@ import sv.edu.ues.colibri.application.auth.AuthService;
 import sv.edu.ues.colibri.application.partida.PartidaService;
 import sv.edu.ues.colibri.application.periodo.PeriodoAppService;
 import sv.edu.ues.colibri.domain.exception.DomainException;
+import sv.edu.ues.colibri.domain.model.BitacoraEntrada;
 import sv.edu.ues.colibri.domain.model.Partida;
 import sv.edu.ues.colibri.domain.model.PartidaDetalle;
 import sv.edu.ues.colibri.domain.model.PlantillaPartida;
 import sv.edu.ues.colibri.persistence.jdbc.JdbcSupport;
+import sv.edu.ues.colibri.persistence.repo.BitacoraRepository;
 import sv.edu.ues.colibri.persistence.repo.PlantillaPartidaRepository;
 
 import java.time.LocalDate;
@@ -22,6 +24,7 @@ public final class PlantillaPartidaService {
     private final PartidaService partidas;
     private final PeriodoAppService periodos;
     private final PlantillaPartidaRepository repository = new PlantillaPartidaRepository();
+    private final BitacoraRepository bitacoraRepository = new BitacoraRepository();
 
     public PlantillaPartidaService(JdbcSupport jdbc, AuthService auth, PartidaService partidas,
                                    PeriodoAppService periodos) {
@@ -37,12 +40,18 @@ public final class PlantillaPartidaService {
     }
 
     public PlantillaPartida guardar(PlantillaPartida plantilla) {
-        auth.exigirContador();
+        var contador = auth.exigirContador();
         if (plantilla.detalles().size() < 2) {
             throw new DomainException("Una plantilla debe tener al menos dos líneas.");
         }
         plantilla.detalles().forEach(PartidaDetalle::validarImportes);
-        jdbc.runInTransaction(conn -> repository.insertar(conn, plantilla));
+        jdbc.runInTransaction(conn -> {
+            repository.insertar(conn, plantilla);
+            bitacoraRepository.registrar(conn, BitacoraEntrada.de(
+                    contador.getId(), "PLANTILLA", "PLANTILLA_PARTIDA", plantilla.codigo(), null,
+                    plantilla.nombre() + " — " + plantilla.tipo() + " — "
+                            + plantilla.detalles().size() + " líneas", null));
+        });
         return plantilla;
     }
 

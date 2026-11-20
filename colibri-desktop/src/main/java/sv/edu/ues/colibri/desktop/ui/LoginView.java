@@ -1,8 +1,12 @@
 package sv.edu.ues.colibri.desktop.ui;
 
+import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
@@ -75,6 +79,11 @@ public class LoginView extends StackPane {
             error.setText("");
             try {
                 Contador c = context.auth().login(usuario.getText().trim(), password.getText().toCharArray());
+                if (c.tieneClaveTemporalPendiente() && !cambiarClaveObligatoria(context)) {
+                    context.auth().logout();
+                    error.setText("Debe establecer una clave propia para continuar.");
+                    return;
+                }
                 onSuccess.accept(c);
             } catch (DomainException ex) {
                 sv.edu.ues.colibri.desktop.AppLog.error("Login rechazado para " + usuario.getText(), ex);
@@ -125,5 +134,50 @@ public class LoginView extends StackPane {
         heightProperty().addListener((observable, anterior, nuevo) -> adaptar.run());
 
         UiTheme.decorate(this);
+    }
+
+    /**
+     * Diálogo obligatorio para reemplazar la clave temporal por una clave propia.
+     *
+     * @param context contexto de aplicación para invocar el cambio de clave
+     * @return {@code true} si el usuario guardó una clave válida
+     */
+    private boolean cambiarClaveObligatoria(AppContext context) {
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Clave temporal");
+        dialog.setHeaderText("Su contraseña actual es una clave temporal emitida por soporte. "
+                + "Defina una clave propia de 12 a 128 caracteres para continuar.");
+        PasswordField nueva = new PasswordField();
+        nueva.setPromptText("Nueva contraseña");
+        PasswordField confirma = new PasswordField();
+        confirma.setPromptText("Confirmar contraseña");
+        Label errorClave = new Label();
+        errorClave.getStyleClass().add("error-label");
+        VBox contenido = new VBox(8, nueva, confirma, errorClave);
+        contenido.setPadding(new Insets(12));
+        dialog.getDialogPane().setContent(contenido);
+        ButtonType aceptar = new ButtonType("Guardar clave", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(aceptar, ButtonType.CANCEL);
+        dialog.getDialogPane().lookupButton(aceptar).addEventFilter(ActionEvent.ACTION, ev -> {
+            String clave = nueva.getText();
+            if (clave == null || clave.length() < 12 || clave.length() > 128) {
+                errorClave.setText("La contraseña debe tener entre 12 y 128 caracteres.");
+                ev.consume();
+                return;
+            }
+            if (!clave.equals(confirma.getText())) {
+                errorClave.setText("Las contraseñas no coinciden.");
+                ev.consume();
+                return;
+            }
+            try {
+                context.auth().cambiarClavePropia(clave.toCharArray());
+            } catch (Exception ex) {
+                errorClave.setText(ex.getMessage());
+                ev.consume();
+            }
+        });
+        UiTheme.style(dialog);
+        return dialog.showAndWait().filter(tipo -> tipo == aceptar).isPresent();
     }
 }

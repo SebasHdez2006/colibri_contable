@@ -1,6 +1,6 @@
 ANÁLISIS ACTUAL DEL SISTEMA INFORMÁTICO COLIBRÍ
 Soluciones Empresariales Colibrí, S.A. de C.V. — SIC 115
-Estado de referencia: 8 de noviembre de 2026
+Estado de referencia: 19 de noviembre de 2026
 
 0. IDENTIFICACIÓN Y FRONTERA DEL SISTEMA
 
@@ -39,13 +39,15 @@ Entradas de Contador por las vistas JavaFX:
   cuentas, descripciones, dimensiones, Debe y Haber.
 - Datos de inventario: versiones y lotes de licencias, costos, órdenes,
   consumos, CIF, planes SaaS y usuarios-mes.
-- Acciones de ajuste, depreciación lineal de activos fijos, liquidación de IVA y cierre
-  de período, dentro de las operaciones habilitadas.
+- Planilla agregada del período, acciones de ajuste, depreciación lineal de
+  activos fijos, amortización de intangibles, estimación de incobrables,
+  deterioro y reversión de inventario por lote, liquidación de IVA, costo por
+  procesos con CIF y cierre de período, dentro de las operaciones habilitadas.
 - Solicitudes de libros, estados y exportaciones para el período o rango elegido.
 
 Entradas técnicas y de entorno:
 - Propiedades de conexión en `%USERPROFILE%\.colibri\application.local.properties`.
-- Migraciones SQL Flyway `V1`–`V19` y recursos de interfaz/marca empaquetados.
+- Migraciones SQL Flyway `V1`–`V28` y recursos de interfaz/marca empaquetados.
 - Base PostgreSQL local. `setup-postgres.ps1` crea el rol y las bases `colibri`
   y `colibri_test`; el puerto del entorno documentado es 5434, configurable.
 - CSV de líneas de partidas para la creación de borradores. No se importan ni
@@ -53,8 +55,9 @@ Entradas técnicas y de entorno:
 - Opcionalmente, semilla de demostración cuando la propiedad o variable de
   entorno correspondiente se activa explícitamente.
 
-Entradas de Soporte Técnico: altas/ediciones/desactivaciones de usuarios y
-ajustes permitidos del entorno, solicitudes de respaldo y recuperación de acceso.
+Entradas de Soporte Técnico: altas/ediciones/desactivaciones de usuarios,
+ajustes permitidos del entorno, solicitudes de respaldo, recuperación de acceso
+y emisión de claves temporales con vencimiento.
 
 1.2 PROCESOS
 
@@ -75,11 +78,14 @@ Configuración y contabilidad:
 
 Impuestos, inventario y costos:
 - Cálculo de IVA neto o incluido con tasa parametrizada y liquidación mensual.
-- Licencias descargables: liberación de lote, reserva/entrega y costo de venta
-  por PEPS sobre la licencia disponible del lote más antiguo.
+- Licencias descargables: liberación de lote, reserva/entrega, devolución al
+  inventario, revocación de derecho y costo de venta por PEPS sobre la licencia
+  disponible del lote más antiguo, con kárdex de movimientos por lote.
 - Promedio y UEPS son comparativos gerenciales; no afectan salidas ni asientos.
-- Software a la medida: acumulación por orden de mano de obra directa, recursos
-  directos y CIF ingresados.
+- Software a la medida: creación y edición de órdenes, ciclo de estados
+  (ABIERTA → EN_PROCESO → ENTREGADA → CERRADA / CANCELADA), rentabilidad por
+  orden y acumulación de mano de obra directa, recursos directos y CIF
+  ingresados.
 - SaaS: costos de alojamiento, soporte e infraestructura distribuidos por
   usuarios-mes y plan. Otros servicios se acumulan por plan facturado.
 - Estimación/precio unitario y vistas comparativas de costos directo, estándar
@@ -90,15 +96,20 @@ Impuestos, inventario y costos:
   PERT y Putnam/SLIM. La interfaz cambia sus campos según la técnica y envía
   los insumos capturados al servicio de aplicación, incluyendo los factores de
   calibración requeridos por cada modelo.
-- Los ajustes por deterioro registran una referencia y un importe contable; no
-  inspeccionan ni actualizan unidades del auxiliar de licencias.
+- El deterioro de inventario se registra desde la interfaz por lote contra su
+  valor recuperable, genera una partida de ajuste en borrador trazable por lote
+  y período, es idempotente por período y revierte el deterioro acumulado si el
+  valor recuperable sube; no inspecciona ni actualiza unidades del auxiliar de
+  licencias.
 
 Libros, cierre, reportes y soporte:
 - Construcción de Diario, Mayor, Cuenta T, Balanza y Hoja de trabajo.
-- Generación de Situación financiera y Resultados en el selector principal, y de
-  Cambios en el patrimonio y Flujos de efectivo dentro del ZIP. El flujo usa el
-  método directo, se limita al grupo 1101 y requiere conciliación documental.
-- Exportación PDF, XLSX y ZIP para un único rango seleccionado.
+- Generación de Situación financiera, Resultados, Cambios en el patrimonio y
+  Flujos de efectivo como formatos seleccionables, además del paquete ZIP.
+  El flujo usa el método directo, se limita al grupo 1101 y requiere
+  conciliación documental.
+- Exportación PDF, XLSX y ZIP para un rango seleccionado, y exportación de
+  libros para combinaciones de varios períodos a una carpeta.
 - Respaldo local manual por `pg_dump`; registro de accesos y eventos técnicos;
   prevención de múltiples instancias en el mismo equipo.
 
@@ -152,7 +163,7 @@ que escriben datos usan transacciones JDBC.
   doble antes de contabilizar.
 - Transacciones para aplicar operaciones relacionadas de forma atómica y
   restricciones referenciales en PostgreSQL.
-- Migraciones Flyway versionadas de V1 a V19.
+- Migraciones Flyway versionadas de V1 a V28.
 - Hash de contraseñas PBKDF2-HMAC-SHA256 con sal; la configuración de conexión
   se conserva fuera del código fuente.
 - El bootstrap no debe sustituir información administrada; la semilla demo se
@@ -169,8 +180,9 @@ que escriben datos usan transacciones JDBC.
 - Fiscal: tasas y perfiles son configurables. No hay prorrata automática de IVA
   mixto, cálculo legal integral de nómina, cálculo anual completo de ISR,
   impuesto diferido ni notas dentro del prototipo.
-- Licencias: el control comprende lotes y estados operativos básicos, pero no
-  administra claves, activación, expiración, revocación técnica o devoluciones.
+- Licencias: el control comprende lotes, kárdex de movimientos, entrega PEPS,
+  devolución al inventario y revocación de derecho; no administra claves,
+  activación, expiración técnica ni portal de distribución.
 - Respaldo: manual con pg_dump; la aplicación no programa, cifra, retiene ni
   restaura respaldos.
 - Flujo de efectivo: limitado a cuentas del grupo 1101 y clasificación por
@@ -185,6 +197,14 @@ de seguridad antes de utilizarse para operaciones reales.
 6. DOCUMENTOS DE REFERENCIA DEL REPOSITORIO
 
 README.md: instalación, ejecución, módulos, dependencias y funciones.
+MANUAL_DE_USO_COLIBRI.md: operación por pantalla con límites explícitos.
 CasosDeUso.md: operaciones del Contador.
 CasosDeUso_SoporteTecnico.md: administración y continuidad.
+ESCENARIO_EJERCICIO_CONTABLE_COMPLETO.md: datos y recorrido de demostración.
 rubrica_de_evaluacion_del_proyecto.md: criterios académicos y objetivos del curso.
+PLAN_DE_PRUEBAS.md: lista de verificación de aceptación.
+AUDITORIA_CORRECCIONES_RESUMEN.md e
+INVENTARIO_CLASES_CRITICAS.md: evidencia de la auditoría forense contable.
+INFORME_DE_PRUEBAS_PARANOICO_2026-11-18.md y
+REVISION_UX_2026-11-18.md: evidencias fechadas de pruebas y usabilidad.
+DESCARTE.md: elementos excluidos del versionado y decisiones de alcance.

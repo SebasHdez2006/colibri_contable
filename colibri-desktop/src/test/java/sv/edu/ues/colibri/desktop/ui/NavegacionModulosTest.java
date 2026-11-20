@@ -87,7 +87,7 @@ class NavegacionModulosTest {
                 "Parámetros fiscales", "Políticas y secuenciales", "Centros de costo"));
         rutas.put("nav-registros", List.of("Documentos", "Libro diario", "Plantillas",
                 "Planilla", "Ajustes"));
-        rutas.put("nav-inventario", List.of("Digitales", "Kárdex", "Servicios / Accesos"));
+        rutas.put("nav-inventario", List.of("Productos", "Digitales", "Kárdex", "Servicios / Accesos"));
         rutas.put("nav-costos", List.of("A la medida", "Licencias descargables", "Suscripción SaaS",
                 "Procesos y CIF", "Estimación y políticas"));
         rutas.put("nav-reportes", List.of("Obligatorios", "Auxiliares", "Societarios"));

@@ -2,8 +2,10 @@ package sv.edu.ues.colibri.application.configuracion;
 
 import sv.edu.ues.colibri.application.auth.AuthService;
 import sv.edu.ues.colibri.domain.exception.DomainException;
+import sv.edu.ues.colibri.domain.model.BitacoraEntrada;
 import sv.edu.ues.colibri.persistence.jdbc.JdbcSupport;
 import sv.edu.ues.colibri.persistence.jdbc.PersistenceException;
+import sv.edu.ues.colibri.persistence.repo.BitacoraRepository;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -23,6 +25,7 @@ public class ParametrizacionService {
 
     private final JdbcSupport jdbc;
     private final AuthService auth;
+    private final BitacoraRepository bitacoraRepository = new BitacoraRepository();
 
     /**
      * Crea el servicio de parametrización.
@@ -60,7 +63,8 @@ public class ParametrizacionService {
     /**
      * Centro de costo parametrizado.
      */
-    public record CentroCosto(String codigo, String nombre, boolean activo) {
+    public record CentroCosto(String codigo, String nombre, String descripcion, String uso,
+                              boolean activo) {
     }
 
     /**
@@ -89,17 +93,32 @@ public class ParametrizacionService {
      * @param valor valor a persistir
      */
     public void guardarPolitica(String clave, String valor) {
-        auth.exigirContador();
+        var contador = auth.exigirContador();
         jdbc.runInTransaction(conn -> {
+            String anterior;
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "SELECT valor FROM parametro_sistema WHERE clave=?")) {
+                ps.setString(1, clave);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (!rs.next()) {
+                        throw new DomainException("Parámetro no encontrado: " + clave);
+                    }
+                    anterior = rs.getString(1);
+                }
+            } catch (SQLException e) {
+                throw new PersistenceException("Error al leer la política " + clave, e);
+            }
             try (PreparedStatement ps = conn.prepareStatement(
                     "UPDATE parametro_sistema SET valor=?, actualizado_en=? WHERE clave=?")) {
                 ps.setString(1, valor);
                 ps.setObject(2, LocalDateTime.now());
                 ps.setString(3, clave);
-                if (ps.executeUpdate() == 0) {
-                    throw new DomainException("Parámetro no encontrado: " + clave);
-                }
+                ps.executeUpdate();
+            } catch (SQLException e) {
+                throw new PersistenceException("Error al actualizar la política " + clave, e);
             }
+            bitacoraRepository.registrar(conn, BitacoraEntrada.de(
+                    contador.getId(), "POLITICA", "PARAMETRO_SISTEMA", clave, anterior, valor, null));
         });
     }
 
@@ -175,7 +194,9 @@ public class ParametrizacionService {
         exigirCuentaAfectable(p.cuentaPorPagar(), "cuenta de IVA por pagar");
         exigirCuentaAfectable(p.cuentaRetencionIva(), "cuenta de retención de IVA");
         exigirCuentaAfectable(p.cuentaPagoCuenta(), "cuenta de pago a cuenta");
+        var contador = auth.exigirContador();
         jdbc.runInTransaction(conn -> {
+            String anterior = resumenFiscalActual(conn);
             try (PreparedStatement ps = conn.prepareStatement("""
                     UPDATE parametro_fiscal SET iva_tasa=?, retencion_iva=?, pago_cuenta_isr=?,
                         retencion_isr_servicios=?, retencion_isr_intangibles=?, cuenta_iva_credito=?,
@@ -195,7 +216,12 @@ public class ParametrizacionService {
                 ps.setString(11, p.catalogoMh());
                 ps.setObject(12, LocalDateTime.now());
                 ps.executeUpdate();
+            } catch (SQLException e) {
+                throw new PersistenceException("Error al guardar los parámetros fiscales", e);
             }
+            bitacoraRepository.registrar(conn, BitacoraEntrada.de(
+                    contador.getId(), "PARAMETROS_FISCALES", "PARAMETRO_FISCAL", "ACTIVO",
+                    anterior, resumenFiscal(p), null));
         });
     }
 
@@ -280,7 +306,22 @@ public class ParametrizacionService {
         }
         String etiqueta = p.etiqueta() == null || p.etiqueta().isBlank()
                 ? evento : p.etiqueta().trim();
+        var contador = auth.exigirContador();
         jdbc.runInTransaction(conn -> {
+            String anterior = null;
+            try (PreparedStatement ps = conn.prepareStatement("""
+                    SELECT cuenta_debe || '/' || cuenta_haber || '/' || COALESCE(cuenta_iva, '-')
+                    FROM posting_profile WHERE evento = ?
+                    """)) {
+                ps.setString(1, evento);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        anterior = rs.getString(1);
+                    }
+                }
+            } catch (SQLException e) {
+                throw new PersistenceException("Error al leer el perfil " + evento, e);
+            }
             try (PreparedStatement ps = conn.prepareStatement("""
                     INSERT INTO posting_profile (evento, etiqueta, cuenta_debe, cuenta_haber, cuenta_iva,
                         actualizado_en)
@@ -296,7 +337,13 @@ public class ParametrizacionService {
                 ps.setString(5, p.cuentaIva());
                 ps.setObject(6, LocalDateTime.now());
                 ps.executeUpdate();
+            } catch (SQLException e) {
+                throw new PersistenceException("Error al guardar el perfil " + evento, e);
             }
+            String ivaTxt = p.cuentaIva() == null || p.cuentaIva().isBlank() ? "-" : p.cuentaIva();
+            bitacoraRepository.registrar(conn, BitacoraEntrada.de(
+                    contador.getId(), "POSTING_PROFILE", "POSTING_PROFILE", evento, anterior,
+                    p.cuentaDebe() + "/" + p.cuentaHaber() + "/" + ivaTxt, null));
         });
     }
 
@@ -308,8 +355,9 @@ public class ParametrizacionService {
     public List<CentroCosto> listarCentros() {
         auth.exigirContador();
         return jdbc.inTransaction(conn -> query(conn,
-                "SELECT codigo, nombre, activo FROM centro_costo ORDER BY codigo",
-                rs -> new CentroCosto(rs.getString(1), rs.getString(2), rs.getBoolean(3))));
+                "SELECT codigo, nombre, descripcion, uso, activo FROM centro_costo ORDER BY codigo",
+                rs -> new CentroCosto(rs.getString(1), rs.getString(2), rs.getString(3),
+                        rs.getString(4), rs.getBoolean(5))));
     }
 
     /**
@@ -318,17 +366,40 @@ public class ParametrizacionService {
      * @param c centro de costo a persistir
      */
     public void guardarCentro(CentroCosto c) {
-        auth.exigirContador();
+        var contador = auth.exigirContador();
         jdbc.runInTransaction(conn -> {
-            try (PreparedStatement ps = conn.prepareStatement("""
-                    INSERT INTO centro_costo (codigo, nombre, activo) VALUES (?,?,?)
-                    ON CONFLICT (codigo) DO UPDATE SET nombre=EXCLUDED.nombre, activo=EXCLUDED.activo
-                    """)) {
-                ps.setString(1, c.codigo().trim());
-                ps.setString(2, c.nombre().trim());
-                ps.setBoolean(3, c.activo());
-                ps.executeUpdate();
+            String codigo = c.codigo().trim();
+            String anterior = null;
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "SELECT nombre || '|' || COALESCE(descripcion,'') || '|' || COALESCE(uso,'') || '|' || activo"
+                            + " FROM centro_costo WHERE codigo = ?")) {
+                ps.setString(1, codigo);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        anterior = rs.getString(1);
+                    }
+                }
+            } catch (SQLException e) {
+                throw new PersistenceException("Error al leer el centro de costo " + codigo, e);
             }
+            try (PreparedStatement ps = conn.prepareStatement("""
+                    INSERT INTO centro_costo (codigo, nombre, descripcion, uso, activo) VALUES (?,?,?,?,?)
+                    ON CONFLICT (codigo) DO UPDATE SET nombre=EXCLUDED.nombre,
+                        descripcion=EXCLUDED.descripcion, uso=EXCLUDED.uso, activo=EXCLUDED.activo
+                    """)) {
+                ps.setString(1, codigo);
+                ps.setString(2, c.nombre().trim());
+                ps.setString(3, c.descripcion() == null || c.descripcion().isBlank()
+                        ? null : c.descripcion().trim());
+                ps.setString(4, c.uso() == null || c.uso().isBlank() ? null : c.uso().trim());
+                ps.setBoolean(5, c.activo());
+                ps.executeUpdate();
+            } catch (SQLException e) {
+                throw new PersistenceException("Error al guardar el centro de costo " + codigo, e);
+            }
+            bitacoraRepository.registrar(conn, BitacoraEntrada.de(
+                    contador.getId(), "CENTRO_COSTO", "CENTRO_COSTO", codigo, anterior,
+                    c.nombre().trim() + "|" + c.descripcion() + "|" + c.uso() + "|" + c.activo(), null));
         });
     }
 
@@ -366,7 +437,23 @@ public class ParametrizacionService {
             throw new DomainException("La tarifa base del plan no puede ser negativa.");
         }
         String cuentaIngreso = exigirCuentaAfectable(plan.cuentaIngreso(), "cuenta de ingreso del plan");
+        var contador = auth.exigirContador();
         jdbc.runInTransaction(conn -> {
+            String anterior = null;
+            try (PreparedStatement ps = conn.prepareStatement("""
+                    SELECT nombre || '|' || modalidad || '|' || tarifa_base || '|'
+                        || tipo_facturacion || '|' || cuenta_ingreso || '|' || activo
+                    FROM plan_servicio WHERE codigo = ?
+                    """)) {
+                ps.setString(1, codigo);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        anterior = rs.getString(1);
+                    }
+                }
+            } catch (SQLException e) {
+                throw new PersistenceException("Error al leer el plan " + codigo, e);
+            }
             try (PreparedStatement ps = conn.prepareStatement("""
                     INSERT INTO plan_servicio (id, codigo, nombre, modalidad, tarifa_base, tipo_facturacion, cuenta_ingreso, activo)
                     VALUES (?,?,?,?,?,?,?,?)
@@ -383,7 +470,13 @@ public class ParametrizacionService {
                 ps.setString(7, cuentaIngreso);
                 ps.setBoolean(8, plan.activo());
                 ps.executeUpdate();
+            } catch (SQLException e) {
+                throw new PersistenceException("Error al guardar el plan " + codigo, e);
             }
+            bitacoraRepository.registrar(conn, BitacoraEntrada.de(
+                    contador.getId(), "PLAN_SERVICIO", "PLAN_SERVICIO", codigo, anterior,
+                    nombre + "|" + modalidad + "|" + plan.tarifa() + "|" + facturacion
+                            + "|" + cuentaIngreso + "|" + plan.activo(), null));
         });
     }
 
@@ -426,6 +519,37 @@ public class ParametrizacionService {
                 throw new PersistenceException("Error al validar " + etiqueta, e);
             }
         });
+    }
+
+    private String resumenFiscalActual(Connection conn) {
+        try (PreparedStatement ps = conn.prepareStatement("SELECT * FROM parametro_fiscal LIMIT 1");
+             ResultSet rs = ps.executeQuery()) {
+            if (!rs.next()) {
+                return "(sin configuración)";
+            }
+            return resumenFiscalColumnas(rs.getBigDecimal("iva_tasa"), rs.getBigDecimal("retencion_iva"),
+                    rs.getBigDecimal("pago_cuenta_isr"), rs.getBigDecimal("retencion_isr_servicios"),
+                    rs.getBigDecimal("retencion_isr_intangibles"), rs.getString("cuenta_iva_credito"),
+                    rs.getString("cuenta_iva_debito"), rs.getString("cuenta_iva_por_pagar"),
+                    rs.getString("cuenta_retencion_iva"), rs.getString("cuenta_pago_cuenta"));
+        } catch (SQLException e) {
+            throw new PersistenceException("Error al leer los parámetros fiscales", e);
+        }
+    }
+
+    private static String resumenFiscal(ParametroFiscal p) {
+        return resumenFiscalColumnas(p.iva(), p.retencionIva(), p.pagoCuenta(),
+                p.retencionIsrServicios(), p.retencionIsrIntangibles(), p.cuentaCredito(),
+                p.cuentaDebito(), p.cuentaPorPagar(), p.cuentaRetencionIva(), p.cuentaPagoCuenta());
+    }
+
+    private static String resumenFiscalColumnas(BigDecimal iva, BigDecimal retIva, BigDecimal pagoCuenta,
+                                                BigDecimal isrServ, BigDecimal isrInt,
+                                                String cCred, String cDeb, String cPagar,
+                                                String cRet, String cPago) {
+        return "IVA " + iva + " · ret. IVA " + retIva + " · pago cuenta " + pagoCuenta
+                + " · ret. ISR serv/int " + isrServ + "/" + isrInt
+                + " · cuentas " + cCred + "/" + cDeb + "/" + cPagar + "/" + cRet + "/" + cPago;
     }
 
     private void validarTasa(BigDecimal tasa, String etiqueta) {

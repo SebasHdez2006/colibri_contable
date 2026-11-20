@@ -11,6 +11,7 @@ import java.util.function.Function;
 public final class JdbcSupport {
 
     private final DataSource dataSource;
+    private final ThreadLocal<Connection> transaccionActual = new ThreadLocal<>();
 
     /**
      * Crea el helper de transacciones para la fuente de datos indicada.
@@ -38,9 +39,17 @@ public final class JdbcSupport {
      * @return resultado producido por la operación
      */
     public <T> T inTransaction(Function<Connection, T> work) {
+        // Propagación REQUIRED: si ya existe una transacción en este hilo, la
+        // operación se une a ella en lugar de abrir una conexión independiente.
+        // Así un fallo en cualquier paso revierte TODO el trabajo multi-paso.
+        Connection existente = transaccionActual.get();
+        if (existente != null) {
+            return work.apply(existente);
+        }
         try (Connection conn = dataSource.getConnection()) {
             boolean previous = conn.getAutoCommit();
             conn.setAutoCommit(false);
+            transaccionActual.set(conn);
             try {
                 T result = work.apply(conn);
                 conn.commit();
@@ -52,6 +61,7 @@ public final class JdbcSupport {
                 conn.rollback();
                 throw new PersistenceException("Error en transacción", e);
             } finally {
+                transaccionActual.remove();
                 conn.setAutoCommit(previous);
             }
         } catch (SQLException e) {

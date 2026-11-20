@@ -53,6 +53,8 @@
     -colibri-scroll-thumb-hover: -color-scroll-thumb-hover;
     -colibri-on-navy: -color-fg;
     -colibri-nav-text: -color-nav-text;
+    -colibri-nav-bg: -color-nav-bg;
+    -colibri-nav-bg-end: -color-nav-bg-end;
     -colibri-nav-subtle: -color-nav-subtle;
     -colibri-nav-divider: -color-nav-divider;
     -colibri-nav-hover: -color-nav-hover;
@@ -78,7 +80,7 @@
 }
 .section-scroll-pane > .viewport { -fx-background-color: -colibri-canvas; }
 .menu-scroll-pane {
-    -fx-background-color: linear-gradient(to bottom, -colibri-navy 0%, -colibri-navy-gradient-end 100%);
+    -fx-background-color: linear-gradient(to bottom, -colibri-nav-bg 0%, -colibri-nav-bg-end 100%);
 }
 .menu-scroll-pane > .viewport { -fx-background-color: -colibri-transparent; }
 .content-view {
@@ -268,6 +270,23 @@
     -fx-font-size: 0.82em;
     -fx-wrap-text: true;
 }
+.chart-monthly-item--superavit {
+    -fx-background-color: -colibri-success-bg;
+    -fx-text-fill: -colibri-success;
+}
+.chart-monthly-item--deficit {
+    -fx-background-color: -colibri-error-bg;
+    -fx-text-fill: -colibri-error;
+}
+.dashboard-scatter { -fx-background-color: -color-bg-subtle; -fx-background-radius: 0.6em; }
+.scatter-leyenda { -fx-padding: 4px 0 0 0; }
+.scatter-leyenda-item { -fx-spacing: 6px; -fx-alignment: center-left; }
+.scatter-leyenda-texto { -fx-text-fill: -color-fg-muted; -fx-font-size: 0.8em; }
+.scatter-sw--linea { -fx-fill: -color-note; }
+.scatter-sw--banda { -fx-fill: -color-warning; }
+.scatter-sw--exito { -fx-fill: -color-success; }
+.scatter-sw--neutro { -fx-fill: -color-interactive; }
+.scatter-sw--fallo { -fx-fill: -color-danger; }
 .customer-ranking { -fx-spacing: 0.71em; }
 .customer-total { -fx-text-fill: -colibri-muted; -fx-font-size: 0.88em; }
 .customer-ranking-row { -fx-padding: 0.36em 0; }
@@ -287,7 +306,12 @@
 .customer-progress > .track { -fx-background-color: -colibri-line; -fx-background-radius: 71.36em; }
 .customer-progress > .bar { -fx-background-color: -colibri-cyan; -fx-background-radius: 71.36em; -fx-padding: 0.22em; }
 .dashboard-data-card { -fx-min-height: 10.71em; }
-.dashboard-data-table { -fx-min-height: 7.71em; }
+.dashboard-data-table { -fx-min-height: 12.86em; }
+.dashboard-data-table .table-cell {
+    -fx-font-size: 1em;
+    -fx-padding: 0.86em 1.14em;
+}
+.dashboard-data-table .column-header .label { -fx-font-size: 0.94em; }
 .cost-summary-list { -fx-spacing: 0.29em; }
 .cost-summary-row {
     -fx-background-color: -color-bg-raised;
@@ -371,6 +395,24 @@
 .top-profile-name { -fx-font-size: 0.86em; -fx-font-weight: 700; -fx-text-fill: -color-fg; }
 .top-profile-role { -fx-font-size: 0.76em; -fx-font-weight: 600; -fx-text-fill: -color-fg-muted; }
 .top-session-button { -fx-min-height: 2.36em; -fx-padding: 0.43em 0.79em; }
+.compact-session-menu {
+    -fx-background-color: -color-bg-raised;
+    -fx-background-radius: 0.66em;
+    -fx-border-color: -colibri-field-border;
+    -fx-border-radius: 0.66em;
+    -fx-padding: 0.45em 0.79em;
+    -fx-text-fill: -colibri-ink;
+    -fx-cursor: hand;
+}
+.compact-session-menu:hover { -fx-background-color: -colibri-cyan-tint-strong; -fx-border-color: -colibri-cyan-accessible; }
+/* Entre 900 y 1299 px el menú lateral ya se contrae: estos ajustes conservan
+   las acciones de sesión en una sola línea sin reducir su legibilidad. */
+.app-shell:medium .top-bar { -fx-padding-left: 1.29em; -fx-padding-right: 1.29em; }
+.app-shell:medium .top-profile { -fx-min-width: 8.93em; -fx-padding-left: 0.57em; -fx-padding-right: 0.57em; }
+.app-shell:medium .top-session-tools { -fx-spacing: 0.36em; }
+.app-shell:medium .zoom-controls { -fx-spacing: 0.21em; }
+.app-shell:medium .zoom-button { -fx-padding: 0.32em 0.43em; }
+.app-shell:medium .tema-switch { -fx-pref-width: 7.14em; -fx-min-width: 7.14em; }
 .zoom-controls {
     -fx-alignment: center-right;
     -fx-spacing: 0.36em;
@@ -441,7 +483,7 @@
 .side-brand-subtitle {
     -fx-font-size: 0.82em;
     -fx-font-weight: 700;
-    -fx-text-fill: -colibri-cyan-bright;
+    -fx-text-fill: -color-interactive;
     -fx-wrap-text: true;
 }
 .side-menu .separator { -fx-padding: 0.29em 0.14em; }
@@ -456,16 +498,17 @@
     -fx-min-width: 3.86em;
     -fx-min-height: 2.29em;
     -fx-cursor: hand;
+    -fx-text-fill: -color-nav-text;
 }
 .menu-toggle .brand-icon-shape { -fx-fill: -colibri-nav-text; }
 .menu-toggle:hover { -fx-background-color: -colibri-nav-toggle-hover; -fx-effect: none; }
-.menu-toggle:hover .brand-icon-shape { -fx-fill: -colibri-cyan-bright; }
+.menu-toggle:hover .brand-icon-shape { -fx-fill: -color-interactive; }
 
 .side-nav {
     -fx-pref-width: 20.71em;
     -fx-min-width: 20.71em;
     -fx-max-width: 20.71em;
-    -fx-background-color: linear-gradient(to bottom, -colibri-navy 0%, -colibri-navy-gradient-end 100%);
+    -fx-background-color: linear-gradient(to bottom, -colibri-nav-bg 0%, -colibri-nav-bg-end 100%);
     -fx-transition-property: -fx-pref-width;
     -fx-transition-duration: 220ms;
 }
@@ -511,17 +554,17 @@
     -fx-padding: 0.82em 0.9em;
     -fx-min-height: 2.86em;
 }
-.nav-button .brand-icon-shape { -fx-fill: -colibri-cyan; }
+.nav-button .brand-icon-shape { -fx-fill: -color-interactive; }
 .nav-button:hover { -fx-background-color: -colibri-nav-hover; -fx-text-fill: -colibri-on-navy; -fx-effect: none; }
-.nav-button:hover .brand-icon-shape { -fx-fill: -colibri-cyan-bright; }
+.nav-button:hover .brand-icon-shape { -fx-fill: -color-interactive; }
 .nav-button:selected, .nav-button-active {
     -fx-background-color: -colibri-nav-active;
-    -fx-border-color: -colibri-transparent -colibri-transparent -colibri-transparent -colibri-lime;
+    -fx-border-color: -colibri-transparent -colibri-transparent -colibri-transparent -color-success;
     -fx-border-width: 0 0 0 0.21em;
     -fx-text-fill: -colibri-on-navy;
     -fx-font-weight: 600;
 }
-.nav-button-active .brand-icon-shape { -fx-fill: -colibri-lime-bright; }
+.nav-button-active .brand-icon-shape { -fx-fill: -color-success; }
 .menu-colapsado .side-menu { -fx-padding: 1.43em 0.57em 1.43em 0.57em; }
 .menu-colapsado .side-brand { -fx-alignment: center; -fx-padding: 0.14em 0 1.29em 0; }
 .menu-colapsado .nav-button { -fx-alignment: center; -fx-graphic-text-gap: 0; -fx-padding: 0.86em 0; }
@@ -535,7 +578,7 @@
     -fx-text-fill: -colibri-nav-text;
     -fx-effect: none;
 }
-.side-nav .nav-button .brand-icon-shape { -fx-fill: -colibri-cyan; }
+.side-nav .nav-button .brand-icon-shape { -fx-fill: -color-interactive; }
 .side-nav .nav-button:hover {
     -fx-background-color: -colibri-nav-hover;
     -fx-border-color: -colibri-transparent;
@@ -543,11 +586,11 @@
     -fx-effect: none;
 }
 .side-nav .nav-button:hover .nav-label { -fx-text-fill: -colibri-on-navy; }
-.side-nav .nav-button:hover .brand-icon-shape { -fx-fill: -colibri-cyan-bright; }
+.side-nav .nav-button:hover .brand-icon-shape { -fx-fill: -color-interactive; }
 .side-nav .nav-button-active,
 .side-nav .nav-group-active {
     -fx-background-color: -colibri-nav-active;
-    -fx-border-color: -colibri-transparent -colibri-transparent -colibri-transparent -colibri-lime;
+    -fx-border-color: -colibri-transparent -colibri-transparent -colibri-transparent -color-success;
     -fx-border-width: 0 0 0 0.21em;
     -fx-text-fill: -colibri-on-navy;
     -fx-effect: none;
@@ -557,7 +600,7 @@
     -fx-text-fill: -colibri-on-navy;
     -fx-font-weight: 600;
 }
-.side-nav .nav-button-active .brand-icon-shape { -fx-fill: -colibri-lime-bright; }
+.side-nav .nav-button-active .brand-icon-shape { -fx-fill: -color-success; }
 
 /* Botones y foco. El botón primario conserva lima con texto navy. */
 .button {

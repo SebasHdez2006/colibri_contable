@@ -111,20 +111,22 @@ public final class NavRegistry {
                 h("nav-registros", "Planilla", SCROLL, () -> new PlanillaView(ctx)),
                 h("nav-registros", "Ajustes", SCROLL, () -> new AjustesCierreView(ctx))));
         arbol.add(grupo("Inventario", Symbol.INVENTORY,
-                h("nav-inventario", "Digitales", SCROLL, () -> new InventarioCostosView(ctx, Panel.DIGITALES)),
-                h("nav-inventario", "Kárdex", SCROLL, () -> new InventarioCostosView(ctx, Panel.KARDEX)),
+                h("nav-inventario", "Productos", SCROLL, () -> new InventarioCostosView(ctx, Panel.PRODUCTOS, nav)),
+                h("nav-inventario", "Digitales", SCROLL, () -> new InventarioCostosView(ctx, Panel.DIGITALES, nav)),
+                h("nav-inventario", "Kárdex", SCROLL, () -> new InventarioCostosView(ctx, Panel.KARDEX, nav)),
                 h("nav-inventario", "Servicios / Accesos", SCROLL,
-                        () -> new InventarioCostosView(ctx, Panel.SERVICIOS))));
+                        () -> new InventarioCostosView(ctx, Panel.SERVICIOS, nav))));
         arbol.add(grupo("Costos", Symbol.MONEY,
-                h("nav-costos", "A la medida", SCROLL, () -> new InventarioCostosView(ctx, Panel.MEDIDA)),
-                h("nav-costos", "Licencias descargables", SCROLL, () -> new InventarioCostosView(ctx, Panel.LICENCIAS)),
-                h("nav-costos", "Suscripción SaaS", SCROLL, () -> new InventarioCostosView(ctx, Panel.SAAS)),
+                h("nav-costos", "A la medida", SCROLL, () -> new InventarioCostosView(ctx, Panel.MEDIDA, nav)),
+                h("nav-costos", "Licencias descargables", SCROLL, () -> new InventarioCostosView(ctx, Panel.LICENCIAS, nav)),
+                h("nav-costos", "Suscripción SaaS", SCROLL, () -> new InventarioCostosView(ctx, Panel.SAAS, nav)),
                 h("nav-costos", "Procesos y CIF", SCROLL, () -> new ProcesosCifView(ctx)),
                 h("nav-costos", "Estimación y políticas", SCROLL, () -> new EstimacionCostosView(ctx))));
         arbol.add(grupo("Reportes", Symbol.REPORT,
                 h("nav-reportes", "Obligatorios", SCROLL, () -> new ReportesView(ctx, List.of(
                         ReportesView.DIARIO, ReportesView.MAYOR, ReportesView.BALANZA, ReportesView.CUENTA_T,
                         ReportesView.HOJA_TRABAJO, ReportesView.SITUACION, ReportesView.RESULTADOS,
+                        ReportesView.CAMBIOS_PATRIMONIO, ReportesView.FLUJOS_EFECTIVO,
                         ReportesView.LIBRO_IVA_COMPRAS, ReportesView.LIBRO_IVA_CCF, ReportesView.LIBRO_IVA_FCF))),
                 h("nav-reportes", "Auxiliares", SCROLL, () -> new ReportesView(ctx, List.of(
                         ReportesView.AUX_CLIENTES, ReportesView.AUX_PROVEEDORES,

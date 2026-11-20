@@ -240,6 +240,29 @@ public class PartidaRepository {
         }
     }
 
+    /**
+     * Cuenta las partidas en borrador o aprobadas de un período.
+     *
+     * @param conn conexión activa
+     * @param periodoId identificador del período
+     * @return cantidad de partidas pendientes de resolver
+     */
+    public int contarPendientesPorPeriodo(Connection conn, UUID periodoId) {
+        String sql = """
+                SELECT COUNT(*) FROM partida
+                WHERE periodo_id = ? AND estado IN ('BORRADOR', 'APROBADA')
+                """;
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setObject(1, periodoId);
+            try (ResultSet rs = ps.executeQuery()) {
+                rs.next();
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            throw new PersistenceException("Error al contar partidas pendientes del período", e);
+        }
+    }
+
     private void guardarDetalles(Connection conn, Partida partida) throws SQLException {
         String sql = """
                 INSERT INTO partida_detalle (id, partida_id, linea, codigo_cuenta, auxiliar, centro_costo, debe, haber)

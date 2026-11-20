@@ -285,12 +285,14 @@ public class PartidasView extends VBox {
         // La consulta y el editor ocupan filas completas. Antes se apretaban
         // dentro de dos columnas, lo que cortaba folios, conceptos y campos
         // de captura incluso en una ventana de escritorio normal.
-        VBox editor = new VBox(12, captura, lineasCard, balanceBar, acciones,
-                inspectorInferior(comprobante, evidencia));
+        Node inspector = inspectorInferior(comprobante, evidencia);
+        VBox editor = new VBox(12, captura, lineasCard, balanceBar, acciones);
         editor.setMinWidth(0);
         editor.setMaxWidth(Double.MAX_VALUE);
 
-        getChildren().addAll(titulo, subtitulo, listaCard, editor);
+        // El detalle de la partida seleccionada va pegado a la tabla que lo
+        // origina; antes quedaba al final de la página, lejos de la selección.
+        getChildren().addAll(titulo, subtitulo, listaCard, inspector, editor);
 
         recientes.getSelectionModel().getSelectedItems()
                 .addListener((ListChangeListener<Partida>) c ->
@@ -335,8 +337,11 @@ public class PartidasView extends VBox {
         }
         try {
             for (InventarioCostoService.LoteInfo l : context.inventario().listarLotes()) {
+                String version = l.versionLabel() == null ? ""
+                        : " · " + l.productoCodigo() + " v" + l.versionLabel();
                 aux.add(new OpcionAuxiliar(l.codigo(), "Lote",
-                        l.disponibles() + " licencia(s) · $" + l.costoUnitario().toPlainString()));
+                        version + " · " + l.disponibles() + " licencia(s) · $"
+                                + l.costoUnitario().toPlainString()));
             }
         } catch (Exception ignored) {
         }

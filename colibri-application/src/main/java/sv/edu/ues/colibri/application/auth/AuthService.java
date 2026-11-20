@@ -23,6 +23,7 @@ public class AuthService {
     public static final int MAX_INTENTOS = 5;
     public static final int MINUTOS_BLOQUEO = 15;
     public static final int MINUTOS_INACTIVIDAD = 15;
+    public static final int MINUTOS_VIGENCIA_CLAVE_TEMPORAL = 24 * 60;
 
     private final JdbcSupport jdbc;
     private final ContadorRepository contadorRepository = new ContadorRepository();
@@ -68,6 +69,14 @@ public class AuthService {
                         contador.getId(), "LOGIN_FALLIDO", "CONTADOR", contador.getId().toString(),
                         null, null, "Intento fallido"));
                 return new DomainException("Credenciales inválidas.");
+            }
+
+            if (contador.getClaveTemporalExpira() != null
+                    && !contador.getClaveTemporalExpira().isAfter(ahora)) {
+                contador.setClaveTemporalExpira(null);
+                contadorRepository.actualizarSeguridad(conn, contador);
+                return new DomainException("La clave temporal emitida por soporte técnico venció. "
+                        + "Solicite una nueva en Soporte técnico → Desbloqueo.");
             }
 
             contador.setIntentosFallidos(0);
@@ -214,6 +223,8 @@ public class AuthService {
             usuario.setIntentosFallidos(0);
             usuario.setBloqueadoHasta(null);
             usuario.setActivo(true);
+            usuario.setClaveTemporalExpira(
+                    LocalDateTime.now().plusMinutes(MINUTOS_VIGENCIA_CLAVE_TEMPORAL));
             contadorRepository.actualizarSeguridad(conn, usuario);
             contadorRepository.actualizarEstado(conn, usuarioId, true);
             bitacoraRepository.registrar(conn, BitacoraEntrada.de(
@@ -247,6 +258,43 @@ public class AuthService {
                     responsable.getId(), activo ? "ACTIVAR_USUARIO" : "DESACTIVAR_USUARIO",
                     "CONTADOR", usuarioId.toString(), Boolean.toString(usuario.isActivo()),
                     Boolean.toString(activo), null));
+        });
+    }
+
+    /**
+     * Establece una clave propia para el usuario de la sesión activa. Se usa
+     * para reemplazar la clave temporal emitida por soporte técnico; también
+     * sirve como cambio de clave voluntario. Limpia la marca temporal para
+     * que la clave temporal deje de ser válida.
+     *
+     * @param nuevaPassword nueva contraseña (12 a 128 caracteres)
+     */
+    public void cambiarClavePropia(char[] nuevaPassword) {
+        Contador actual = sesionActual;
+        if (actual == null) {
+            throw new DomainException("No hay una sesión activa.");
+        }
+        if (nuevaPassword == null || nuevaPassword.length < 12 || nuevaPassword.length > 128) {
+            throw new DomainException("La contraseña debe tener entre 12 y 128 caracteres.");
+        }
+        jdbc.runInTransaction(conn -> {
+            Contador usuario = contadorRepository.buscarPorId(conn, actual.getId())
+                    .orElseThrow(() -> new DomainException("Usuario no encontrado."));
+            if (PasswordHasher.verificar(nuevaPassword, usuario.getPasswordSalt(),
+                    usuario.getPasswordHash())) {
+                throw new DomainException("La nueva contraseña debe ser distinta de la actual.");
+            }
+            byte[] salt = PasswordHasher.generarSal();
+            usuario.setPasswordHash(PasswordHasher.hash(nuevaPassword, salt));
+            usuario.setPasswordSalt(salt);
+            usuario.setClaveTemporalExpira(null);
+            usuario.setIntentosFallidos(0);
+            usuario.setBloqueadoHasta(null);
+            contadorRepository.actualizarSeguridad(conn, usuario);
+            bitacoraRepository.registrar(conn, BitacoraEntrada.de(
+                    usuario.getId(), "CAMBIO_CLAVE", "CONTADOR", usuario.getId().toString(),
+                    null, null, "Clave propia establecida; clave temporal invalidada"));
+            sesionActual = usuario;
         });
     }
 
@@ -291,6 +339,7 @@ public class AuthService {
             contador.setCodigoRecuperacionSalt(nuevoSalt);
             contador.setIntentosFallidos(0);
             contador.setBloqueadoHasta(null);
+            contador.setClaveTemporalExpira(null);
             contadorRepository.actualizarSeguridad(conn, contador);
 
             bitacoraRepository.registrar(conn, BitacoraEntrada.de(

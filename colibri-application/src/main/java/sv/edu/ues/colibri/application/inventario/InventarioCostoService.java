@@ -4,11 +4,13 @@ import sv.edu.ues.colibri.application.auth.AuthService;
 import sv.edu.ues.colibri.application.configuracion.ParametrizacionService;
 import sv.edu.ues.colibri.application.partida.PartidaService;
 import sv.edu.ues.colibri.domain.exception.DomainException;
+import sv.edu.ues.colibri.domain.model.BitacoraEntrada;
 import sv.edu.ues.colibri.domain.model.Partida;
 import sv.edu.ues.colibri.domain.model.PartidaDetalle;
 import sv.edu.ues.colibri.domain.model.TipoPartida;
 import sv.edu.ues.colibri.persistence.jdbc.JdbcSupport;
 import sv.edu.ues.colibri.persistence.jdbc.PersistenceException;
+import sv.edu.ues.colibri.persistence.repo.BitacoraRepository;
 import sv.edu.ues.colibri.persistence.repo.PartidaRepository;
 import sv.edu.ues.colibri.persistence.repo.TerceroRepository;
 
@@ -36,6 +38,7 @@ public class InventarioCostoService {
     private final ParametrizacionService parametrizacion;
     private final PartidaRepository partidaRepository = new PartidaRepository();
     private final TerceroRepository terceros = new TerceroRepository();
+    private final BitacoraRepository bitacoraRepository = new BitacoraRepository();
 
     /**
      * Crea el servicio de inventario y costeo.
@@ -53,7 +56,18 @@ public class InventarioCostoService {
         this.parametrizacion = parametrizacion;
     }
 
-    public record LoteInfo(UUID id, String codigo, int disponibles, BigDecimal costoUnitario) {
+    public record LoteInfo(UUID id, String codigo, int disponibles, BigDecimal costoUnitario,
+            String productoCodigo, String productoNombre, String versionLabel) {
+    }
+
+    /** Producto del catálogo digital que agrupa versiones liberables. */
+    public record ProductoInfo(UUID id, String codigo, String nombre, String modalidad,
+            boolean activo) {
+    }
+
+    /** Versión de un producto con su estado dentro del ciclo EN_PRODUCCION → LIBERADA → DESCONTINUADA. */
+    public record VersionProductoInfo(UUID id, UUID productoId, String productoCodigo,
+            String productoNombre, String versionLabel, String estado) {
     }
 
     public record OrdenResumen(String codigo, String descripcion, String estado) {
@@ -61,6 +75,14 @@ public class InventarioCostoService {
 
     public record OrdenInfo(UUID id, String codigo, String descripcion, BigDecimal presupuesto,
             BigDecimal precioVenta, BigDecimal costoAcumulado, BigDecimal margen) {
+    }
+
+    /**
+     * Rentabilidad de una orden de servicio con su estado del ciclo de vida.
+     */
+    public record OrdenRentabilidad(String codigo, String descripcion, String estado,
+            BigDecimal presupuesto, BigDecimal precioVenta, BigDecimal costoAcumulado,
+            BigDecimal margen) {
     }
 
     /**
@@ -158,13 +180,22 @@ public class InventarioCostoService {
     public List<LoteInfo> listarLotes() {
         auth.exigirContador();
         return jdbc.inTransaction(conn -> {
-            try (PreparedStatement ps = conn.prepareStatement(
-                    "SELECT id, codigo_lote, unidades_disponibles, costo_unitario FROM lote_licencia ORDER BY codigo_lote");
+            try (PreparedStatement ps = conn.prepareStatement("""
+                    SELECT lo.id, lo.codigo_lote, lo.unidades_disponibles, lo.costo_unitario,
+                           p.codigo AS producto_codigo, p.nombre AS producto_nombre,
+                           pv.version_label
+                    FROM lote_licencia lo
+                    JOIN producto_version pv ON pv.id = lo.version_id
+                    JOIN producto p ON p.id = pv.producto_id
+                    ORDER BY lo.codigo_lote
+                    """);
                     ResultSet rs = ps.executeQuery()) {
                 List<LoteInfo> list = new ArrayList<>();
                 while (rs.next()) {
                     list.add(new LoteInfo((UUID) rs.getObject("id"), rs.getString("codigo_lote"),
-                            rs.getInt("unidades_disponibles"), rs.getBigDecimal("costo_unitario")));
+                            rs.getInt("unidades_disponibles"), rs.getBigDecimal("costo_unitario"),
+                            rs.getString("producto_codigo"), rs.getString("producto_nombre"),
+                            rs.getString("version_label")));
                 }
                 return list;
             } catch (SQLException e) {
@@ -192,6 +223,277 @@ public class InventarioCostoService {
                 return list;
             } catch (SQLException e) {
                 throw new PersistenceException("Error al listar órdenes de servicio", e);
+            }
+        });
+    }
+
+    /**
+     * Lista los productos del catálogo digital con su estado de alta.
+     *
+     * @return lista de productos ordenados por código
+     */
+    public List<ProductoInfo> listarProductos() {
+        auth.exigirContador();
+        return jdbc.inTransaction(conn -> {
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "SELECT id, codigo, nombre, modalidad, activo FROM producto ORDER BY codigo");
+                    ResultSet rs = ps.executeQuery()) {
+                List<ProductoInfo> list = new ArrayList<>();
+                while (rs.next()) {
+                    list.add(new ProductoInfo((UUID) rs.getObject("id"), rs.getString("codigo"),
+                            rs.getString("nombre"), rs.getString("modalidad"), rs.getBoolean("activo")));
+                }
+                return list;
+            } catch (SQLException e) {
+                throw new PersistenceException("Error al listar productos", e);
+            }
+        });
+    }
+
+    /**
+     * Lista las versiones de producto con su estado de liberación.
+     *
+     * @return lista de versiones ordenadas por producto y etiqueta
+     */
+    public List<VersionProductoInfo> listarVersiones() {
+        auth.exigirContador();
+        return jdbc.inTransaction(conn -> {
+            try (PreparedStatement ps = conn.prepareStatement("""
+                    SELECT pv.id, pv.producto_id, p.codigo AS producto_codigo,
+                           p.nombre AS producto_nombre, pv.version_label, pv.estado
+                    FROM producto_version pv
+                    JOIN producto p ON p.id = pv.producto_id
+                    ORDER BY p.codigo, pv.version_label
+                    """);
+                    ResultSet rs = ps.executeQuery()) {
+                List<VersionProductoInfo> list = new ArrayList<>();
+                while (rs.next()) {
+                    list.add(new VersionProductoInfo((UUID) rs.getObject("id"),
+                            (UUID) rs.getObject("producto_id"), rs.getString("producto_codigo"),
+                            rs.getString("producto_nombre"), rs.getString("version_label"),
+                            rs.getString("estado")));
+                }
+                return list;
+            } catch (SQLException e) {
+                throw new PersistenceException("Error al listar versiones de producto", e);
+            }
+        });
+    }
+
+    /**
+     * Guarda o actualiza un producto del catálogo digital. La modalidad debe
+     * ser LICENCIA, SAAS o PROYECTO, según el CHECK del esquema.
+     *
+     * @param codigo código único del producto
+     * @param nombre nombre comercial del producto
+     * @param modalidad LICENCIA, SAAS o PROYECTO
+     * @param activo si el producto admite nuevas versiones y operaciones
+     */
+    public void guardarProducto(String codigo, String nombre, String modalidad, boolean activo) {
+        var contador = auth.exigirContador();
+        String cod = exigirTexto(codigo, "El código del producto");
+        if (cod.length() > 40) {
+            throw new DomainException("El código del producto no puede exceder 40 caracteres.");
+        }
+        String nom = exigirTexto(nombre, "El nombre del producto");
+        if (nom.length() > 200) {
+            throw new DomainException("El nombre del producto no puede exceder 200 caracteres.");
+        }
+        String mod = exigirTexto(modalidad, "La modalidad del producto").toUpperCase(Locale.ROOT);
+        if (!List.of("LICENCIA", "SAAS", "PROYECTO").contains(mod)) {
+            throw new DomainException("Modalidad de producto inválida. Use LICENCIA, SAAS o PROYECTO.");
+        }
+        jdbc.runInTransaction(conn -> {
+            String anterior = null;
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "SELECT nombre || '|' || modalidad || '|' || activo FROM producto WHERE codigo=?")) {
+                ps.setString(1, cod);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        anterior = rs.getString(1);
+                    }
+                }
+            } catch (SQLException e) {
+                throw new PersistenceException("Error al leer el producto " + cod, e);
+            }
+            try (PreparedStatement ps = conn.prepareStatement("""
+                    INSERT INTO producto (id, codigo, nombre, modalidad, activo)
+                    VALUES (?,?,?,?,?)
+                    ON CONFLICT (codigo) DO UPDATE SET nombre=EXCLUDED.nombre,
+                        modalidad=EXCLUDED.modalidad, activo=EXCLUDED.activo
+                    """)) {
+                ps.setObject(1, UUID.randomUUID());
+                ps.setString(2, cod);
+                ps.setString(3, nom);
+                ps.setString(4, mod);
+                ps.setBoolean(5, activo);
+                ps.executeUpdate();
+            } catch (SQLException e) {
+                throw new PersistenceException("Error al guardar el producto " + cod, e);
+            }
+            bitacoraRepository.registrar(conn, BitacoraEntrada.de(
+                    contador.getId(), "PRODUCTO", "PRODUCTO", cod, anterior,
+                    nom + "|" + mod + "|" + activo, null));
+        });
+    }
+
+    /**
+     * Registra una versión nueva del producto en estado EN_PRODUCCION.
+     *
+     * @param productoId identificador del producto
+     * @param versionLabel etiqueta de la versión (ej. 2.0)
+     */
+    public void guardarVersion(UUID productoId, String versionLabel) {
+        var contador = auth.exigirContador();
+        if (productoId == null) {
+            throw new DomainException("Seleccione el producto de la versión.");
+        }
+        String etiqueta = exigirTexto(versionLabel, "La etiqueta de la versión");
+        if (etiqueta.length() > 40) {
+            throw new DomainException("La etiqueta de la versión no puede exceder 40 caracteres.");
+        }
+        jdbc.runInTransaction(conn -> {
+            String productoCodigo;
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "SELECT codigo, activo FROM producto WHERE id=?")) {
+                ps.setObject(1, productoId);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (!rs.next()) {
+                        throw new DomainException("Producto no encontrado para la versión.");
+                    }
+                    if (!rs.getBoolean("activo")) {
+                        throw new DomainException("El producto está inactivo; "
+                                + "reactívelo antes de crear versiones.");
+                    }
+                    productoCodigo = rs.getString("codigo");
+                }
+            } catch (SQLException e) {
+                throw new PersistenceException("Error al validar el producto de la versión", e);
+            }
+            try (PreparedStatement ps = conn.prepareStatement("""
+                    INSERT INTO producto_version (id, producto_id, version_label, estado)
+                    VALUES (?,?,?,'EN_PRODUCCION')
+                    """)) {
+                ps.setObject(1, UUID.randomUUID());
+                ps.setObject(2, productoId);
+                ps.setString(3, etiqueta);
+                ps.executeUpdate();
+            } catch (SQLException e) {
+                if ("23505".equals(e.getSQLState())) {
+                    throw new DomainException("El producto " + productoCodigo
+                            + " ya tiene la versión " + etiqueta + ".");
+                }
+                throw new PersistenceException("Error al crear la versión " + etiqueta, e);
+            }
+            bitacoraRepository.registrar(conn, BitacoraEntrada.de(
+                    contador.getId(), "VERSION_PRODUCTO", "PRODUCTO", productoCodigo, null,
+                    etiqueta + " · EN_PRODUCCION", null));
+        });
+    }
+
+    /**
+     * Avanza el estado de una versión dentro del ciclo
+     * EN_PRODUCCION → LIBERADA → DESCONTINUADA (DESCONTINUADA es terminal y no
+     * impide vender los lotes ya liberados contra esa versión).
+     *
+     * @param versionId identificador de la versión
+     * @param estado estado destino
+     */
+    public void cambiarEstadoVersion(UUID versionId, String estado) {
+        var contador = auth.exigirContador();
+        if (versionId == null) {
+            throw new DomainException("Seleccione la versión a actualizar.");
+        }
+        String destino = exigirTexto(estado, "El estado destino").toUpperCase(Locale.ROOT);
+        if (!List.of("EN_PRODUCCION", "LIBERADA", "DESCONTINUADA").contains(destino)) {
+            throw new DomainException("Estado de versión inválido.");
+        }
+        jdbc.runInTransaction(conn -> {
+            String actual;
+            String etiqueta;
+            try (PreparedStatement ps = conn.prepareStatement("""
+                    SELECT pv.estado, pv.version_label, p.codigo
+                    FROM producto_version pv
+                    JOIN producto p ON p.id = pv.producto_id
+                    WHERE pv.id=? FOR UPDATE OF pv
+                    """)) {
+                ps.setObject(1, versionId);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (!rs.next()) {
+                        throw new DomainException("Versión no encontrada.");
+                    }
+                    actual = rs.getString("estado");
+                    etiqueta = rs.getString("version_label") + " · " + rs.getString("codigo");
+                }
+            } catch (SQLException e) {
+                throw new PersistenceException("Error al leer la versión", e);
+            }
+            if (actual.equals(destino)) {
+                throw new DomainException("La versión ya está en estado " + destino + ".");
+            }
+            boolean valida = switch (actual) {
+                case "EN_PRODUCCION" -> "LIBERADA".equals(destino)
+                        || "DESCONTINUADA".equals(destino);
+                case "LIBERADA" -> "DESCONTINUADA".equals(destino);
+                default -> false;
+            };
+            if (!valida) {
+                throw new DomainException("Transición no permitida: " + actual + " → " + destino
+                        + ". El ciclo es EN_PRODUCCION → LIBERADA → DESCONTINUADA.");
+            }
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "UPDATE producto_version SET estado=? WHERE id=?")) {
+                ps.setString(1, destino);
+                ps.setObject(2, versionId);
+                ps.executeUpdate();
+            } catch (SQLException e) {
+                throw new PersistenceException("Error al actualizar la versión", e);
+            }
+            bitacoraRepository.registrar(conn, BitacoraEntrada.de(
+                    contador.getId(), "VERSION_PRODUCTO", "VERSION", versionId.toString(),
+                    actual, destino + " · " + etiqueta, null));
+        });
+    }
+
+    /**
+     * Resuelve la versión contra la que se libera un lote. Una versión explícita
+     * debe existir y estar LIBERADA; sin selección se toma la primera versión
+     * liberada del catálogo en orden determinista.
+     */
+    private VersionProductoInfo resolverVersionParaLiberacion(UUID versionId) {
+        return jdbc.inTransaction(conn -> {
+            String sql = """
+                    SELECT pv.id, pv.producto_id, p.codigo AS producto_codigo,
+                           p.nombre AS producto_nombre, pv.version_label, pv.estado
+                    FROM producto_version pv
+                    JOIN producto p ON p.id = pv.producto_id
+                    WHERE pv.estado = 'LIBERADA'
+                    """;
+            if (versionId != null) {
+                sql += " AND pv.id = ?";
+            } else {
+                sql += " ORDER BY p.codigo, pv.version_label LIMIT 1";
+            }
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                if (versionId != null) {
+                    ps.setObject(1, versionId);
+                }
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (!rs.next()) {
+                        if (versionId != null) {
+                            throw new DomainException("La versión seleccionada no existe o no está "
+                                    + "LIBERADA; libérela en el catálogo de productos primero.");
+                        }
+                        throw new DomainException("No hay una versión LIBERADA en el catálogo de "
+                                + "productos; cree y libere una antes de liberar lotes.");
+                    }
+                    return new VersionProductoInfo((UUID) rs.getObject("id"),
+                            (UUID) rs.getObject("producto_id"), rs.getString("producto_codigo"),
+                            rs.getString("producto_nombre"), rs.getString("version_label"),
+                            rs.getString("estado"));
+                }
+            } catch (SQLException e) {
+                throw new PersistenceException("Error al resolver la versión del lote", e);
             }
         });
     }
@@ -264,7 +566,7 @@ public class InventarioCostoService {
 
     /** Libera lote de N licencias con costo total (ej. caso D: 5 × $100 = $500). */
     public LoteInfo liberarLote(String codigoLote, int unidades, BigDecimal costoTotal, LocalDate fecha) {
-        return liberarLote(codigoLote, unidades, costoTotal, fecha, null);
+        return liberarLote(codigoLote, unidades, costoTotal, fecha, null, null);
     }
 
     /**
@@ -274,10 +576,23 @@ public class InventarioCostoService {
      */
     public LoteInfo liberarLote(String codigoLote, int unidades, BigDecimal costoTotal,
             LocalDate fecha, UUID clienteId) {
+        return liberarLote(codigoLote, unidades, costoTotal, fecha, clienteId, null);
+    }
+
+    /**
+     * Libera lote de N licencias contra una versión de producto del catálogo.
+     * La versión debe existir y estar en estado LIBERADA; con {@code versionId}
+     * en {@code null} se usa la primera versión liberada del catálogo en orden
+     * determinista, pensada para consumidores que no manejan el catálogo.
+     * El cliente queda registrado en la licencia desde su creación.
+     */
+    public LoteInfo liberarLote(String codigoLote, int unidades, BigDecimal costoTotal,
+            LocalDate fecha, UUID clienteId, UUID versionId) {
         auth.exigirContador();
         if (clienteId != null) {
             exigirClienteActivo(clienteId);
         }
+        VersionProductoInfo version = resolverVersionParaLiberacion(versionId);
         var perfil = parametrizacion.exigirPerfilPosting("INVENTARIO");
         String cuentaInventario = parametrizacion.resolverCuenta(null, perfil.cuentaDebe(),
                 "cuenta de inventario del lote");
@@ -329,15 +644,25 @@ public class InventarioCostoService {
             contabilizada = partidas.contabilizar(borrador.getId());
             Partida partidaFinal = contabilizada;
             jdbc.runInTransaction(conn -> {
-                UUID versionId = UUID.fromString("dddddddd-0001-0001-0001-000000000001");
                 try {
+                    // Revalida dentro de la transacción: una versión descontinuada
+                    // entre la resolución y la escritura no debe recibir lotes.
+                    try (PreparedStatement ps = conn.prepareStatement(
+                            "SELECT estado FROM producto_version WHERE id=? FOR UPDATE")) {
+                        ps.setObject(1, version.id());
+                        try (ResultSet rs = ps.executeQuery()) {
+                            if (!rs.next() || !"LIBERADA".equals(rs.getString("estado"))) {
+                                throw new DomainException("La versión del lote ya no está LIBERADA.");
+                            }
+                        }
+                    }
                     try (PreparedStatement ps = conn.prepareStatement("""
                             INSERT INTO lote_licencia (id, version_id, codigo_lote, unidades_estimadas, costo_total,
                                 costo_unitario, unidades_disponibles, fecha_liberacion, partida_id)
                             VALUES (?,?,?,?,?,?,?,?,?)
                             """)) {
                         ps.setObject(1, loteId);
-                        ps.setObject(2, versionId);
+                        ps.setObject(2, version.id());
                         ps.setString(3, codigoLote);
                         ps.setInt(4, unidades);
                         ps.setBigDecimal(5, costoContable);
@@ -369,11 +694,16 @@ public class InventarioCostoService {
                             costoContable, partidaFinal.getId(),
                             "Liberación de " + unidades + " licencias",
                             auth.exigirContador().getId());
+                    bitacoraRepository.registrar(conn, BitacoraEntrada.de(
+                            auth.exigirContador().getId(), "LIBERAR_LOTE", "LOTE",
+                            codigoLote.trim(), null,
+                            unidades + " licencias · costo " + costoContable + " · " + fecha, null));
                 } catch (SQLException e) {
                     throw new PersistenceException("Error al crear lote/licencias", e);
                 }
             });
-            return new LoteInfo(loteId, codigoLote, unidades, unitario);
+            return new LoteInfo(loteId, codigoLote, unidades, unitario,
+                    version.productoCodigo(), version.productoNombre(), version.versionLabel());
         } catch (RuntimeException ex) {
             if (contabilizada != null) {
                 UUID partidaId = contabilizada.getId();
@@ -435,6 +765,10 @@ public class InventarioCostoService {
                     "LIC-" + reserva.codigoLote(), "VTA-LIC-" + UUID.randomUUID(), new ArrayList<>(lineas), null);
             contabilizada = partidas.contabilizar(borrador.getId());
             vincularPartidaKardex(reserva.licenciaId(), contabilizada.getId());
+            jdbc.runInTransaction(conn -> bitacoraRepository.registrar(conn, BitacoraEntrada.de(
+                    auth.exigirContador().getId(), "VENTA_LICENCIA", "LICENCIA",
+                    reserva.licenciaId().toString(), null,
+                    "Lote " + reserva.codigoLote() + " · neto " + precioNeto + " · " + fecha, null)));
             return contabilizada;
         } catch (RuntimeException ex) {
             if (contabilizada != null) {
@@ -851,6 +1185,10 @@ public class InventarioCostoService {
                         licencia.costoUnitario(), licencia.costoUnitario(), partidaReversaId,
                         motivoKardex(motivo, "Devolución de licencia"),
                         auth.exigirContador().getId());
+                bitacoraRepository.registrar(conn, BitacoraEntrada.de(
+                        auth.exigirContador().getId(), "DEVOLVER_LICENCIA", "LICENCIA",
+                        licenciaId.toString(), "ENTREGADA", "DEVUELTA",
+                        motivoKardex(motivo, "Devolución de licencia")));
             });
             return reversa;
         } catch (RuntimeException ex) {
@@ -914,6 +1252,10 @@ public class InventarioCostoService {
                     licencia.costoUnitario(), BigDecimal.ZERO, null,
                     motivoKardex(motivo, "Revocación de derecho de licencia"),
                     auth.exigirContador().getId());
+            bitacoraRepository.registrar(conn, BitacoraEntrada.de(
+                    auth.exigirContador().getId(), "REVOCAR_LICENCIA", "LICENCIA",
+                    licenciaId.toString(), "ENTREGADA", "REVOCADA",
+                    motivoKardex(motivo, "Revocación de derecho de licencia")));
         });
     }
 
@@ -975,6 +1317,269 @@ public class InventarioCostoService {
     public OrdenInfo ordenPrincipal() {
         auth.exigirContador();
         return jdbc.inTransaction(conn -> cargarOrden(conn, "OS2026001"));
+    }
+
+    /**
+     * Crea una orden de servicio nueva en estado ABIERTA.
+     *
+     * @param codigo código único de la orden (ej. OS2027001)
+     * @param descripcion descripción del trabajo a realizar
+     * @param presupuesto costo estimado de la orden
+     * @param precioVenta precio pactado con el cliente
+     * @param clienteId identificador del cliente (opcional)
+     * @return la orden creada
+     */
+    public OrdenInfo crearOrden(String codigo, String descripcion, BigDecimal presupuesto,
+            BigDecimal precioVenta, UUID clienteId) {
+        var contador = auth.exigirContador();
+        String cod = exigirTexto(codigo, "El código de la orden");
+        if (cod.length() > 40) {
+            throw new DomainException("El código de la orden no puede exceder 40 caracteres.");
+        }
+        String desc = exigirTexto(descripcion, "La descripción de la orden");
+        if (desc.length() > 500) {
+            throw new DomainException("La descripción no puede exceder 500 caracteres.");
+        }
+        validarImporte(presupuesto, "presupuesto");
+        validarImporte(precioVenta, "precio de venta");
+        try {
+            jdbc.runInTransaction(conn -> {
+                if (clienteId != null) {
+                    try (PreparedStatement ps = conn.prepareStatement(
+                            "SELECT 1 FROM tercero WHERE id=?")) {
+                        ps.setObject(1, clienteId);
+                        try (ResultSet rs = ps.executeQuery()) {
+                            if (!rs.next()) {
+                                throw new DomainException("Cliente no encontrado para la orden.");
+                            }
+                        }
+                    } catch (SQLException e) {
+                        throw new PersistenceException("Error al validar el cliente de la orden", e);
+                    }
+                }
+                try (PreparedStatement ps = conn.prepareStatement("""
+                        INSERT INTO orden_servicio (id, codigo, cliente_id, descripcion,
+                                presupuesto, precio_venta, estado)
+                        VALUES (?,?,?,?,?,?,'ABIERTA')
+                        """)) {
+                    ps.setObject(1, UUID.randomUUID());
+                    ps.setString(2, cod);
+                    ps.setObject(3, clienteId);
+                    ps.setString(4, desc);
+                    ps.setBigDecimal(5, presupuesto.setScale(2, RoundingMode.HALF_UP));
+                    ps.setBigDecimal(6, precioVenta.setScale(2, RoundingMode.HALF_UP));
+                    ps.executeUpdate();
+                } catch (SQLException e) {
+                    if ("23505".equals(e.getSQLState())) {
+                        throw new DomainException("Ya existe una orden con el código " + cod + ".");
+                    }
+                    throw new PersistenceException("Error al crear la orden " + cod, e);
+                }
+                bitacoraRepository.registrar(conn, BitacoraEntrada.de(
+                        contador.getId(), "ORDEN_SERVICIO", "ORDEN_SERVICIO", cod, null,
+                        "ABIERTA — presupuesto " + presupuesto + " — venta " + precioVenta, null));
+            });
+        } catch (PersistenceException e) {
+            throw e;
+        }
+        return jdbc.inTransaction(conn -> cargarOrden(conn, cod));
+    }
+
+    /**
+     * Lista las órdenes con su estado, presupuesto, costo acumulado y margen.
+     *
+     * @return detalle de rentabilidad por orden
+     */
+    public List<OrdenRentabilidad> listarOrdenesRentabilidad() {
+        auth.exigirContador();
+        return jdbc.inTransaction(conn -> {
+            List<OrdenRentabilidad> lista = new ArrayList<>();
+            try (PreparedStatement ps = conn.prepareStatement("""
+                    SELECT o.codigo, o.descripcion, o.estado, o.presupuesto, o.precio_venta,
+                           COALESCE((SELECT SUM(c.importe)
+                                     FROM orden_consumo c
+                                     JOIN partida p ON p.id=c.partida_id
+                                     WHERE c.orden_id=o.id AND p.estado='CONTABILIZADA'),0) AS costo
+                    FROM orden_servicio o ORDER BY o.codigo
+                    """);
+                 ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    BigDecimal precio = rs.getBigDecimal("precio_venta");
+                    BigDecimal costo = rs.getBigDecimal("costo");
+                    lista.add(new OrdenRentabilidad(rs.getString("codigo"),
+                            rs.getString("descripcion"), rs.getString("estado"),
+                            rs.getBigDecimal("presupuesto"), precio, costo,
+                            precio.subtract(costo)));
+                }
+            } catch (SQLException e) {
+                throw new PersistenceException("Error al listar las órdenes", e);
+            }
+            return lista;
+        });
+    }
+
+    /**
+     * Cambia el estado de una orden respetando el ciclo
+     * ABIERTA → EN_PROCESO → ENTREGADA → CERRADA (o CANCELADA desde ABIERTA/EN_PROCESO).
+     *
+     * @param codigo código de la orden
+     * @param nuevoEstado estado destino
+     */
+    public void cambiarEstadoOrden(String codigo, String nuevoEstado) {
+        var contador = auth.exigirContador();
+        String cod = exigirTexto(codigo, "El código de la orden");
+        String destino = exigirTexto(nuevoEstado, "El estado destino").toUpperCase(Locale.ROOT);
+        jdbc.runInTransaction(conn -> {
+            String actual;
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "SELECT estado FROM orden_servicio WHERE codigo=? FOR UPDATE")) {
+                ps.setString(1, cod);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (!rs.next()) {
+                        throw new DomainException("Orden no encontrada: " + cod);
+                    }
+                    actual = rs.getString("estado");
+                }
+            } catch (SQLException e) {
+                throw new PersistenceException("Error al leer la orden " + cod, e);
+            }
+            if (!transicionEstadoOrdenValida(actual, destino)) {
+                throw new DomainException("Transición no permitida: " + actual + " → " + destino
+                        + ". El ciclo es ABIERTA → EN_PROCESO → ENTREGADA → CERRADA; "
+                        + "CANCELADA solo desde ABIERTA o EN_PROCESO.");
+            }
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "UPDATE orden_servicio SET estado=? WHERE codigo=?")) {
+                ps.setString(1, destino);
+                ps.setString(2, cod);
+                ps.executeUpdate();
+            } catch (SQLException e) {
+                throw new PersistenceException("Error al actualizar la orden " + cod, e);
+            }
+            bitacoraRepository.registrar(conn, BitacoraEntrada.de(
+                    contador.getId(), "ORDEN_SERVICIO", "ORDEN_SERVICIO", cod, actual,
+                    destino, null));
+        });
+    }
+
+    private static boolean transicionEstadoOrdenValida(String actual, String destino) {
+        return switch (actual) {
+            case "ABIERTA" -> "EN_PROCESO".equals(destino) || "CANCELADA".equals(destino);
+            case "EN_PROCESO" -> "ENTREGADA".equals(destino) || "CANCELADA".equals(destino);
+            case "ENTREGADA" -> "CERRADA".equals(destino);
+            default -> false;
+        };
+    }
+
+    /**
+     * Datos editables de una orden de servicio para precargar el formulario.
+     */
+    public record OrdenDetalle(String codigo, String descripcion, String estado,
+            BigDecimal presupuesto, BigDecimal precioVenta, UUID clienteId) {
+    }
+
+    /**
+     * Lee los datos actuales de una orden para editarla.
+     *
+     * @param codigo código de la orden
+     * @return datos editables de la orden
+     */
+    public OrdenDetalle ordenDetalle(String codigo) {
+        auth.exigirContador();
+        String cod = exigirTexto(codigo, "El código de la orden");
+        return jdbc.inTransaction(conn -> {
+            try (PreparedStatement ps = conn.prepareStatement("""
+                    SELECT codigo, descripcion, estado, presupuesto, precio_venta, cliente_id
+                    FROM orden_servicio WHERE codigo=?
+                    """)) {
+                ps.setString(1, cod);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (!rs.next()) {
+                        throw new DomainException("Orden no encontrada: " + cod);
+                    }
+                    return new OrdenDetalle(rs.getString("codigo"), rs.getString("descripcion"),
+                            rs.getString("estado"), rs.getBigDecimal("presupuesto"),
+                            rs.getBigDecimal("precio_venta"), (UUID) rs.getObject("cliente_id"));
+                }
+            } catch (SQLException e) {
+                throw new PersistenceException("Error al leer la orden " + cod, e);
+            }
+        });
+    }
+
+    /**
+     * Actualiza la descripción, presupuesto, precio de venta y cliente de una
+     * orden. Sólo aplica mientras la orden está ABIERTA o EN_PROCESO: una vez
+     * entregada o cerrada sus condiciones comerciales ya no se modifican.
+     * Cada cambio queda registrado en bitácora con los valores anteriores.
+     *
+     * @param codigo código de la orden
+     * @param descripcion nueva descripción
+     * @param presupuesto nuevo presupuesto
+     * @param precioVenta nuevo precio de venta
+     * @param clienteId nuevo cliente (puede ser {@code null})
+     */
+    public void actualizarOrden(String codigo, String descripcion, BigDecimal presupuesto,
+            BigDecimal precioVenta, UUID clienteId) {
+        var contador = auth.exigirContador();
+        String cod = exigirTexto(codigo, "El código de la orden");
+        String desc = exigirTexto(descripcion, "La descripción de la orden");
+        if (desc.length() > 500) {
+            throw new DomainException("La descripción no puede exceder 500 caracteres.");
+        }
+        validarImporte(presupuesto, "presupuesto");
+        validarImporte(precioVenta, "precio de venta");
+        jdbc.runInTransaction(conn -> {
+            String estado;
+            String anterior;
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "SELECT estado, descripcion || '|' || presupuesto || '|' || precio_venta || '|'"
+                            + " || COALESCE(cliente_id::text,'') FROM orden_servicio WHERE codigo=? FOR UPDATE")) {
+                ps.setString(1, cod);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (!rs.next()) {
+                        throw new DomainException("Orden no encontrada: " + cod);
+                    }
+                    estado = rs.getString("estado");
+                    anterior = rs.getString(1);
+                }
+            } catch (SQLException e) {
+                throw new PersistenceException("Error al leer la orden " + cod, e);
+            }
+            if (!"ABIERTA".equals(estado) && !"EN_PROCESO".equals(estado)) {
+                throw new DomainException("Sólo se pueden editar órdenes ABIERTA o EN_PROCESO; "
+                        + "la orden " + cod + " está " + estado + ".");
+            }
+            if (clienteId != null) {
+                try (PreparedStatement ps = conn.prepareStatement(
+                        "SELECT 1 FROM tercero WHERE id=?")) {
+                    ps.setObject(1, clienteId);
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (!rs.next()) {
+                            throw new DomainException("Cliente no encontrado para la orden.");
+                        }
+                    }
+                } catch (SQLException e) {
+                    throw new PersistenceException("Error al validar el cliente de la orden", e);
+                }
+            }
+            try (PreparedStatement ps = conn.prepareStatement("""
+                    UPDATE orden_servicio SET descripcion=?, presupuesto=?, precio_venta=?, cliente_id=?
+                    WHERE codigo=?
+                    """)) {
+                ps.setString(1, desc);
+                ps.setBigDecimal(2, presupuesto.setScale(2, RoundingMode.HALF_UP));
+                ps.setBigDecimal(3, precioVenta.setScale(2, RoundingMode.HALF_UP));
+                ps.setObject(4, clienteId);
+                ps.setString(5, cod);
+                ps.executeUpdate();
+            } catch (SQLException e) {
+                throw new PersistenceException("Error al actualizar la orden " + cod, e);
+            }
+            bitacoraRepository.registrar(conn, BitacoraEntrada.de(
+                    contador.getId(), "ORDEN_SERVICIO", "ORDEN_SERVICIO", cod, anterior,
+                    desc + "|" + presupuesto + "|" + precioVenta + "|" + clienteId, null));
+        });
     }
 
     /**
@@ -1131,6 +1736,10 @@ public class InventarioCostoService {
                         ps.setObject(9, partidaFinal.getId());
                         ps.executeUpdate();
                     }
+                    bitacoraRepository.registrar(conn, BitacoraEntrada.de(
+                            auth.exigirContador().getId(), "CONSUMO_ORDEN", "ORDEN_SERVICIO",
+                            orden, null,
+                            clase + " · " + detalle + " · $" + importe + " · " + fecha, null));
                     return cargarOrden(conn, orden);
                 } catch (SQLException e) {
                     throw new PersistenceException("Error al registrar consumo", e);
@@ -1211,7 +1820,11 @@ public class InventarioCostoService {
                 "Reconocimiento costo " + codigoOrden, codigoOrden,
                 "REC-" + codigoOrden + "-" + UUID.randomUUID(),
                 lineas, null);
-        return partidas.contabilizar(p.getId());
+        Partida reconocida = partidas.contabilizar(p.getId());
+        jdbc.runInTransaction(conn -> bitacoraRepository.registrar(conn, BitacoraEntrada.de(
+                auth.exigirContador().getId(), "RECONOCER_COSTO_ORDEN", "ORDEN_SERVICIO",
+                codigoOrden, null, "Costo acumulado reconocido a resultados · " + fecha, null)));
+        return reconocida;
     }
 
     private OrdenInfo cargarOrden(Connection conn, String codigo) {
@@ -1320,6 +1933,10 @@ public class InventarioCostoService {
                     ps.setObject(8, fecha);
                     ps.setObject(9, partidaFinal.getId());
                     ps.executeUpdate();
+                    bitacoraRepository.registrar(conn, BitacoraEntrada.de(
+                            auth.exigirContador().getId(), "CONSUMO_PLAN", "PLAN_SERVICIO",
+                            plan.codigo(), null,
+                            clase + " · " + detalle + " · $" + importe + " · " + fecha, null));
                     return cargarCostoPlan(conn, plan, null, null);
                 } catch (SQLException e) {
                     throw new PersistenceException("Error al registrar el consumo del plan", e);
@@ -1402,6 +2019,9 @@ public class InventarioCostoService {
             } catch (SQLException e) {
                 throw new PersistenceException("Error al registrar usuarios-mes del plan SaaS", e);
             }
+            bitacoraRepository.registrar(conn, BitacoraEntrada.de(
+                    auth.exigirContador().getId(), "USUARIOS_MES_SAAS", "PLAN_SAAS",
+                    plan.codigo(), null, mes + " · " + usuariosMes + " usuarios-mes", null));
         });
     }
 

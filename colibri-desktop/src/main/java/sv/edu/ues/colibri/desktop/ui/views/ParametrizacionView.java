@@ -18,10 +18,15 @@ import sv.edu.ues.colibri.desktop.ui.UiCatalogos;
 import sv.edu.ues.colibri.desktop.ui.UiDialogs;
 import sv.edu.ues.colibri.desktop.ui.UiTables;
 import sv.edu.ues.colibri.domain.model.Cuenta;
+import sv.edu.ues.colibri.domain.model.Ejercicio;
 import sv.edu.ues.colibri.domain.model.EstadoCuenta;
 import sv.edu.ues.colibri.domain.model.NaturalezaCuenta;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * Vista de configuración contable y fiscal del sistema.
@@ -61,6 +66,8 @@ public class ParametrizacionView extends VBox {
         Label ayuda = new Label(textoAyuda(seccion));
         ayuda.getStyleClass().add("view-subtitle");
         ayuda.setWrapText(true);
+        ayuda.setMinWidth(0);
+        ayuda.setMaxWidth(Double.MAX_VALUE);
 
         VBox cuerpo = switch (seccion) {
             case CATALOGO -> catalogo(context);
@@ -99,6 +106,8 @@ public class ParametrizacionView extends VBox {
 
     private VBox periodos(AppContext context) {
         TableView<sv.edu.ues.colibri.domain.model.Periodo> tabla = new TableView<>();
+        Map<UUID, Integer> anios = new HashMap<>();
+        addCol(tabla, "Ejercicio", p -> String.valueOf(anios.getOrDefault(p.getEjercicioId(), 0)));
         addCol(tabla, "Mes", p -> String.valueOf(p.getMes()));
         addCol(tabla, "Inicio", p -> p.getFechaInicio().toString());
         addCol(tabla, "Fin", p -> p.getFechaFin().toString());
@@ -107,10 +116,20 @@ public class ParametrizacionView extends VBox {
             case EN_REVISION -> "En auditoría";
             case CERRADO -> "Cerrado";
         });
+        ComboBox<Ejercicio> comboEjercicios = new ComboBox<>();
+        comboEjercicios.setConverter(converterEjercicio());
         Runnable refrescar = () -> {
             tabla.getItems().clear();
-            context.periodos().listarEjercicios()
-                    .forEach(ej -> tabla.getItems().addAll(context.periodos().listarPeriodos(ej)));
+            anios.clear();
+            var ejercicios = context.periodos().listarEjercicios();
+            comboEjercicios.setItems(FXCollections.observableArrayList(ejercicios));
+            if (!ejercicios.isEmpty() && comboEjercicios.getValue() == null) {
+                comboEjercicios.setValue(ejercicios.get(ejercicios.size() - 1));
+            }
+            ejercicios.forEach(ej -> {
+                anios.put(ej.getId(), ej.getAnio());
+                tabla.getItems().addAll(context.periodos().listarPeriodos(ej));
+            });
         };
         refrescar.run();
         var tablaBuscable = UiTables.conBusqueda(tabla, "períodos", periodo -> periodo.getMes()
@@ -135,9 +154,69 @@ public class ParametrizacionView extends VBox {
                 run(() -> { context.cierre().cerrarPeriodo(sel); refrescar.run(); });
             }
         });
+        TextField anio = new TextField(String.valueOf(LocalDate.now().getYear()));
+        anio.setPromptText("Ej. 2027");
+        UiCatalogos.ayuda(anio, "Año del nuevo ejercicio contable (2000-2100).");
+        ComboBox<Integer> mesInicial = comboMeses(LocalDate.now().getMonthValue());
+        Button crearEjercicio = new Button("Crear ejercicio (12 meses)");
+        crearEjercicio.setAccessibleHelp("Crea el ejercicio anual con sus 12 períodos mensuales; "
+                + "solo el mes elegido queda abierto.");
+        crearEjercicio.setOnAction(e -> run(() -> {
+            int an = Integer.parseInt(anio.getText().trim());
+            context.periodos().crearEjercicio(an, mesInicial.getValue());
+            refrescar.run();
+            UiDialogs.info("Períodos", "Ejercicio " + an + " creado con 12 meses; "
+                    + "el mes " + mesInicial.getValue() + " quedó abierto.");
+        }));
+
+        ComboBox<Integer> mesNuevo = comboMeses(null);
+        Button crearPeriodo = new Button("Crear período");
+        crearPeriodo.setAccessibleHelp("Agrega un mes faltante al ejercicio elegido; nace cerrado.");
+        crearPeriodo.setOnAction(e -> {
+            Ejercicio sel = comboEjercicios.getValue();
+            if (sel == null) {
+                UiDialogs.error("No hay ejercicios registrados.");
+                return;
+            }
+            run(() -> {
+                context.periodos().crearPeriodo(sel, mesNuevo.getValue());
+                refrescar.run();
+                UiDialogs.info("Períodos", "Mes " + mesNuevo.getValue()
+                        + " agregado al ejercicio " + sel.getAnio() + " (cerrado; ábralo si aplica).");
+            });
+        });
+
+        Button toggleEjercicio = new Button("Activar / desactivar ejercicio");
+        toggleEjercicio.setAccessibleHelp("Alterna el estado del ejercicio elegido en el combo; "
+                + "no se puede desactivar con períodos abiertos.");
+        toggleEjercicio.setOnAction(e -> {
+            Ejercicio sel = comboEjercicios.getValue();
+            if (sel == null) {
+                UiDialogs.error("Seleccione el ejercicio en el combo.");
+                return;
+            }
+            boolean activar = !sel.isActivo();
+            if (!activar && !UiDialogs.confirmar("Desactivar ejercicio",
+                    "El ejercicio " + sel.getAnio() + " dejará de participar en la captura. "
+                            + "¿Continuar?")) {
+                return;
+            }
+            run(() -> {
+                context.periodos().cambiarEstadoEjercicio(sel, activar);
+                refrescar.run();
+            });
+        });
+
         VBox box = new VBox(10, new Label("Abierto permite captura. En auditoría deja ajustes. "
-                + "Cerrado bloquea el mes tras verificar las cédulas pendientes."),
-                tablaBuscable, ResponsiveLayouts.row(abierto, auditoria, cerrado));
+                + "Cerrado bloquea el mes tras verificar cédulas y partidas pendientes."),
+                tablaBuscable,
+                ResponsiveLayouts.row(abierto, auditoria, cerrado),
+                new Label("Nuevo ejercicio anual (12 períodos mensuales; solo un mes abierto):"),
+                ResponsiveLayouts.row(ResponsiveLayouts.field("Año", anio),
+                        ResponsiveLayouts.field("Mes a abrir", mesInicial), crearEjercicio),
+                new Label("Período suelto dentro de un ejercicio existente:"),
+                ResponsiveLayouts.row(ResponsiveLayouts.field("Ejercicio", comboEjercicios),
+                        ResponsiveLayouts.field("Mes", mesNuevo), crearPeriodo, toggleEjercicio));
         box.getStyleClass().add("form-card");
         VBox.setVgrow(tabla, javafx.scene.layout.Priority.ALWAYS);
         return box;
@@ -199,6 +278,11 @@ public class ParametrizacionView extends VBox {
         });
         ComboBox<EstadoCuenta> estado = new ComboBox<>(FXCollections.observableArrayList(EstadoCuenta.values()));
         estado.setConverter(converterEstado());
+        tabla.getSelectionModel().selectedItemProperty().addListener((o, a, sel) -> {
+            if (sel != null) {
+                estado.setValue(sel.getEstado());
+            }
+        });
         Button cambiar = new Button("Cambiar estado");
         cambiar.setOnAction(e -> {
             var sel = tabla.getSelectionModel().getSelectedItem();
@@ -219,12 +303,23 @@ public class ParametrizacionView extends VBox {
     }
 
     private VBox posting(AppContext context) {
+        Map<String, String> nombresCuenta = new HashMap<>();
+        try {
+            context.catalogo().listar().forEach(cuenta ->
+                    nombresCuenta.put(cuenta.getCodigo(), cuenta.getCodigo() + " · " + cuenta.getNombre()));
+        } catch (Exception ignored) {
+            // Si el catálogo no responde, las columnas muestran sólo el código.
+        }
+        java.util.function.Function<String, String> conNombre = codigo -> {
+            String nombre = nombresCuenta.get(codigo);
+            return nombre == null || nombre.isBlank() ? nvl(codigo) : nombre;
+        };
         TableView<ParametrizacionService.PostingProfile> tabla = new TableView<>();
         addCol(tabla, "Evento", ParametrizacionService.PostingProfile::evento);
         addCol(tabla, "Etiqueta", ParametrizacionService.PostingProfile::etiqueta);
-        addCol(tabla, "Debe", ParametrizacionService.PostingProfile::cuentaDebe);
-        addCol(tabla, "Haber", ParametrizacionService.PostingProfile::cuentaHaber);
-        addCol(tabla, "IVA", p -> nvl(p.cuentaIva()));
+        addCol(tabla, "Debe", p -> conNombre.apply(p.cuentaDebe()));
+        addCol(tabla, "Haber", p -> conNombre.apply(p.cuentaHaber()));
+        addCol(tabla, "IVA", p -> conNombre.apply(p.cuentaIva()));
         tabla.setItems(FXCollections.observableArrayList(context.parametrizacion().listarPosting()));
         var tablaBuscable = UiTables.conBusqueda(tabla, "eventos contables", perfil ->
                 perfil.evento() + " " + perfil.etiqueta() + " " + perfil.cuentaDebe() + " "
@@ -378,26 +473,53 @@ public class ParametrizacionView extends VBox {
         TableView<ParametrizacionService.CentroCosto> tabla = new TableView<>();
         addCol(tabla, "Código", ParametrizacionService.CentroCosto::codigo);
         addCol(tabla, "Nombre", ParametrizacionService.CentroCosto::nombre);
+        addCol(tabla, "Descripción", c -> nvl(c.descripcion()));
+        addCol(tabla, "Uso", c -> nvl(c.uso()));
         addCol(tabla, "Estado", c -> c.activo() ? "Activo" : "Inactivo");
         Runnable refrescar = () -> tabla.setItems(FXCollections.observableArrayList(context.parametrizacion().listarCentros()));
         refrescar.run();
         var tablaBuscable = UiTables.conBusqueda(tabla, "centros de costo", centro -> centro.codigo()
-                + " " + centro.nombre() + " " + centro.activo());
+                + " " + centro.nombre() + " " + nvl(centro.descripcion()) + " " + nvl(centro.uso())
+                + " " + centro.activo());
         TextField codigo = new TextField();
         codigo.setPromptText("Ej. CC-01");
         UiCatalogos.ayuda(codigo, "Código corto del centro de costo; es el que se captura en las partidas.");
         TextField nombre = new TextField();
         nombre.setPromptText("Ej. Administración");
+        TextField descripcion = new TextField();
+        descripcion.setPromptText("Qué hace el centro (área, equipo o función)");
+        TextField uso = new TextField();
+        uso.setPromptText("En qué se usa: partidas, planilla, CIF…");
         CheckBox activo = new CheckBox("Activo");
         activo.setSelected(true);
+        tabla.getSelectionModel().selectedItemProperty().addListener((o, a, sel) -> {
+            if (sel != null) {
+                codigo.setText(sel.codigo());
+                nombre.setText(sel.nombre());
+                descripcion.setText(nvl(sel.descripcion()));
+                uso.setText(nvl(sel.uso()));
+                activo.setSelected(sel.activo());
+            }
+        });
         Button guardar = new Button("Guardar centro");
         guardar.setOnAction(e -> run(() -> {
             context.parametrizacion().guardarCentro(new ParametrizacionService.CentroCosto(
-                    codigo.getText(), nombre.getText(), activo.isSelected()));
+                    codigo.getText(), nombre.getText(), descripcion.getText(), uso.getText(),
+                    activo.isSelected()));
             refrescar.run();
         }));
+        Button limpiar = new Button("Nuevo centro");
+        limpiar.setOnAction(e -> {
+            codigo.clear();
+            nombre.clear();
+            descripcion.clear();
+            uso.clear();
+            activo.setSelected(true);
+        });
         VBox box = new VBox(10, tablaBuscable, ResponsiveLayouts.row(
-                ResponsiveLayouts.field("Código", codigo), ResponsiveLayouts.field("Nombre", nombre), activo, guardar));
+                ResponsiveLayouts.field("Código", codigo), ResponsiveLayouts.field("Nombre", nombre),
+                ResponsiveLayouts.field("Descripción", descripcion), ResponsiveLayouts.field("Uso", uso),
+                activo, guardar, limpiar));
         box.getStyleClass().add("form-card");
         VBox.setVgrow(tabla, javafx.scene.layout.Priority.ALWAYS);
         return box;
@@ -413,6 +535,39 @@ public class ParametrizacionView extends VBox {
             throw new IllegalArgumentException("Seleccione la cuenta de " + etiqueta + ".");
         }
         return valor;
+    }
+
+    private static ComboBox<Integer> comboMeses(Integer seleccion) {
+        ComboBox<Integer> combo = new ComboBox<>();
+        for (int m = 1; m <= 12; m++) {
+            combo.getItems().add(m);
+        }
+        combo.setConverter(new StringConverter<>() {
+            @Override public String toString(Integer value) {
+                return value == null ? "" : String.valueOf(value);
+            }
+            @Override public Integer fromString(String text) {
+                try {
+                    return Integer.valueOf(text.trim());
+                } catch (Exception e) {
+                    return null;
+                }
+            }
+        });
+        combo.setValue(seleccion);
+        return combo;
+    }
+
+    private static StringConverter<Ejercicio> converterEjercicio() {
+        return new StringConverter<>() {
+            @Override public String toString(Ejercicio value) {
+                return value == null ? "" : "Ejercicio " + value.getAnio()
+                        + (value.isActivo() ? "" : " (inactivo)");
+            }
+            @Override public Ejercicio fromString(String text) {
+                return null;
+            }
+        };
     }
 
     private static String estadoTexto(EstadoCuenta estado) {

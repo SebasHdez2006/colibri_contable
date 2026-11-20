@@ -177,6 +177,7 @@ public class SoporteTecnicoView extends VBox {
     private VBox entorno(AppContext context) {
         var actual = context.soporte().entorno();
         TextField url = new TextField(actual.jdbcUrl());
+        url.setPrefColumnCount(36);
         url.setPromptText("jdbc:postgresql://host:5432/colibri");
         UiCatalogos.ayuda(url, "URL JDBC de la base de datos; formato jdbc:postgresql://servidor:puerto/base.");
         TextField user = new TextField(actual.dbUser());

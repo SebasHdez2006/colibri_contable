@@ -770,8 +770,11 @@ public class ReportService {
 
     private boolean esColumnaMonetaria(String encabezado) {
         String nombre = encabezado.toLowerCase(java.util.Locale.ROOT);
+        // Términos contables estándar además de los marcadores USD/importe.
         return nombre.contains("usd") || nombre.contains("importe") || nombre.contains("saldo")
-                || nombre.contains("margen") || nombre.contains("costo") || nombre.contains("total");
+                || nombre.contains("margen") || nombre.contains("costo") || nombre.contains("total")
+                || nombre.contains("debe") || nombre.contains("haber")
+                || nombre.contains("base") || nombre.contains("iva");
     }
 
     private JRDesignStaticText staticText(int x, int y, int width, int height, String text) {

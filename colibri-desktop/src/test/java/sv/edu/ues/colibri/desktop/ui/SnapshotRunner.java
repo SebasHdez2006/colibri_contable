@@ -1,6 +1,7 @@
 package sv.edu.ues.colibri.desktop.ui;
 
 import javafx.application.Platform;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.image.PixelReader;
@@ -53,6 +54,7 @@ public final class SnapshotRunner {
         String url = env("COLIBRI_SNAP_DB_URL", "jdbc:postgresql://127.0.0.1:5434/colibri_scratch");
         String usuario = env("COLIBRI_SNAP_DB_USER", "colibri");
         String clave = env("COLIBRI_SNAP_DB_PASSWORD", "colibri");
+        boolean soporte = "SOPORTE".equalsIgnoreCase(env("COLIBRI_SNAP_ROLE", "CONTADOR"));
         Path salida = Path.of(env("COLIBRI_SNAP_DIR",
                 Path.of(System.getProperty("user.dir"), "target", "snapshots").toString()));
         Files.createDirectories(salida);
@@ -68,9 +70,9 @@ public final class SnapshotRunner {
 
         AppContext ctx = AppContext.iniciarConConfig(new DatabaseConfig(url, usuario, clave, usuario, clave));
         try {
-            ctx.auth().login(BootstrapService.USUARIO_DEFAULT,
-                    BootstrapService.PASSWORD_DEFAULT.toCharArray());
-            if (!ctx.catalogo().catalogoAprobado()) {
+            ctx.auth().login(soporte ? BootstrapService.USUARIO_SOPORTE : BootstrapService.USUARIO_DEFAULT,
+                    (soporte ? BootstrapService.PASSWORD_SOPORTE : BootstrapService.PASSWORD_DEFAULT).toCharArray());
+            if (!soporte && !ctx.catalogo().catalogoAprobado()) {
                 ctx.catalogo().aprobarCatalogoInicial();
             }
             CompletableFuture<Void> fin = new CompletableFuture<>();
@@ -113,6 +115,12 @@ public final class SnapshotRunner {
                             ? List.of(raiz)
                             : item.hijos().stream().map(NavItem::id).toList();
                     for (String id : ids) {
+                        enFx(() -> shell.ir(id));
+                        // Las transiciones de navegación duran 140-220 ms. La
+                        // evidencia estática debe representar el estado final,
+                        // incluido el resaltado del menú, no un fotograma
+                        // intermedio del cambio de vista.
+                        Thread.sleep(260);
                         enFx(() -> capturar(shell, id, dir));
                     }
                 }
@@ -123,9 +131,20 @@ public final class SnapshotRunner {
     }
 
     private static void capturar(MainShell shell, String id, Path dir) throws Exception {
-        shell.ir(id);
         shell.applyCss();
         shell.layout();
+        // SectionHost aplica la entrada visual con un fundido de 220 ms. La
+        // captura es una prueba estática, no una reproducción de la animación:
+        // fijar el estado final evita PNG vacíos por tomar el frame inicial.
+        var host = shell.lookup(".section-host");
+        Node pagina = null;
+        if (host instanceof javafx.scene.Parent parent && !parent.getChildrenUnmodifiable().isEmpty()) {
+            pagina = parent.getChildrenUnmodifiable().getFirst();
+        }
+        if (pagina != null) {
+            pagina.setOpacity(1);
+            pagina.setTranslateY(0);
+        }
         WritableImage imagen = shell.snapshot(new SnapshotParameters(), null);
         guardar(imagen, dir.resolve(id + ".png"));
     }

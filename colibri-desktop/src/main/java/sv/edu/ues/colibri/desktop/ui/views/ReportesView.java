@@ -327,10 +327,12 @@ public class ReportesView extends VBox {
                 case AUX_ORDEN -> "ORDEN";
                 default -> "CENTRO_COSTO";
             };
-            encabezados = List.of("Fecha", "Folio", "Cuenta", "Dimensión", "Concepto", "Debe", "Haber");
+            encabezados = List.of("Fecha", "Folio", "Cuenta", "Dimensión", "Concepto",
+                    "Debe", "Haber", "Saldo acumulado (USD)");
             filas = context.libros().auxiliar(aux, desde, hasta).stream()
                     .map(l -> List.of(l.fecha().toString(), nvl(l.folio()), l.cuenta(), nvl(l.dimension()),
-                            nvl(l.concepto()), l.debe().toPlainString(), l.haber().toPlainString())).toList();
+                            nvl(l.concepto()), l.debe().toPlainString(), l.haber().toPlainString(),
+                            l.saldo().toPlainString())).toList();
             filas = agregarTotal(filas, encabezados, 5, 6, "TOTALES");
         }
         return new DatosReporte(titulo, periodo, encabezados, filas);

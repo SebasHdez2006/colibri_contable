@@ -81,6 +81,8 @@ public final class ProcesosCifView extends VBox {
                 + "(primero en entrar, primero en salir) es la política informativa y promedio/UEPS "
                 + "(último en entrar, primero en salir) quedan como comparación.");
         ayuda.setWrapText(true);
+        ayuda.setMinWidth(0);
+        ayuda.setMaxWidth(Double.MAX_VALUE);
         ayuda.getStyleClass().add("view-subtitle");
 
         getChildren().addAll(titulo, ayuda, tarjetaProceso(), tarjetaCif());

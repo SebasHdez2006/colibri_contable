@@ -150,7 +150,7 @@ public class ContadorRepository {
         String sql = """
                 UPDATE contador SET password_hash = ?, password_salt = ?, intentos_fallidos = ?,
                     bloqueado_hasta = ?, codigo_recuperacion_hash = ?, codigo_recuperacion_salt = ?,
-                    ultimo_acceso = ?
+                    ultimo_acceso = ?, clave_temporal_expira = ?
                 WHERE id = ?
                 """;
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -161,7 +161,8 @@ public class ContadorRepository {
             ps.setBytes(5, contador.getCodigoRecuperacionHash());
             ps.setBytes(6, contador.getCodigoRecuperacionSalt());
             ps.setObject(7, contador.getUltimoAcceso());
-            ps.setObject(8, contador.getId());
+            ps.setObject(8, contador.getClaveTemporalExpira());
+            ps.setObject(9, contador.getId());
             ps.executeUpdate();
         } catch (SQLException e) {
             throw new PersistenceException("Error al actualizar seguridad del contador", e);
@@ -229,7 +230,7 @@ public class ContadorRepository {
         if (rol == null || rol.isBlank()) {
             rol = RolUsuario.CONTADOR.name();
         }
-        return new Contador(
+        Contador contador = new Contador(
                 (UUID) rs.getObject("id"),
                 rs.getString("usuario"),
                 rs.getString("nombre"),
@@ -244,5 +245,8 @@ public class ContadorRepository {
                 RolUsuario.valueOf(rol),
                 rs.getString("email")
         );
+        contador.setClaveTemporalExpira(
+                rs.getObject("clave_temporal_expira", LocalDateTime.class));
+        return contador;
     }
 }

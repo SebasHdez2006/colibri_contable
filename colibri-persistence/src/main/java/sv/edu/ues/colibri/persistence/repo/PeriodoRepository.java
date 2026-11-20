@@ -214,11 +214,47 @@ public class PeriodoRepository {
     }
 
     /**
+     * Obtiene la versión de catálogo más reciente registrada.
+     *
+     * @param conn conexión activa
+     * @return versión vigente del catálogo
+     */
+    public int versionCatalogoVigente(Connection conn) {
+        String sql = "SELECT COALESCE(MAX(version), 1) FROM catalogo_version";
+        try (PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            rs.next();
+            return rs.getInt(1);
+        } catch (SQLException e) {
+            throw new PersistenceException("Error al obtener la versión de catálogo", e);
+        }
+    }
+
+    /**
      * Actualiza el estado y la versión de un período.
      *
      * @param conn conexión activa
      * @param periodo período modificado
      */
+    /**
+     * Activa o desactiva un ejercicio anual. Un ejercicio inactivo deja de
+     * participar en la captura de operaciones.
+     *
+     * @param conn conexión activa
+     * @param ejercicioId identificador del ejercicio
+     * @param activo nuevo estado
+     */
+    public void actualizarActivoEjercicio(Connection conn, UUID ejercicioId, boolean activo) {
+        String sql = "UPDATE ejercicio SET activo = ? WHERE id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setBoolean(1, activo);
+            ps.setObject(2, ejercicioId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new PersistenceException("Error al actualizar el estado del ejercicio", e);
+        }
+    }
+
     public void actualizarEstado(Connection conn, Periodo periodo) {
         String sql = "UPDATE periodo SET estado = ?, version = ? WHERE id = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {

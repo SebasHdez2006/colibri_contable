@@ -22,6 +22,7 @@ public final class Contador {
     private LocalDateTime ultimoAcceso;
     private RolUsuario rol;
     private String email;
+    private LocalDateTime claveTemporalExpira;
 
     /**
      * Crea un usuario con rol predeterminado de contador.
@@ -325,5 +326,32 @@ public final class Contador {
      */
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    /**
+     * Obtiene la fecha de vencimiento de la clave temporal emitida por soporte.
+     *
+     * @return fecha de vencimiento o {@code null} si la clave es propia
+     */
+    public LocalDateTime getClaveTemporalExpira() {
+        return claveTemporalExpira;
+    }
+
+    /**
+     * Actualiza la fecha de vencimiento de la clave temporal.
+     *
+     * @param claveTemporalExpira nueva fecha o {@code null} para clave propia
+     */
+    public void setClaveTemporalExpira(LocalDateTime claveTemporalExpira) {
+        this.claveTemporalExpira = claveTemporalExpira;
+    }
+
+    /**
+     * Indica si la contraseña actual es una clave temporal pendiente de cambio.
+     *
+     * @return {@code true} si existe una clave temporal vigente o por vencer
+     */
+    public boolean tieneClaveTemporalPendiente() {
+        return claveTemporalExpira != null;
     }
 }

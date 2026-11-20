@@ -28,7 +28,7 @@ La empresa vende software de tres maneras:
 |---|---|---|
 | Catálogo y parámetros | Todas las subcuentas de movimiento reciben al menos un apunte; se mantienen cuentas de agrupación sin movimientos por diseño contable. | Catálogo, mayor, balanza, cuentas T y mapeo contable. |
 | Terceros y documentos | Clientes Alfa, Beta y Gamma; proveedores QA y de licencias. Hay CCF, factura, recibo, comprobante, nota de crédito, nota de débito y otro documento. | Registro documental, IVA, anexos simulados, documentos pendientes y anulados. |
-| Proyectos | OS-2026-014 existente, OS-2026-015 en proceso, OS-2026-016 entregada y OS-2026-017 abierta. | Consultas y cálculos de costos a la medida, presupuestos vs. reales, horas, servicios y CIF. El prototipo no implementa el ciclo completo de creación, entrega y liquidación de una orden. |
+| Proyectos | OS-2026-014 existente, OS-2026-015 en proceso, OS-2026-016 entregada y OS-2026-017 abierta. | Consultas y cálculos de costos a la medida, presupuestos vs. reales, horas, servicios y CIF. Las órdenes admiten creación, edición en estados abiertos, ciclo de estados y rentabilidad; el reconocimiento de costo no verifica una entrega previa. |
 | Descargables | Lotes LI-2026-03 a LI-2026-06, con licencias entregadas, reservadas, disponibles y devueltas. | Inventario digital, PEPS, costo de ventas y auxiliar de inventario. |
 | SaaS | Planes de Inventarios, Ventas Plus y Gestión Business; 45, 80 y 30 usuario-mes en noviembre. | Accesos, ventas SaaS, costo por plan y consumo de recursos. |
 | Costos y cierre | Dos procesos de costo, presupuestos CIF de Desarrollo y Plataforma, aplicación y cierre CIF; amortización, estimación de cartera y deterioro. | Paneles de procesos/CIF, cédulas y ajustes de cierre. |
@@ -41,7 +41,7 @@ La partida `AJ-2026-000099` se llama **Cobertura técnica de subcuentas aún sin
 
 1. Inicie sesión como contador y revise **Inicio** con el período de noviembre.
 2. Abra **Documentos** para ver documentos internos con tipos fiscales simulados, recibos y notas pendientes. No son DTE oficiales ni se transmiten a una autoridad fiscal.
-3. En **Costos > A la medida**, compare los datos de OS-2026-015 con OS-2026-016; después consulte **Procesos y CIF**. Las órdenes sirven como datos de consulta y cálculo, no como un flujo operativo integral.
+3. En **Costos > A la medida**, compare los datos de OS-2026-015 con OS-2026-016 y revise el ciclo de estados y la rentabilidad de las órdenes; después consulte **Procesos y CIF**. El reconocimiento de costo no exige una entrega previa.
 4. En **Inventario > Digitales** y **Costos > Licencias descargables**, revise lotes, entregas y devoluciones.
 5. En **Inventario > Servicios / Accesos** y **Costos > Suscripción SaaS**, contraste usuarios-mes con los consumos de cada plan.
 6. En **Registros**, consulte los estados de partida, genere un borrador desde Plantillas y revise las cédulas en Ajustes.

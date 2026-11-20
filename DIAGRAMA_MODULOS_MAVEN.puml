@@ -1,0 +1,87 @@
+@startuml diagrama-modulos-maven
+!theme plain
+title Colibrí — Dependencias entre módulos Maven
+
+skinparam componentStyle rectangle
+skinparam linetype ortho
+
+package "colibri-parent (pom)" <<File>> {
+}
+
+component "colibri-domain" as domain <<Maven Module>> {
+  package "Modelo de dominio" {
+    [Entidades JPA-free]
+    [Value Objects]
+    [Excepciones de dominio]
+    [Utilidades]
+  }
+}
+
+component "colibri-persistence" as persistence <<Maven Module>> {
+  package "Acceso a datos" {
+    [JdbcSupport]
+    [Repositorios JDBC]
+    [DataSourceFactory / HikariCP]
+    [FlywayMigrator]
+  }
+}
+
+component "colibri-reports" as reports <<Maven Module>> {
+  package "Exportación" {
+    [ReportService]
+    [JasperReports → PDF]
+    [Apache POI → Excel]
+  }
+}
+
+component "colibri-application" as application <<Maven Module>> {
+  package "Servicios de aplicación" {
+    [AppContext]
+    [AuthService]
+    [PartidaService]
+    [InventarioCostoService]
+    [CierreService]
+    [Bootstrap / Seeds]
+  }
+}
+
+component "colibri-desktop" as desktop <<Maven Module>> {
+  package "Interfaz JavaFX" {
+    [MainShell / LoginView]
+    [NavRegistry]
+    [Vistas por módulo]
+    [UiTables / UiDialogs]
+  }
+}
+
+database "PostgreSQL" as db
+
+colibri-parent ..> domain : <parent>
+colibri-parent ..> persistence : <parent>
+colibri-parent ..> reports : <parent>
+colibri-parent ..> application : <parent>
+colibri-parent ..> desktop : <parent>
+
+persistence --> domain : usa modelo
+reports --> domain : usa modelo
+application --> domain : usa modelo
+application --> persistence : usa repositorios/JDBC
+application --> reports : genera reportes
+application ..> db : migra y consulta
+desktop --> application : consume servicios
+desktop --> reports : exporta PDF/Excel
+desktop ..> db : indirecto vía application
+
+note right of application
+  Capa de aplicación: única que conoce
+  servicios de dominio + persistencia + reportes.
+  AppContext cablea todas las dependencias.
+end note
+
+note bottom of desktop
+  Desacople: domain no conoce a nadie;
+  persistence y reports sólo conocen domain;
+  application orquesta; desktop es la entrada.
+end note
+
+@enduml

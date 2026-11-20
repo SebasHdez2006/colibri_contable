@@ -95,7 +95,9 @@
     -color-shadow-soft:  rgba(0,0,0,0.30);
     -color-shadow-strong: rgba(0,0,0,0.60);
 
-    /* — Sidebar navy (oscuro en ambos temas) — */
+    /* — Navegación lateral — */
+    -color-nav-bg:            -clb-navy-800;
+    -color-nav-bg-end:        -clb-navy-900;
     -color-nav-text:          rgba(255,255,255,0.80);
     -color-nav-subtle:        rgba(255,255,255,0.56);
     -color-nav-divider:       rgba(255,255,255,0.12);
@@ -167,6 +169,16 @@
 
         -color-scroll-thumb:       rgba(15,23,42,0.18);
         -color-scroll-thumb-hover: rgba(15,23,42,0.30);
+
+        /* La navegación participa del tema claro; no queda como una isla
+           oscura ni obliga a leer texto claro sobre un fondo ajeno al tema. */
+        -color-nav-bg:            #EAF2F8;
+        -color-nav-bg-end:        #F8FAFC;
+        -color-nav-text:          #0F172A;
+        -color-nav-subtle:        #475569;
+        -color-nav-divider:       rgba(15,23,42,0.14);
+        -color-nav-hover:         rgba(0,119,163,0.10);
+        -color-nav-toggle-hover:  rgba(0,119,163,0.14);
     }
 }
 
@@ -229,6 +241,14 @@
 
     -color-scroll-thumb:       rgba(15,23,42,0.18);
     -color-scroll-thumb-hover: rgba(15,23,42,0.30);
+
+    -color-nav-bg:            #EAF2F8;
+    -color-nav-bg-end:        #F8FAFC;
+    -color-nav-text:          #0F172A;
+    -color-nav-subtle:        #475569;
+    -color-nav-divider:       rgba(15,23,42,0.14);
+    -color-nav-hover:         rgba(0,119,163,0.10);
+    -color-nav-toggle-hover:  rgba(0,119,163,0.14);
 }
 
 /* Tema oscuro manual: restablece los valores por defecto de :root
@@ -279,4 +299,12 @@
 
     -color-scroll-thumb:       rgba(143,167,190,0.28);
     -color-scroll-thumb-hover: rgba(143,167,190,0.45);
+
+    -color-nav-bg:            -clb-navy-800;
+    -color-nav-bg-end:        -clb-navy-900;
+    -color-nav-text:          rgba(255,255,255,0.80);
+    -color-nav-subtle:        rgba(255,255,255,0.56);
+    -color-nav-divider:       rgba(255,255,255,0.12);
+    -color-nav-hover:         rgba(255,255,255,0.08);
+    -color-nav-toggle-hover:  rgba(255,255,255,0.10);
 }

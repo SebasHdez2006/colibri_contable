@@ -179,6 +179,9 @@ public final class EstimacionCostosView extends VBox {
         tabla.setPlaceholder(new Label("Sin instrumentos para el filtro."));
         tabla.setMinHeight(280);
         tabla.setPrefHeight(320);
+        // Las descripciones son párrafos: filas más altas y texto envuelto
+        // en varias líneas en lugar de una sola línea interminable.
+        tabla.setFixedCellSize(54);
 
         TableColumn<InstrumentosInstitucionales.Instrumento, String> cNum =
                 new TableColumn<>("N.º");
@@ -230,6 +233,33 @@ public final class EstimacionCostosView extends VBox {
         TableColumn<InstrumentosInstitucionales.Instrumento, String> cDesc =
                 new TableColumn<>("Breve descripción");
         cDesc.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().descripcion()));
+        cDesc.setCellFactory(col -> new javafx.scene.control.TableCell<>() {
+            private final Label texto = new Label();
+            private final javafx.scene.control.Tooltip completo = new javafx.scene.control.Tooltip();
+
+            {
+                texto.setWrapText(true);
+                texto.getStyleClass().add("desc-celda");
+                texto.prefWidthProperty().bind(col.widthProperty().subtract(18));
+                texto.minWidthProperty().bind(col.widthProperty().subtract(18));
+            }
+
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setGraphic(null);
+                    setText(null);
+                    setTooltip(null);
+                    return;
+                }
+                texto.setText(item);
+                completo.setText(item);
+                setGraphic(texto);
+                setText(null);
+                setTooltip(completo);
+            }
+        });
         cDesc.setMinWidth(320);
         cDesc.setSortable(false);
 

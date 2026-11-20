@@ -4,6 +4,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
@@ -37,14 +38,21 @@ import java.util.UUID;
 public class InventarioCostosView extends VBox {
 
     public enum Panel {
-        DIGITALES, SERVICIOS, MEDIDA, LICENCIAS, SAAS, KARDEX
+        DIGITALES, SERVICIOS, MEDIDA, LICENCIAS, SAAS, KARDEX, PRODUCTOS
     }
 
     private final AppContext context;
+    private final sv.edu.ues.colibri.desktop.ui.nav.Navegador navegador;
     private final Label ordenLbl = new Label();
     private final ListView<String> lotes = new ListView<>();
     private final ComboBox<Tercero> cliente = new ComboBox<>();
     private final ComboBox<InventarioCostoService.LicenciaEntregadaInfo> licenciaGestion = new ComboBox<>();
+    private final ComboBox<InventarioCostoService.LoteInfo> loteDeterioro = new ComboBox<>();
+    private final ComboBox<InventarioCostoService.VersionProductoInfo> versionLote = new ComboBox<>();
+    private final TableView<InventarioCostoService.OrdenRentabilidad> tablaOrdenes = new TableView<>();
+    private TableView<InventarioCostoService.ProductoInfo> tablaProductos;
+    private TableView<InventarioCostoService.VersionProductoInfo> tablaVersiones;
+    private ComboBox<InventarioCostoService.ProductoInfo> productoVersion;
 
     /**
      * Crea la vista de costeo para el panel funcional indicado.
@@ -53,7 +61,20 @@ public class InventarioCostosView extends VBox {
      * @param panel sección funcional a presentar
      */
     public InventarioCostosView(AppContext context, Panel panel) {
+        this(context, panel, null);
+    }
+
+    /**
+     * Crea la vista de costeo para el panel funcional indicado.
+     *
+     * @param context contexto de aplicación con acceso a inventario y parametrización
+     * @param panel sección funcional a presentar
+     * @param navegador acción para saltar a otra sección del sistema (puede ser {@code null})
+     */
+    public InventarioCostosView(AppContext context, Panel panel,
+            sv.edu.ues.colibri.desktop.ui.nav.Navegador navegador) {
         this.context = context;
+        this.navegador = navegador;
         DatePicker fecha = new DatePicker(fechaPeriodoAbierto());
         configurarSelectores();
 
@@ -71,6 +92,7 @@ public class InventarioCostosView extends VBox {
             case LICENCIAS -> getChildren().addAll(panelLicencias());
             case SAAS -> getChildren().addAll(panelSaas(fecha));
             case KARDEX -> getChildren().addAll(panelKardex());
+            case PRODUCTOS -> getChildren().addAll(panelProductos());
         }
         refrescar();
     }
@@ -91,6 +113,10 @@ public class InventarioCostosView extends VBox {
         clienteLote.setConverter(converterTercero());
         clienteLote.setPromptText("Cliente titular (opcional)");
         UiCatalogos.ayuda(clienteLote, "Cliente al que quedarán asignadas las licencias liberadas; puede quedar vacío.");
+        versionLote.setConverter(converterVersion());
+        versionLote.setPromptText("Producto / versión");
+        UiCatalogos.ayuda(versionLote, "Versión de producto LIBERADA contra la que se crea el lote; "
+                + "se administra en Inventario → Productos.");
         try {
             clienteLote.setItems(FXCollections.observableArrayList(
                     context.operaciones().listarTerceros().stream().filter(Tercero::isCliente).toList()));
@@ -128,7 +154,8 @@ public class InventarioCostosView extends VBox {
                     .setScale(2, RoundingMode.HALF_UP);
             var info = context.inventario().liberarLote(codigoLote.getText().trim(),
                     cant, total, fecha.getValue(),
-                    clienteLote.getValue() == null ? null : clienteLote.getValue().getId());
+                    clienteLote.getValue() == null ? null : clienteLote.getValue().getId(),
+                    versionLote.getValue() == null ? null : versionLote.getValue().id());
             UiDialogs.info("Lote liberado", "%s: costo unitario $%s · %d licencias disponibles".formatted(
                     info.codigo(), info.costoUnitario(), info.disponibles()));
             codigoLote.clear();
@@ -141,6 +168,7 @@ public class InventarioCostosView extends VBox {
         VBox liberacion = tarjeta("Liberación de licencias",
                 ResponsiveLayouts.row(ResponsiveLayouts.field("Fecha", fecha),
                         ResponsiveLayouts.field("Código del lote", codigoLote),
+                        ResponsiveLayouts.field("Producto / versión", versionLote),
                         ResponsiveLayouts.field("Cliente titular", clienteLote),
                         ResponsiveLayouts.field("Unidades", unidades),
                         ResponsiveLayouts.field("Costo unitario (USD)", costoUnitario), liberar),
@@ -216,19 +244,130 @@ public class InventarioCostosView extends VBox {
                 ResponsiveLayouts.row(ResponsiveLayouts.field("Licencia entregada", licenciaGestion),
                         ResponsiveLayouts.field("Motivo", motivoGestion), devolver, revocar));
 
+        loteDeterioro.setConverter(new StringConverter<>() {
+            @Override public String toString(InventarioCostoService.LoteInfo value) {
+                return value == null ? "" : etiquetaLote(value);
+            }
+            @Override public InventarioCostoService.LoteInfo fromString(String ignored) { return null; }
+        });
+        loteDeterioro.setPromptText("Lote a evaluar");
+        UiCatalogos.ayuda(loteDeterioro, "Lote de licencias disponible cuyo valor en libros se comparará "
+                + "con el valor recuperable de mercado.");
+        // El DatePicker de la liberación no puede reutilizarse aquí: un nodo
+        // JavaFX sólo admite un padre, así que el deterioro lleva el suyo.
+        DatePicker fechaDeterioro = new DatePicker(fechaPeriodoAbierto());
+        TextField valorRecuperable = new TextField();
+        valorRecuperable.setPromptText("Valor recuperable total (USD)");
+        UiCatalogos.ayuda(valorRecuperable, "Valor de mercado estimado del lote completo; debe ser menor "
+                + "o igual al costo bruto. Si sube después, el sistema revierte el deterioro.");
+        Button aplicarDeterioro = new Button("Aplicar deterioro");
+        aplicarDeterioro.setOnAction(e -> ejecutar(() -> {
+            var lote = loteDeterioro.getValue();
+            if (lote == null) {
+                throw new IllegalArgumentException("Seleccione el lote a evaluar.");
+            }
+            if (fechaDeterioro.getValue() == null) {
+                throw new IllegalArgumentException("Seleccione la fecha del ajuste.");
+            }
+            BigDecimal recuperable;
+            try {
+                recuperable = new BigDecimal(valorRecuperable.getText().trim());
+            } catch (NumberFormatException ex) {
+                throw new IllegalArgumentException("Ingrese el valor recuperable en USD.");
+            }
+            if (recuperable.signum() < 0) {
+                throw new IllegalArgumentException("El valor recuperable no puede ser negativo.");
+            }
+            var partida = context.cierre().deteriorarLoteAValorRecuperable(
+                    lote.codigo(), recuperable, fechaDeterioro.getValue());
+            UiDialogs.info("Deterioro aplicado",
+                    "Se generó la partida " + partida.getFolio() + " con folio de ajuste por valor "
+                            + "recuperable $" + recuperable.toPlainString()
+                            + ". Revísela en el Libro diario: nace en borrador y debe aprobarse y "
+                            + "contabilizarse para afectar el mayor.");
+            valorRecuperable.clear();
+            refrescar();
+        }));
+        VBox deterioro = tarjeta("Deterioro de inventario (valor recuperable)",
+                new Label("Genera una partida en borrador por la baja del lote; si el valor "
+                        + "recuperable sube en un período posterior, el ajuste se revierte solo."),
+                ResponsiveLayouts.row(ResponsiveLayouts.field("Lote", loteDeterioro),
+                        ResponsiveLayouts.field("Valor recuperable (USD)", valorRecuperable),
+                        ResponsiveLayouts.field("Fecha", fechaDeterioro), aplicarDeterioro));
+
         lotes.setPlaceholder(new Label("Aún no se han liberado lotes de licencias."));
         lotes.setMaxHeight(Double.MAX_VALUE);
         VBox existencias = tarjeta("Inventario perpetuo PEPS (primero en entrar, primero en salir)",
-                lotes);
-        return new javafx.scene.Node[]{liberacion, venta, gestion, existencias};
+                resumenCuentasPeps(), lotes);
+        return new javafx.scene.Node[]{liberacion, venta, gestion, deterioro, existencias};
+    }
+
+    /**
+     * Resume las cuentas que intervienen en la venta PEPS de licencias según
+     * el mapeo de módulos (VENTA y COSTO_VENTA) y el IVA débito fiscal, con
+     * acceso directo al kárdex del lote.
+     */
+    private javafx.scene.Node resumenCuentasPeps() {
+        VBox resumen = new VBox(6);
+        resumen.getStyleClass().add("peps-accounts");
+        try {
+            var venta = context.parametrizacion().exigirPerfilPosting("VENTA");
+            var costo = context.parametrizacion().exigirPerfilPosting("COSTO_VENTA");
+            String ivaDebito = context.parametrizacion().parametrosFiscales().cuentaDebito();
+            agregarLineaCuenta(resumen, "Por cobrar (VENTA · debe)", venta.cuentaDebe());
+            agregarLineaCuenta(resumen, "Ingreso por licencia (VENTA · haber)", venta.cuentaHaber());
+            agregarLineaCuenta(resumen, "Costo de ventas (COSTO_VENTA · debe)", costo.cuentaDebe());
+            agregarLineaCuenta(resumen, "Inventario PEPS (COSTO_VENTA · haber)", costo.cuentaHaber());
+            if (ivaDebito != null && !ivaDebito.isBlank()) {
+                agregarLineaCuenta(resumen, "IVA débito fiscal", ivaDebito);
+            }
+        } catch (Exception ex) {
+            Label aviso = new Label("Configure el mapeo VENTA y COSTO_VENTA en "
+                    + "Parametrización → Mapeo de módulos para ver las cuentas del método.");
+            aviso.setWrapText(true);
+            aviso.getStyleClass().add("section-note");
+            resumen.getChildren().add(aviso);
+        }
+        if (navegador != null) {
+            Button verKardex = new Button("Ver kárdex de licencias");
+            verKardex.setOnAction(e -> navegador.ir("nav-inventario-kardex"));
+            resumen.getChildren().add(ResponsiveLayouts.row(verKardex));
+        }
+        return resumen;
+    }
+
+    private void agregarLineaCuenta(VBox resumen, String etiqueta, String codigo) {
+        Label linea = new Label(etiqueta + ":  " + nombreCuenta(codigo));
+        linea.setWrapText(true);
+        linea.getStyleClass().add("muted-caption");
+        resumen.getChildren().add(linea);
+    }
+
+    private Map<String, String> cacheNombresCuentas;
+
+    private String nombreCuenta(String codigo) {
+        if (codigo == null || codigo.isBlank()) {
+            return "—";
+        }
+        if (cacheNombresCuentas == null) {
+            cacheNombresCuentas = new java.util.HashMap<>();
+            try {
+                context.catalogo().listar().forEach(cuenta ->
+                        cacheNombresCuentas.put(cuenta.getCodigo(), cuenta.getCodigo()
+                                + " · " + cuenta.getNombre()));
+            } catch (Exception ex) {
+                // Sin catálogo las celdas muestran sólo el código.
+            }
+        }
+        return cacheNombresCuentas.getOrDefault(codigo, codigo);
     }
 
     private javafx.scene.Node[] panelKardex() {
         ComboBox<InventarioCostoService.LoteInfo> loteKardex = new ComboBox<>();
         loteKardex.setConverter(new StringConverter<>() {
             @Override public String toString(InventarioCostoService.LoteInfo value) {
-                return value == null ? ""
-                        : value.codigo() + " · " + value.disponibles() + " disponibles";
+                return value == null ? "" : etiquetaLote(value) + " · " + value.disponibles()
+                        + " disponibles";
             }
             @Override public InventarioCostoService.LoteInfo fromString(String ignored) { return null; }
         });
@@ -275,14 +414,52 @@ public class InventarioCostosView extends VBox {
         tabla.setPlaceholder(new Label("Seleccione un lote para ver su kárdex."));
         tabla.setMinHeight(260);
         tabla.setPrefHeight(420);
+        DatePicker kardexDesde = new DatePicker();
+        kardexDesde.setPromptText("Desde");
+        DatePicker kardexHasta = new DatePicker();
+        kardexHasta.setPromptText("Hasta");
+        ComboBox<String> tipoKardex = new ComboBox<>(FXCollections.observableArrayList(
+                "Todos", "LIBERACION", "ENTREGA", "DEVOLUCION", "REVOCACION"));
+        tipoKardex.setConverter(converterEtiquetas(Map.of(
+                "LIBERACION", "Liberación", "ENTREGA", "Salida PEPS",
+                "DEVOLUCION", "Devolución", "REVOCACION", "Revocación")));
+        tipoKardex.setValue("Todos");
+        UiCatalogos.ayuda(tipoKardex, "Filtra el kárdex por tipo de movimiento.");
+        Label totalesKardex = new Label("—");
+        totalesKardex.getStyleClass().add("section-note");
+        totalesKardex.setWrapText(true);
         Runnable cargar = () -> {
             var lote = loteKardex.getValue();
-            UiTables.reemplazarFilas(tabla, lote == null ? java.util.List.of()
-                    : context.inventario().kardexDeLote(lote.id()));
+            if (lote == null) {
+                UiTables.reemplazarFilas(tabla, java.util.List.of());
+                totalesKardex.setText("—");
+                return;
+            }
+            try {
+                var movimientos = context.inventario().kardexDeLote(lote.id()).stream()
+                        .filter(m -> kardexDesde.getValue() == null || m.fecha() == null
+                                || !m.fecha().isBefore(kardexDesde.getValue()))
+                        .filter(m -> kardexHasta.getValue() == null || m.fecha() == null
+                                || !m.fecha().isAfter(kardexHasta.getValue()))
+                        .filter(m -> "Todos".equals(tipoKardex.getValue())
+                                || tipoKardex.getValue().equals(m.tipo()))
+                        .toList();
+                UiTables.reemplazarFilas(tabla, movimientos);
+                int entradas = movimientos.stream().mapToInt(m -> Math.max(m.unidades(), 0)).sum();
+                int salidas = movimientos.stream().mapToInt(m -> Math.max(-m.unidades(), 0)).sum();
+                BigDecimal importe = movimientos.stream().map(InventarioCostoService.KardexInfo::importe)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+                totalesKardex.setText("%d movimientos · Entradas %d und · Salidas %d und · Importe neto %s"
+                        .formatted(movimientos.size(), entradas, salidas, dinero(importe)));
+            } catch (Exception ex) {
+                UiTables.reemplazarFilas(tabla, java.util.List.of());
+                totalesKardex.setText("No se pudo leer el kárdex: " + ex.getMessage());
+            }
         };
         loteKardex.getSelectionModel().selectedItemProperty().addListener((o, a, b) -> cargar.run());
-        Button actualizar = new Button("Actualizar");
-        actualizar.setOnAction(e -> cargar.run());
+        kardexDesde.valueProperty().addListener((o, a, b) -> cargar.run());
+        kardexHasta.valueProperty().addListener((o, a, b) -> cargar.run());
+        tipoKardex.valueProperty().addListener((o, a, b) -> cargar.run());
         try {
             var disponibles = context.inventario().listarLotes();
             loteKardex.setItems(FXCollections.observableArrayList(disponibles));
@@ -293,14 +470,201 @@ public class InventarioCostosView extends VBox {
             loteKardex.getItems().clear();
         }
         VBox card = tarjeta("Kárdex de licencias",
-                new Label("Movimientos cronológicos por lote con saldo de unidades y valor bajo PEPS. "
-                        + "La salida descuenta existencias; la devolución las repone y la revocación "
-                        + "no mueve unidades porque la licencia ya había salido con su venta."),
-                ResponsiveLayouts.row(ResponsiveLayouts.field("Lote", loteKardex), actualizar),
+                new Label("Entrada, salida PEPS, devolución o revocación por lote con saldo "
+                        + "de unidades y valor. Elija el lote y, si quiere, acote por fechas o tipo."),
+                ResponsiveLayouts.row(ResponsiveLayouts.field("Lote", loteKardex),
+                        ResponsiveLayouts.field("Desde", kardexDesde),
+                        ResponsiveLayouts.field("Hasta", kardexHasta),
+                        ResponsiveLayouts.field("Tipo", tipoKardex)),
+                totalesKardex,
                 UiTables.conBusqueda(tabla, "movimientos del kárdex", movimiento -> movimiento.fecha()
                         + " " + etiquetaMovimiento(movimiento.tipo()) + " " + movimiento.licenciaNumero()
                         + " " + movimiento.detalle() + " " + movimiento.folio()));
         return new javafx.scene.Node[]{card};
+    }
+
+    private javafx.scene.Node[] panelProductos() {
+        tablaProductos = new TableView<>();
+        TableColumn<InventarioCostoService.ProductoInfo, String> prCod = new TableColumn<>("Código");
+        prCod.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().codigo()));
+        TableColumn<InventarioCostoService.ProductoInfo, String> prNom = new TableColumn<>("Producto");
+        prNom.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().nombre()));
+        TableColumn<InventarioCostoService.ProductoInfo, String> prMod = new TableColumn<>("Modalidad");
+        prMod.setCellValueFactory(c -> new SimpleStringProperty(etiquetaModalidad(c.getValue().modalidad())));
+        TableColumn<InventarioCostoService.ProductoInfo, String> prEst = new TableColumn<>("Estado");
+        prEst.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().activo() ? "Activo" : "Inactivo"));
+        tablaProductos.getColumns().addAll(prCod, prNom, prMod, prEst);
+        tablaProductos.setPlaceholder(new Label("Aún no hay productos. Cree el primero con el formulario."));
+        tablaProductos.setMinHeight(120);
+        tablaProductos.setPrefHeight(200);
+        tablaProductos.setMaxHeight(260);
+        tablaProductos.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        tablaProductos.getStyleClass().add("inventory-plan-table");
+        TextField prodCod = new TextField();
+        prodCod.setPromptText("Ej. COL-FACT");
+        UiCatalogos.ayuda(prodCod, "Código único del producto; agrupa las versiones y los lotes liberados.");
+        TextField prodNom = new TextField();
+        prodNom.setPromptText("Ej. Colibrí Facturación");
+        UiCatalogos.ayuda(prodNom, "Nombre comercial del producto.");
+        ComboBox<String> prodMod = new ComboBox<>(FXCollections.observableArrayList(
+                "LICENCIA", "SAAS", "PROYECTO"));
+        prodMod.setConverter(converterEtiquetas(Map.of(
+                "LICENCIA", "Licencia", "SAAS", "Suscripción SaaS",
+                "PROYECTO", "Proyecto a la medida")));
+        prodMod.setValue("LICENCIA");
+        UiCatalogos.ayuda(prodMod, "Tipo de producto digital; define cómo se costea y vende.");
+        CheckBox prodActivo = new CheckBox("Producto activo");
+        prodActivo.setSelected(true);
+        tablaProductos.getSelectionModel().selectedItemProperty().addListener((o, a, sel) -> {
+            if (sel == null) {
+                return;
+            }
+            prodCod.setText(sel.codigo());
+            prodNom.setText(sel.nombre());
+            prodMod.setValue(sel.modalidad());
+            prodActivo.setSelected(sel.activo());
+        });
+        Button guardarProducto = new Button("Guardar producto");
+        guardarProducto.setOnAction(e -> ejecutar(() -> {
+            context.inventario().guardarProducto(prodCod.getText().trim(), prodNom.getText().trim(),
+                    prodMod.getValue(), prodActivo.isSelected());
+            UiDialogs.info("Producto guardado",
+                    "El producto quedó registrado en el catálogo de inventario digital.");
+            refrescar();
+        }));
+        Button nuevoProducto = new Button("Nuevo");
+        nuevoProducto.setOnAction(e -> {
+            prodCod.clear();
+            prodNom.clear();
+            prodMod.setValue("LICENCIA");
+            prodActivo.setSelected(true);
+        });
+        VBox catalogoProductos = tarjeta("Productos del catálogo digital",
+                new Label("Productos que agrupan las versiones liberables. Un producto inactivo "
+                        + "conserva su historial pero no admite versiones nuevas."),
+                UiTables.conBusqueda(tablaProductos, "productos del catálogo",
+                        p -> p.codigo() + " " + p.nombre() + " " + p.modalidad()
+                                + (p.activo() ? "" : " inactivo")),
+                ResponsiveLayouts.row(ResponsiveLayouts.field("Código", prodCod),
+                        ResponsiveLayouts.field("Nombre", prodNom),
+                        ResponsiveLayouts.field("Modalidad", prodMod), prodActivo,
+                        guardarProducto, nuevoProducto));
+
+        tablaVersiones = new TableView<>();
+        TableColumn<InventarioCostoService.VersionProductoInfo, String> vProd = new TableColumn<>("Producto");
+        vProd.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().productoNombre()
+                + " (" + c.getValue().productoCodigo() + ")"));
+        TableColumn<InventarioCostoService.VersionProductoInfo, String> vEtiq = new TableColumn<>("Versión");
+        vEtiq.setCellValueFactory(c -> new SimpleStringProperty("v" + c.getValue().versionLabel()));
+        TableColumn<InventarioCostoService.VersionProductoInfo, String> vEst = new TableColumn<>("Estado");
+        vEst.setCellValueFactory(c -> new SimpleStringProperty(etiquetaEstadoVersion(c.getValue().estado())));
+        tablaVersiones.getColumns().addAll(vProd, vEtiq, vEst);
+        tablaVersiones.setPlaceholder(new Label("Aún no hay versiones. Cree la primera con el formulario."));
+        tablaVersiones.setMinHeight(120);
+        tablaVersiones.setPrefHeight(200);
+        tablaVersiones.setMaxHeight(260);
+        tablaVersiones.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        tablaVersiones.getStyleClass().add("inventory-plan-table");
+        productoVersion = new ComboBox<>();
+        productoVersion.setConverter(converterProducto());
+        productoVersion.setPromptText("Producto");
+        UiCatalogos.ayuda(productoVersion, "Producto al que pertenecerá la nueva versión.");
+        TextField versionEtiqueta = new TextField();
+        versionEtiqueta.setPromptText("Ej. 2.0");
+        UiCatalogos.ayuda(versionEtiqueta, "Etiqueta de la versión; debe ser única dentro del producto.");
+        Button crearVersion = new Button("Crear versión");
+        crearVersion.setOnAction(e -> ejecutar(() -> {
+            if (productoVersion.getValue() == null) {
+                throw new IllegalArgumentException("Seleccione el producto de la versión.");
+            }
+            context.inventario().guardarVersion(productoVersion.getValue().id(),
+                    versionEtiqueta.getText().trim());
+            UiDialogs.info("Versión creada",
+                    "La versión nace EN_PRODUCCION; libérela para poder crear lotes con ella.");
+            versionEtiqueta.clear();
+            refrescar();
+        }));
+        ComboBox<String> estadoVersion = new ComboBox<>();
+        estadoVersion.setPromptText("Estado destino");
+        Button cambiarEstadoVersion = new Button("Cambiar estado");
+        cambiarEstadoVersion.setOnAction(e -> ejecutar(() -> {
+            var sel = tablaVersiones.getSelectionModel().getSelectedItem();
+            if (sel == null) {
+                throw new IllegalArgumentException("Seleccione una versión de la tabla.");
+            }
+            if (estadoVersion.getValue() == null) {
+                throw new IllegalArgumentException("Seleccione el estado destino.");
+            }
+            context.inventario().cambiarEstadoVersion(sel.id(), estadoVersion.getValue());
+            UiDialogs.info("Estado actualizado",
+                    "La versión quedó en " + etiquetaEstadoVersion(estadoVersion.getValue()) + ".");
+            refrescar();
+        }));
+        tablaVersiones.getSelectionModel().selectedItemProperty().addListener((o, a, b) -> {
+            if (b == null) {
+                return;
+            }
+            estadoVersion.setItems(FXCollections.observableArrayList(opcionesEstadoVersion(b.estado())));
+            estadoVersion.setValue(null);
+        });
+        VBox catalogoVersiones = tarjeta("Versiones de producto",
+                new Label("Cada versión recorre EN_PRODUCCION → LIBERADA → DESCONTINUADA. "
+                        + "Sólo las LIBERADA admiten la liberación de nuevos lotes."),
+                UiTables.conBusqueda(tablaVersiones, "versiones de producto",
+                        v -> v.productoCodigo() + " " + v.productoNombre() + " v" + v.versionLabel()
+                                + " " + v.estado()),
+                ResponsiveLayouts.row(ResponsiveLayouts.field("Producto", productoVersion),
+                        ResponsiveLayouts.field("Versión", versionEtiqueta), crearVersion),
+                ResponsiveLayouts.row(ResponsiveLayouts.field("Estado destino", estadoVersion),
+                        cambiarEstadoVersion));
+        return new javafx.scene.Node[]{catalogoProductos, catalogoVersiones};
+    }
+
+    private static StringConverter<InventarioCostoService.VersionProductoInfo> converterVersion() {
+        return new StringConverter<>() {
+            @Override public String toString(InventarioCostoService.VersionProductoInfo value) {
+                return value == null ? ""
+                        : value.productoNombre() + " · v" + value.versionLabel();
+            }
+            @Override public InventarioCostoService.VersionProductoInfo fromString(String ignored) {
+                return null;
+            }
+        };
+    }
+
+    private static StringConverter<InventarioCostoService.ProductoInfo> converterProducto() {
+        return new StringConverter<>() {
+            @Override public String toString(InventarioCostoService.ProductoInfo value) {
+                return value == null ? "" : value.codigo() + " · " + value.nombre();
+            }
+            @Override public InventarioCostoService.ProductoInfo fromString(String ignored) {
+                return null;
+            }
+        };
+    }
+
+    private static String etiquetaLote(InventarioCostoService.LoteInfo lote) {
+        String version = lote.versionLabel() == null ? ""
+                : " · " + lote.productoCodigo() + " v" + lote.versionLabel();
+        return lote.codigo() + version + " · " + lote.disponibles() + " disp. · $"
+                + lote.costoUnitario().toPlainString() + " c/u";
+    }
+
+    private static String etiquetaEstadoVersion(String estado) {
+        return switch (estado == null ? "" : estado) {
+            case "EN_PRODUCCION" -> "En producción";
+            case "LIBERADA" -> "Liberada";
+            case "DESCONTINUADA" -> "Descontinuada";
+            default -> estado;
+        };
+    }
+
+    private static java.util.List<String> opcionesEstadoVersion(String estado) {
+        return switch (estado == null ? "" : estado) {
+            case "EN_PRODUCCION" -> java.util.List.of("LIBERADA", "DESCONTINUADA");
+            case "LIBERADA" -> java.util.List.of("DESCONTINUADA");
+            default -> java.util.List.of();
+        };
     }
 
     private static String etiquetaMovimiento(String tipo) {
@@ -323,7 +687,11 @@ public class InventarioCostosView extends VBox {
         cMod.setCellValueFactory(c -> new SimpleStringProperty(etiquetaModalidad(c.getValue().modalidad())));
         TableColumn<ParametrizacionService.PlanServicio, String> cTar = new TableColumn<>("Tarifa");
         cTar.setCellValueFactory(c -> new SimpleStringProperty("$" + c.getValue().tarifa().toPlainString()));
-        tablaPlanes.getColumns().addAll(cCod, cNom, cMod, cTar);
+        TableColumn<ParametrizacionService.PlanServicio, String> cCta = new TableColumn<>("Cuenta ingreso");
+        cCta.setCellValueFactory(c -> new SimpleStringProperty(nombreCuenta(c.getValue().cuentaIngreso())));
+        TableColumn<ParametrizacionService.PlanServicio, String> cEst = new TableColumn<>("Estado");
+        cEst.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().activo() ? "Activo" : "Inactivo"));
+        tablaPlanes.getColumns().addAll(cCod, cNom, cMod, cTar, cCta, cEst);
         tablaPlanes.setItems(FXCollections.observableArrayList(context.parametrizacion().listarPlanes()));
         // TableView puede contraerse a la altura exclusiva del encabezado al
         // estar dentro de una VBox. Reservamos filas reales para que el
@@ -355,27 +723,65 @@ public class InventarioCostosView extends VBox {
         pFacturacion.setValue("USUARIO_MES");
         UiCatalogos.ayuda(pFacturacion, "Periodicidad con que se factura el plan.");
         ComboBox<Cuenta> pCta = UiCatalogos.campoCuenta(context, "410402",
-                "Cuenta de ingreso donde se acreditan las ventas del plan.");
+                "Cuenta de ingreso donde se acreditan las ventas del plan; sólo se ofrecen cuentas de ingreso activas.",
+                cuenta -> "INGRESOS".equalsIgnoreCase(cuenta.getRubro())
+                        && cuenta.isAdmiteMovimiento()
+                        && cuenta.getEstado() == sv.edu.ues.colibri.domain.model.EstadoCuenta.ACTIVA);
         ComboBox<ParametrizacionService.PlanServicio> planCosto = new ComboBox<>();
         configurarPlanSelector(planCosto, "SERVICIO");
+        CheckBox planActivo = new CheckBox("Plan activo");
+        planActivo.setSelected(true);
+        tablaPlanes.getSelectionModel().selectedItemProperty().addListener((o, a, sel) -> {
+            if (sel == null) {
+                return;
+            }
+            pCod.setText(sel.codigo());
+            pNom.setText(sel.nombre());
+            pMod.setValue(sel.modalidad());
+            pFacturacion.setValue(sel.tipoFacturacion());
+            pTar.setText(sel.tarifa().toPlainString());
+            UiCatalogos.seleccionarCuenta(pCta, sel.cuentaIngreso());
+            planActivo.setSelected(sel.activo());
+        });
         Button guardarPlan = new Button("Guardar plan");
         guardarPlan.setOnAction(e -> ejecutar(() -> {
             context.parametrizacion().guardarPlan(new ParametrizacionService.PlanServicio(
                     UUID.randomUUID(), pCod.getText(), pNom.getText(), pMod.getValue(),
-                    new BigDecimal(pTar.getText()), pFacturacion.getValue(), UiCatalogos.codigoCuenta(pCta), true));
+                    new BigDecimal(pTar.getText()), pFacturacion.getValue(), UiCatalogos.codigoCuenta(pCta),
+                    planActivo.isSelected()));
             UiTables.reemplazarFilas(tablaPlanes, context.parametrizacion().listarPlanes());
             recargarPlanes(planCosto, "SERVICIO");
         }));
-        VBox catalogo = tarjeta("Catálogo de planes SaaS y servicios de desarrollo/mantenimiento",
+        Button nuevoPlan = new Button("Nuevo plan");
+        nuevoPlan.setOnAction(e -> {
+            pCod.clear();
+            pNom.clear();
+            pTar.setText("50");
+            pMod.setValue("SAAS");
+            pFacturacion.setValue("USUARIO_MES");
+            UiCatalogos.seleccionarCuenta(pCta, "410402");
+            planActivo.setSelected(true);
+        });
+        Button irCatalogoCuentas = new Button("Ir al catálogo de cuentas");
+        irCatalogoCuentas.setOnAction(e -> {
+            if (navegador != null) {
+                navegador.ir("nav-parametrizacion-catalogo-de-cuentas");
+            }
+        });
+        UiCatalogos.ayuda(irCatalogoCuentas, "Si la cuenta de ingreso del plan no existe, créela en el catálogo.");
+        VBox catalogo = tarjeta("Catálogo de planes SaaS y servicios",
                 UiTables.conBusqueda(tablaPlanes, "planes y servicios", planFila -> planFila.codigo()
                         + " " + planFila.nombre() + " " + planFila.modalidad() + " "
-                        + planFila.tarifa() + " " + planFila.tipoFacturacion()),
+                        + planFila.tarifa() + " " + planFila.tipoFacturacion()
+                        + " " + nombreCuenta(planFila.cuentaIngreso())
+                        + (planFila.activo() ? "" : " inactivo")),
                 ResponsiveLayouts.row(ResponsiveLayouts.field("Código", pCod),
                         ResponsiveLayouts.field("Nombre", pNom),
                         ResponsiveLayouts.field("Modalidad", pMod),
                         ResponsiveLayouts.field("Facturación", pFacturacion),
                         ResponsiveLayouts.field("Tarifa", pTar),
-                        ResponsiveLayouts.field("Cuenta ingreso", pCta), guardarPlan));
+                        ResponsiveLayouts.field("Cuenta ingreso", pCta), planActivo,
+                        guardarPlan, nuevoPlan, irCatalogoCuentas));
         TextField costoDescripcion = new TextField();
         costoDescripcion.setPromptText("Ej. Horas de implementación");
         TextField costoCantidad = new TextField("1");
@@ -447,6 +853,141 @@ public class InventarioCostosView extends VBox {
                     new BigDecimal(horas.getText()), new BigDecimal(tarifa.getText()), fecha.getValue());
             refrescar();
         }));
+        // --- Ciclo de vida de órdenes de servicio ---
+        if (tablaOrdenes.getColumns().isEmpty()) {
+            TableColumn<InventarioCostoService.OrdenRentabilidad, String> ocCod = new TableColumn<>("Código");
+            ocCod.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().codigo()));
+            TableColumn<InventarioCostoService.OrdenRentabilidad, String> ocDesc = new TableColumn<>("Descripción");
+            ocDesc.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().descripcion()));
+            TableColumn<InventarioCostoService.OrdenRentabilidad, String> ocEstado = new TableColumn<>("Estado");
+            ocEstado.setCellValueFactory(c -> new SimpleStringProperty(etiquetaEstadoOrden(c.getValue().estado())));
+            TableColumn<InventarioCostoService.OrdenRentabilidad, String> ocPres = new TableColumn<>("Presupuesto");
+            ocPres.setCellValueFactory(c -> new SimpleStringProperty(dinero(c.getValue().presupuesto())));
+            TableColumn<InventarioCostoService.OrdenRentabilidad, String> ocVenta = new TableColumn<>("Precio venta");
+            ocVenta.setCellValueFactory(c -> new SimpleStringProperty(dinero(c.getValue().precioVenta())));
+            TableColumn<InventarioCostoService.OrdenRentabilidad, String> ocCosto = new TableColumn<>("Costo");
+            ocCosto.setCellValueFactory(c -> new SimpleStringProperty(dinero(c.getValue().costoAcumulado())));
+            TableColumn<InventarioCostoService.OrdenRentabilidad, String> ocMargen = new TableColumn<>("Margen");
+            ocMargen.setCellValueFactory(c -> new SimpleStringProperty(dinero(c.getValue().margen())));
+            TableColumn<InventarioCostoService.OrdenRentabilidad, String> ocPct = new TableColumn<>("Margen %");
+            ocPct.setCellValueFactory(c -> {
+                var o = c.getValue();
+                BigDecimal pct = o.precioVenta().signum() == 0 ? BigDecimal.ZERO
+                        : o.margen().divide(o.precioVenta(), 4, RoundingMode.HALF_UP)
+                                .multiply(BigDecimal.valueOf(100));
+                return new SimpleStringProperty(
+                        pct.setScale(1, RoundingMode.HALF_UP).toPlainString() + " %");
+            });
+            tablaOrdenes.getColumns().addAll(ocCod, ocDesc, ocEstado, ocPres, ocVenta, ocCosto, ocMargen, ocPct);
+            tablaOrdenes.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+            tablaOrdenes.setPlaceholder(new Label("No hay órdenes de servicio registradas."));
+            tablaOrdenes.setMinHeight(160);
+            tablaOrdenes.setPrefHeight(280);
+        }
+        TextField ordCod = new TextField();
+        ordCod.setPromptText("OS-2027-001");
+        UiCatalogos.ayuda(ordCod, "Código único de la orden; después se usa para acumular y reconocer costos.");
+        TextField ordDesc = new TextField();
+        ordDesc.setPromptText("Descripción del trabajo");
+        TextField ordPres = new TextField("0.00");
+        ordPres.setPromptText("Presupuesto");
+        TextField ordVenta = new TextField("0.00");
+        ordVenta.setPromptText("Precio de venta");
+        ComboBox<Tercero> clienteOrd = new ComboBox<>();
+        clienteOrd.setConverter(converterTercero());
+        clienteOrd.setPromptText("Cliente (opcional)");
+        try {
+            clienteOrd.setItems(FXCollections.observableArrayList(
+                    context.operaciones().listarTerceros().stream().filter(Tercero::isCliente).toList()));
+        } catch (Exception ignored) {
+            clienteOrd.getItems().clear();
+        }
+        Button crearOrd = new Button("Crear orden");
+        crearOrd.setOnAction(e -> ejecutar(() -> {
+            BigDecimal pres = ordPres.getText().isBlank() ? BigDecimal.ZERO
+                    : new BigDecimal(ordPres.getText().trim());
+            BigDecimal venta = ordVenta.getText().isBlank() ? BigDecimal.ZERO
+                    : new BigDecimal(ordVenta.getText().trim());
+            var creada = context.inventario().crearOrden(ordCod.getText().trim(), ordDesc.getText().trim(),
+                    pres, venta, clienteOrd.getValue() == null ? null : clienteOrd.getValue().getId());
+            UiDialogs.info("Orden creada", "Se registró " + creada.codigo() + " con estado ABIERTA.");
+            ordCod.clear();
+            ordDesc.clear();
+            ordPres.setText("0.00");
+            ordVenta.setText("0.00");
+            clienteOrd.setValue(null);
+            refrescar();
+        }));
+        ComboBox<String> estadoDestino = new ComboBox<>();
+        estadoDestino.setPromptText("Estado destino");
+        Button cambiarEstado = new Button("Cambiar estado");
+        cambiarEstado.setOnAction(e -> ejecutar(() -> {
+            var sel = tablaOrdenes.getSelectionModel().getSelectedItem();
+            if (sel == null) {
+                throw new IllegalArgumentException("Seleccione una orden de la tabla.");
+            }
+            if (estadoDestino.getValue() == null) {
+                throw new IllegalArgumentException("Seleccione el estado destino.");
+            }
+            context.inventario().cambiarEstadoOrden(sel.codigo(), estadoDestino.getValue());
+            UiDialogs.info("Estado actualizado",
+                    sel.codigo() + " → " + etiquetaEstadoOrden(estadoDestino.getValue()));
+            refrescar();
+        }));
+        tablaOrdenes.getSelectionModel().selectedItemProperty().addListener((o, a, b) -> {
+            if (b == null) {
+                return;
+            }
+            codigoOrden.setText(b.codigo());
+            estadoDestino.setItems(FXCollections.observableArrayList(opcionesEstadoOrden(b.estado())));
+            estadoDestino.setValue(null);
+        });
+        Button editarOrd = new Button("Editar seleccionada");
+        editarOrd.setOnAction(e -> ejecutar(() -> {
+            var sel = tablaOrdenes.getSelectionModel().getSelectedItem();
+            if (sel == null) {
+                throw new IllegalArgumentException("Seleccione una orden de la tabla.");
+            }
+            var detalle = context.inventario().ordenDetalle(sel.codigo());
+            ordCod.setText(detalle.codigo());
+            ordDesc.setText(detalle.descripcion());
+            ordPres.setText(detalle.presupuesto().toPlainString());
+            ordVenta.setText(detalle.precioVenta().toPlainString());
+            clienteOrd.setValue(context.operaciones().listarTerceros().stream()
+                    .filter(t -> detalle.clienteId() != null && detalle.clienteId().equals(t.getId()))
+                    .findFirst().orElse(null));
+            UiDialogs.info("Orden cargada", "Revise los datos y pulse «Guardar cambios»; "
+                    + "sólo aplica a órdenes ABIERTA o EN_PROCESO.");
+        }));
+        Button guardarCambios = new Button("Guardar cambios");
+        guardarCambios.setOnAction(e -> ejecutar(() -> {
+            var sel = tablaOrdenes.getSelectionModel().getSelectedItem();
+            if (sel == null) {
+                throw new IllegalArgumentException("Seleccione la orden a modificar en la tabla.");
+            }
+            BigDecimal pres = ordPres.getText().isBlank() ? BigDecimal.ZERO
+                    : new BigDecimal(ordPres.getText().trim());
+            BigDecimal venta = ordVenta.getText().isBlank() ? BigDecimal.ZERO
+                    : new BigDecimal(ordVenta.getText().trim());
+            context.inventario().actualizarOrden(sel.codigo(), ordDesc.getText().trim(),
+                    pres, venta, clienteOrd.getValue() == null ? null : clienteOrd.getValue().getId());
+            UiDialogs.info("Orden actualizada", "Los cambios de " + sel.codigo()
+                    + " quedaron registrados en bitácora.");
+            refrescar();
+        }));
+        VBox ciclo = tarjeta("Ciclo de vida de órdenes de servicio",
+                new Label("Defina presupuesto y precio, acumule costos y avance el estado. "
+                        + "Seleccione una fila para costearla o «Editar» para corregir sus datos."),
+                ResponsiveLayouts.row(ResponsiveLayouts.field("Código", ordCod),
+                        ResponsiveLayouts.field("Descripción", ordDesc),
+                        ResponsiveLayouts.field("Presupuesto", ordPres),
+                        ResponsiveLayouts.field("Precio venta", ordVenta),
+                        ResponsiveLayouts.field("Cliente", clienteOrd), crearOrd,
+                        editarOrd, guardarCambios),
+                UiTables.conBusqueda(tablaOrdenes, "órdenes de servicio",
+                        o -> o.codigo() + " " + o.descripcion() + " " + o.estado()),
+                ResponsiveLayouts.row(ResponsiveLayouts.field("Estado destino", estadoDestino),
+                        cambiarEstado));
         VBox costos = tarjeta("Costeo por órdenes de servicio",
                 new Label("Acumula mano de obra directa, recursos directos y CIF aplicados sobre la orden."),
                 ordenLbl,
@@ -454,7 +995,7 @@ public class InventarioCostosView extends VBox {
                         ResponsiveLayouts.field("Orden", codigoOrden), cargarOs, reconocer),
                 ResponsiveLayouts.row(ResponsiveLayouts.field("Horas MOD", horas),
                         ResponsiveLayouts.field("Tarifa", tarifa), consumoManual));
-        return new javafx.scene.Node[]{costos};
+        return new javafx.scene.Node[]{ciclo, costos};
     }
 
     private javafx.scene.Node[] panelLicencias() {
@@ -525,11 +1066,16 @@ public class InventarioCostosView extends VBox {
             var desde = fecha.getValue().withDayOfMonth(1);
             var desglose = context.inventario().costoSaasPorProcesoPlan(plan.getValue().codigo(), desde,
                     fecha.getValue());
+            String avisoCero = desglose.totalAsignado().signum() == 0
+                    ? " · Sin gastos en las cuentas CIF " + nombreCuenta("510201") + ", "
+                            + nombreCuenta("510202") + " y " + nombreCuenta("510203")
+                            + " del período: registre primero la partida de costos indirectos."
+                    : "";
             saasLbl.setText(("%s: %d de %d usuarios-mes · Alojamiento $%s · Soporte $%s · "
-                    + "Infraestructura $%s · Total asignado $%s · Costo $%s por usuario-mes").formatted(
+                    + "Infraestructura $%s · Total asignado $%s · Costo $%s por usuario-mes%s").formatted(
                     desglose.codigoPlan(), desglose.usuariosMesPlan(), desglose.usuariosMesTotal(),
                     desglose.alojamiento(), desglose.soporte(), desglose.infraestructuraCompartida(),
-                    desglose.totalAsignado(), desglose.costoUsuarioMes()));
+                    desglose.totalAsignado(), desglose.costoUsuarioMes(), avisoCero));
         }));
         VBox card = tarjeta("Costeo por procesos / servidor / usuario-mes",
                 ResponsiveLayouts.row(ResponsiveLayouts.field("Corte", fecha),
@@ -623,6 +1169,8 @@ public class InventarioCostosView extends VBox {
                     "Planes por usuario-mes, hitos y costos recurrentes."};
             case KARDEX -> new String[]{"Kárdex de licencias",
                     "Movimientos cronológicos por lote con saldo de unidades y valor."};
+            case PRODUCTOS -> new String[]{"Productos y versiones",
+                    "Catálogo de productos digitales y el ciclo de vida de sus versiones."};
         };
     }
 
@@ -723,9 +1271,108 @@ public class InventarioCostosView extends VBox {
 
     private void refrescar() {
         refrescarOrdenPrincipal();
+        refrescarOrdenes();
         refrescarClientes();
         refrescarLotes();
         refrescarLicenciasEntregadas();
+        refrescarVersionesLiberables();
+        refrescarCatalogo();
+    }
+
+    private void refrescarVersionesLiberables() {
+        try {
+            var actuales = context.inventario().listarVersiones().stream()
+                    .filter(v -> "LIBERADA".equals(v.estado())).toList();
+            UUID sel = versionLote.getValue() == null ? null : versionLote.getValue().id();
+            versionLote.setItems(FXCollections.observableArrayList(actuales));
+            actuales.stream().filter(v -> v.id().equals(sel))
+                    .findFirst().ifPresent(versionLote::setValue);
+            if (versionLote.getValue() == null && !actuales.isEmpty()) {
+                versionLote.setValue(actuales.getFirst());
+            }
+        } catch (Exception ignored) {
+            versionLote.getItems().clear();
+        }
+    }
+
+    private void refrescarCatalogo() {
+        if (tablaProductos == null || tablaVersiones == null) {
+            return;
+        }
+        try {
+            var productos = context.inventario().listarProductos();
+            var selP = tablaProductos.getSelectionModel().getSelectedItem();
+            String codSel = selP == null ? null : selP.codigo();
+            UiTables.reemplazarFilas(tablaProductos, productos);
+            if (codSel != null) {
+                productos.stream().filter(p -> p.codigo().equals(codSel)).findFirst()
+                        .ifPresent(tablaProductos.getSelectionModel()::select);
+            }
+        } catch (Exception ignored) {
+            UiTables.reemplazarFilas(tablaProductos, java.util.List.of());
+        }
+        try {
+            var versiones = context.inventario().listarVersiones();
+            var selV = tablaVersiones.getSelectionModel().getSelectedItem();
+            UUID idSel = selV == null ? null : selV.id();
+            UiTables.reemplazarFilas(tablaVersiones, versiones);
+            if (idSel != null) {
+                versiones.stream().filter(v -> v.id().equals(idSel)).findFirst()
+                        .ifPresent(tablaVersiones.getSelectionModel()::select);
+            }
+        } catch (Exception ignored) {
+            UiTables.reemplazarFilas(tablaVersiones, java.util.List.of());
+        }
+        if (productoVersion != null) {
+            try {
+                var activos = context.inventario().listarProductos().stream()
+                        .filter(InventarioCostoService.ProductoInfo::activo).toList();
+                UUID sel = productoVersion.getValue() == null ? null : productoVersion.getValue().id();
+                productoVersion.setItems(FXCollections.observableArrayList(activos));
+                activos.stream().filter(p -> p.id().equals(sel))
+                        .findFirst().ifPresent(productoVersion::setValue);
+                if (productoVersion.getValue() == null && !activos.isEmpty()) {
+                    productoVersion.setValue(activos.getFirst());
+                }
+            } catch (Exception ignored) {
+                productoVersion.getItems().clear();
+            }
+        }
+    }
+
+    private void refrescarOrdenes() {
+        try {
+            var sel = tablaOrdenes.getSelectionModel().getSelectedItem();
+            String codigoSel = sel == null ? null : sel.codigo();
+            var lista = context.inventario().listarOrdenesRentabilidad();
+            UiTables.reemplazarFilas(tablaOrdenes, lista);
+            if (codigoSel != null) {
+                lista.stream().filter(o -> o.codigo().equals(codigoSel)).findFirst()
+                        .ifPresent(tablaOrdenes.getSelectionModel()::select);
+            }
+        } catch (Exception ignored) {
+            UiTables.reemplazarFilas(tablaOrdenes, java.util.List.of());
+        }
+    }
+
+    private static String etiquetaEstadoOrden(String estado) {
+        return switch (estado == null ? "" : estado) {
+            case "ABIERTA" -> "Abierta";
+            case "EN_PROCESO" -> "En proceso";
+            case "ENTREGADA" -> "Entregada";
+            case "CERRADA" -> "Cerrada";
+            case "CANCELADA" -> "Cancelada";
+            default -> estado == null ? "—" : estado;
+        };
+    }
+
+    private static java.util.List<String> opcionesEstadoOrden(String estado) {
+        return switch (estado == null ? "" : estado) {
+            case "ABIERTA" -> java.util.List.of("EN_PROCESO", "CANCELADA");
+            case "EN_PROCESO" -> java.util.List.of("ENTREGADA", "CANCELADA");
+            case "ENTREGADA" -> java.util.List.of("CERRADA");
+            default -> java.util.List.of();
+        };
     }
 
     /** Una ausencia de la orden demostrativa no debe impedir mostrar inventario real. */
@@ -753,11 +1400,20 @@ public class InventarioCostosView extends VBox {
 
     private void refrescarLotes() {
         try {
-            lotes.setItems(FXCollections.observableArrayList(context.inventario().listarLotes().stream()
-                    .map(l -> "%s  ·  Disponibles: %d  ·  Costo promedio por unidad: $%s".formatted(
-                            l.codigo(), l.disponibles(), l.costoUnitario())).toList()));
+            var disponibles = context.inventario().listarLotes();
+            lotes.setItems(FXCollections.observableArrayList(disponibles.stream()
+                    .map(l -> "%s%s  ·  Disponibles: %d  ·  Costo promedio por unidad: $%s".formatted(
+                            l.codigo(),
+                            l.versionLabel() == null ? ""
+                                    : " (" + l.productoCodigo() + " v" + l.versionLabel() + ")",
+                            l.disponibles(), l.costoUnitario())).toList()));
+            UUID sel = loteDeterioro.getValue() == null ? null : loteDeterioro.getValue().id();
+            loteDeterioro.setItems(FXCollections.observableArrayList(disponibles));
+            disponibles.stream().filter(l -> l.id().equals(sel))
+                    .findFirst().ifPresent(loteDeterioro::setValue);
         } catch (Exception ignored) {
             lotes.getItems().clear();
+            loteDeterioro.getItems().clear();
         }
     }
 

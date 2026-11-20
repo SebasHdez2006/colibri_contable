@@ -50,4 +50,4 @@ Colibrí es una aplicación de escritorio conectada a PostgreSQL local. Esta esp
 - **Actor:** Soporte Técnico.
 - **Flujo:** Consultar la bitácora de accesos y estados de usuario, seleccionar una cuenta y solicitar desbloqueo con generación de clave temporal.
 - **Resultado:** Se reinician los intentos fallidos, se libera el bloqueo, la cuenta queda activa, se reemplaza su hash de contraseña y se registra una entrada `CLAVE_TEMPORAL` en bitácora.
-- **Límite:** La clave emitida puede utilizarse como contraseña normal hasta que sea cambiada; no tiene vencimiento, marca de uso único ni cambio obligatorio. El código de recuperación es un mecanismo distinto y sí rota al utilizarse.
+- **Límite:** La clave emitida sustituye la contraseña con vencimiento de 24 horas; al iniciar sesión con ella, el sistema obliga a definir una clave propia que la invalida. Si vence sin usarse, soporte debe emitir otra. El código de recuperación es un mecanismo distinto y sí rota al utilizarse.

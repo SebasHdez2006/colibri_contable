@@ -44,15 +44,15 @@ Este documento describe las funciones expuestas por la aplicación de escritorio
 
 
 
-### `CU-PAR-03`: Gestionar Períodos Contables Existentes
+### `CU-PAR-03`: Gestionar Períodos Contables
 
-* **Descripción:** Permite consultar los períodos cargados y cambiar su estado a abierto, en revisión o cerrado. El cierre valida las cédulas pendientes y el cierre desde Ajustes puede ejecutar depreciación, amortización y liquidación de IVA antes de bloquear la captura.
-
-
-* **Entradas:** Período seleccionado y acción de abrir o reabrir, poner en revisión o cerrar.
+* **Descripción:** Permite consultar los períodos, cambiar su estado a abierto, en revisión o cerrado, crear un ejercicio anual con sus doce meses y agregar un mes faltante a un ejercicio existente. El cierre valida las cédulas de ajuste pendientes y las partidas en borrador o aprobada sin resolver, y el cierre desde Ajustes puede ejecutar depreciación, amortización y liquidación de IVA antes de bloquear la captura.
 
 
-* **Resultado:** El estado del período controla la captura de operaciones según las reglas de la aplicación. La interfaz actual no crea ni edita ejercicios fiscales nuevos.
+* **Entradas:** Período seleccionado y acción de abrir o reabrir, poner en revisión o cerrar; o año y mes inicial para un ejercicio nuevo; o ejercicio y mes para un período suelto.
+
+
+* **Resultado:** El estado del período controla la captura de operaciones según las reglas de la aplicación. El ejercicio nuevo deja abierto solo el mes inicial; el período suelto nace cerrado y debe abrirse de forma explícita.
 
 
 
@@ -85,7 +85,7 @@ Este documento describe las funciones expuestas por la aplicación de escritorio
 * **Descripción:** Permite registrar o actualizar código, nombre y estado de los centros de costo.
 
 
-* **Entradas:** Código, nombre y bandera activo.
+* **Entradas:** Código, nombre, descripción, uso y bandera activo.
 
 
 * **Resultado:** El catálogo se ofrece en varias pantallas de costos, planilla y CIF. Las líneas manuales de partida no validan de forma obligatoria que un código escrito en `centroCosto` exista o esté activo en este catálogo.
@@ -206,13 +206,13 @@ Este documento describe las funciones expuestas por la aplicación de escritorio
 
 ### `CU-INV-01`: Liberar y Mover Lotes de Licencias Digitales
 
-* **Descripción:** Permite liberar un lote de licencias con código, unidades, costo total y cliente. También permite registrar venta y costo, devolución al inventario y revocación de derecho, y consultar el kárdex del lote.
+* **Descripción:** Permite liberar un lote de licencias con código, producto/versión del catálogo, unidades, costo total y cliente. También permite registrar venta y costo, devolución al inventario y revocación de derecho, y consultar el kárdex del lote.
 
 
-* **Entradas:** Código de lote, unidades, costo total, cliente y movimiento solicitado.
+* **Entradas:** Código de lote, versión de producto LIBERADA (o la primera liberada del catálogo si se omite), unidades, costo total, cliente y movimiento solicitado.
 
 
-* **Resultado:** La salida toma automáticamente la unidad disponible más antigua con PEPS y actualiza el kárdex. La vista muestra comparaciones con promedio y UEPS, pero sólo PEPS origina la salida contable. La liberación actual no permite elegir producto o versión: el servicio asigna una versión fija del prototipo y el costo se captura manualmente.
+* **Resultado:** La salida toma automáticamente la unidad disponible más antigua con PEPS y actualiza el kárdex. La vista muestra comparaciones con promedio y UEPS, pero sólo PEPS origina la salida contable. El costo del lote se captura manualmente; el prototipo no consolida automáticamente costos capitalizables por producto o versión.
 
 
 
@@ -230,10 +230,25 @@ Este documento describe las funciones expuestas por la aplicación de escritorio
 
 ### `CU-INV-03`: Deterioro de Inventario Digital
 
-* **Descripción:** El servicio de cierre contiene una capacidad para registrar deterioro de inventario, pero la aplicación de escritorio actual no ofrece una pantalla ni acción de usuario para ejecutarla.
+* **Descripción:** Permite evaluar un lote de licencias contra su valor recuperable de mercado y registrar el ajuste NIC 2 como partida de borrador trazable por lote y período.
 
 
-* **Resultado:** No existe un caso de uso operativo accesible para registrar deterioro desde la interfaz actual.
+* **Entradas:** Lote seleccionado, valor recuperable total en USD (no mayor al costo bruto del lote) y fecha contable dentro del período capturable.
+
+
+* **Resultado:** Se genera una partida de ajuste en borrador que debe aprobarse y contabilizarse en el Libro diario. La operación es idempotente por período: repetir el mismo valor recuperable devuelve la partida existente, y si el valor recuperable sube en un período posterior se revierte automáticamente el deterioro acumulado.
+
+
+
+### `CU-INV-04`: Gestionar Productos y Versiones del Catálogo Digital
+
+* **Descripción:** Permite crear y editar productos del catálogo digital (código, nombre, modalidad `LICENCIA`, `SAAS` o `PROYECTO`, estado activo) y administrar sus versiones dentro del ciclo EN_PRODUCCION → LIBERADA → DESCONTINUADA.
+
+
+* **Entradas:** Datos del producto (código, nombre, modalidad, activo), producto y etiqueta para una versión nueva, y versión seleccionada con estado destino para las transiciones.
+
+
+* **Resultado:** Las versiones LIBERADA quedan disponibles para la liberación de lotes en CU-INV-01; EN_PRODUCCION admite liberarse o descontinuarse, LIBERADA sólo puede descontinuarse y DESCONTINUADA es terminal. Un producto inactivo conserva su historial pero no admite versiones nuevas. Cada alta, edición y cambio de estado queda en bitácora. Los lotes ya liberados contra una versión descontinuada conservan su validez para ventas PEPS.
 
 
 
@@ -241,15 +256,15 @@ Este documento describe las funciones expuestas por la aplicación de escritorio
 
 ## Módulo 5: Gestión y Acumulación de Costos
 
-### `CU-COS-01`: Acumular Costos de una Orden de Servicio de Ejemplo
+### `CU-COS-01`: Gestionar Órdenes de Servicio a la Medida
 
-* **Descripción:** La vista permite cargar costos de ejemplo, registrar mano de obra directa y reconocer el costo de una orden identificada en la interfaz.
-
-
-* **Entradas:** Código de orden, importe o base de costo y datos solicitados por el formulario.
+* **Descripción:** Permite crear órdenes de servicio con cliente, presupuesto y precio de venta; acumular consumos de MOD, servicios y CIF; reconocer el costo acumulado a resultados; y controlar el ciclo de estados con rentabilidad por orden.
 
 
-* **Resultado:** Se acumulan o reconocen costos para la orden seleccionada. No existe en la aplicación actual un ciclo completo para crear, editar, entregar y controlar el estado de órdenes de servicio; el reconocimiento no verifica una entrega previa.
+* **Entradas:** Código único, descripción, presupuesto, precio de venta y cliente opcional para la creación; tipo, descripción, cantidad y tarifa para cada consumo; código de orden y fecha para reconocer el costo; orden seleccionada y estado destino para las transiciones.
+
+
+* **Resultado:** La orden nace en estado ABIERTA y avanza por EN_PROCESO, ENTREGADA y CERRADA (o CANCELADA desde ABIERTA/EN_PROCESO); cada cambio queda en bitácora. La tabla muestra presupuesto, costo acumulado, margen y margen porcentual. Órdenes en ABIERTA/EN_PROCESO admiten edición de descripción, presupuesto, precio y cliente con registro en bitácora. El reconocimiento no verifica una entrega previa ni hay bloqueo de costeo por entrega.
 
 
 
@@ -258,10 +273,10 @@ Este documento describe las funciones expuestas por la aplicación de escritorio
 * **Descripción:** Al liberar un lote, el usuario proporciona el costo total y las unidades; el sistema calcula el costo unitario del lote para sus posteriores salidas PEPS.
 
 
-* **Entradas:** Código de lote, unidades, costo total y cliente.
+* **Entradas:** Código de lote, versión de producto LIBERADA, unidades, costo total y cliente.
 
 
-* **Resultado:** El costo unitario se guarda en el lote liberado. El prototipo no consolida automáticamente costos capitalizables por producto o versión y la versión no se selecciona desde la interfaz.
+* **Resultado:** El costo unitario se guarda en el lote liberado junto con la versión del catálogo seleccionada. El prototipo no consolida automáticamente costos capitalizables por producto o versión (el costo se captura manualmente).
 
 
 
@@ -323,7 +338,7 @@ Este documento describe las funciones expuestas por la aplicación de escritorio
 * **Entradas:** Tipo de reporte, fechas y alcance disponible.
 
 
-* **Resultado:** Reporte visible para revisión. El paquete ZIP también incorpora Estado de Cambios en el Patrimonio y Estado de Flujos de Efectivo; estos dos no aparecen como selección individual en la navegación principal. El estado de flujos usa el método directo y se limita a movimientos del grupo de Caja chica y Bancos configurado por el prototipo.
+* **Resultado:** Reporte visible para revisión. Los cuatro estados financieros (Situación financiera, Resultados, Cambios en el Patrimonio y Flujos de Efectivo) son seleccionables individualmente en el formato, además de integrarse en el paquete ZIP. El estado de flujos usa el método directo y se limita a movimientos del grupo de Caja chica y Bancos configurado por el prototipo.
 
 
 
@@ -335,7 +350,7 @@ Este documento describe las funciones expuestas por la aplicación de escritorio
 * **Entradas:** Tipo de libro y rango de fechas.
 
 
-* **Resultado:** Auxiliar fiscal interno sujeto a revisión tributaria. En la consulta actual, el libro de ventas a consumidor final incluye documentos `FACTURA` y `CCF`, por lo que puede solaparse con el libro de ventas CCF; no genera declaraciones ni registros oficiales.
+* **Resultado:** Auxiliar fiscal interno sujeto a revisión tributaria. La separación es excluyente por tipo de documento: el libro de ventas CCF toma únicamente documentos `CCF`, mientras el de consumidor final toma `FACTURA`, `NC` y `ND`; los documentos anulados se excluyen de ambos. No genera declaraciones ni registros oficiales.
 
 
 
@@ -347,7 +362,7 @@ Este documento describe las funciones expuestas por la aplicación de escritorio
 * **Entradas:** Tipo de auxiliar y rango de fechas.
 
 
-* **Resultado:** Tabla de movimientos y totales Debe y Haber. La interfaz actual no recibe una dimensión o código específico para filtrar un auxiliar y no presenta un saldo acumulado por movimiento.
+* **Resultado:** Tabla de movimientos con la dimensión del registro (cliente, proveedor, lote, orden o centro de costo), totales Debe y Haber y saldo acumulado por dimensión: el saldo inicial del rango se calcula desde el historial y cada fila muestra el saldo corrido. La interfaz no recibe una dimensión o código específico para filtrar un auxiliar ni permite combinar dimensiones; cuando una dimensión aparece en varias cuentas, el saldo acumulado las combina.
 
 
 
