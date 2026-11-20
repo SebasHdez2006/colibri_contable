@@ -93,7 +93,9 @@ El script crea o actualiza el rol y las bases `colibri` y `colibri_test`. Las cr
 
 ## Compilar y ejecutar
 
-Desde la raíz del repositorio:
+**Ejecución con un clic:** doble clic en `Colibri.bat` en la raíz del repositorio. El lanzador compila solo cuando falta el build o hay fuentes más recientes, verifica que PostgreSQL responda y abre la aplicación sin consola (la primera ejecución puede tardar). Los errores de arranque aparecen en un cuadro de diálogo y quedan en `%LOCALAPPDATA%\Colibri\logs`.
+
+Desde la raíz del repositorio, el flujo manual es:
 
 ```powershell
 .\mvnw.cmd clean test
@@ -103,9 +105,9 @@ Desde la raíz del repositorio:
 
 También están disponibles estos flujos:
 
-- `scripts\run-colibri.ps1`: compila, migra y abre la aplicación. `-Reset` reemplaza los datos operativos por la semilla del Anexo L; úselo sólo sobre una base de demostración.
+- `scripts\run-colibri.ps1`: compila, migra y abre la aplicación con consola visible. `-Reset` reemplaza los datos operativos por la semilla del Anexo L; úselo sólo sobre una base de demostración.
 - `scripts\run-colibri-complete.ps1 -Reset`: carga y verifica el ejercicio contable integral mediante los scripts SQL; también elimina datos operativos existentes.
-- `scripts\Iniciar-Colibri.ps1`: lanzador para usuario final. `Colibri.vbs` lo ejecuta sin consola y `Colibri.cmd` conserva la consola visible.
+- `scripts\Iniciar-Colibri.ps1`: lanzador de usuario final que usa `Colibri.bat`. `scripts\Colibri.vbs` lo ejecuta sin consola en ningún momento y `scripts\Colibri.cmd` conserva la consola visible.
 
 Las pruebas pueden usar la base separada configurando:
 
