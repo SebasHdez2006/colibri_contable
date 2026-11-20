@@ -81,7 +81,7 @@ Lista de verificación de todas las pruebas ejecutables sobre el prototipo, orga
 | ID | Prueba | Tipo | Resultado esperado |
 |---|---|---|---|
 | INI-01 | Abrir Inicio con datos del escenario | F | KPIs muestran ingresos del mes, utilidad y cartera con variación vs. mes anterior |
-| INI-02 | Gráfica de ingresos vs egresos | F | Selectores «Desde»/«hasta» limitan el rango de años con movimientos; al cambiar cualquiera la serie se recarga y un rango invertido intercambia los valores; serie mensual con meses vacíos en cero; un mes con volumen extremo se separa como hito sin ocultar los demás |
+| INI-02 | Gráfica de ingresos vs egresos | F | Selectores «Desde»/«hasta» limitan el rango de años con movimientos; al cambiar cualquiera la serie se recarga y un rango invertido intercambia los valores; serie mensual con meses vacíos en cero; un mes con volumen extremo se separa como hito sin ocultar los demás; el diagrama queda a la izquierda y los resultados por mes en un panel lateral con scroll a la derecha |
 | INI-03 | Clientes principales, producto más vendido y usuarios SaaS | F | Tablas con datos del período |
 | INI-04 | Panel de costos y suscripciones | F | Tarifas por plan, usuarios-mes SaaS y comparativo CIF (las órdenes ya no viven aquí) |
 | INI-05 | Bloque "Por hacer" | F | Muestra estado del catálogo, borradores pendientes y alertas operativas |
@@ -89,8 +89,8 @@ Lista de verificación de todas las pruebas ejecutables sobre el prototipo, orga
 | INI-07 | Botón "Ir a registros" | A | Navega al Libro diario |
 | INI-08 | Lectura analítica sobre la gráfica de barras | F | Muestra resultado acumulado del rango y conteo de meses superávit/déficit/equilibrio; las fichas mensuales se tiñen según el signo |
 | INI-09 | Tarjeta "Órdenes de servicio" dedicada | F | Lista presupuesto vs. costo real, variación % y estado; encabezado resume en curso vs. finalizadas; "—" cuando el presupuesto es 0; búsqueda filtra; estado vacío con pista de dónde crear órdenes |
-| INI-10 | Gráfica de dispersión con diagonal y tolerancia | F | Un punto por mes (ingresos X, egresos Y); diagonal de equilibrio, banda ±10 % sombreada, puntos por zona (superávit/tolerancia/déficit), leyenda y pie con conteo; comparte la fila con la dispersión de costos y ambas se repintan al redimensionar y al cambiar tema |
-| INI-11 | Dispersión de costos presupuesto vs. costo real | F | Selector «Ver costos de» alterna Proyectos a la medida / Licencias digitales / Acceso SaaS; cada punto es un objeto de la línea (presupuesto X, costo real Y); diagonal y=x, banda ±10 %, zonas bajo presupuesto/tolerancia/sobrecosto y pie con conteos y variación media |
+| INI-10 | Gráfica de dispersión con diagonal y tolerancia | F | Un punto por mes (ingresos X, egresos Y); diagonal de equilibrio, banda ±10 % sombreada, puntos por zona (superávit/tolerancia/déficit), leyenda y pie con conteo; al hover sobre un punto aparece un tooltip con el nombre del mes y sus valores; comparte la fila con la dispersión de costos y ambas se repintan al redimensionar y al cambiar tema |
+| INI-11 | Dispersión de costos presupuesto vs. costo real | F | Selector «Ver costos de» alterna Proyectos a la medida / Licencias digitales / Acceso SaaS; cada punto es un objeto de la línea (presupuesto X, costo real Y); diagonal y=x, banda ±10 %, zonas bajo presupuesto/tolerancia/sobrecosto y pie con conteos y variación media; al hover sobre un punto aparece un tooltip con el objeto, presupuesto, costo real y variación; el selector «Ver costos de» muestra las tres líneas completas |
 | INI-12 | Tabla de estructura de costos | F | Una fila por proyecto, lote de licencias y plan SaaS con precio unitario, materia prima, mano de obra, CIF y costo total; «—» en el precio de lotes sin ventas; la búsqueda filtra por código, detalle o tipo |
 
 ## 4. Temas contables

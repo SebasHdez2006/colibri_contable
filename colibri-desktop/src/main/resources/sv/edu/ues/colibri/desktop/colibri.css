@@ -262,6 +262,12 @@
     -fx-font-size: 0.84em;
 }
 .chart-monthly-summary { -fx-padding: 0.29em 0 0 0; }
+.chart-months-pane {
+    -fx-background-color: -color-bg-subtle;
+    -fx-background-radius: 0.6em;
+}
+.chart-months-pane .viewport { -fx-background-color: transparent; }
+.chart-months-pane .scroll-bar:vertical { -fx-pref-width: 8px; }
 .chart-monthly-item {
     -fx-background-color: -colibri-subtle;
     -fx-background-radius: 0.61em;

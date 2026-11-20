@@ -1,5 +1,6 @@
 package sv.edu.ues.colibri.desktop.ui.views;
 
+import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.geometry.Pos;
 import javafx.scene.canvas.Canvas;
@@ -8,8 +9,10 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
@@ -116,7 +119,8 @@ public class InicioView extends VBox {
                 new RowConstraints(), new RowConstraints(), new RowConstraints(),
                 new RowConstraints(), new RowConstraints());
 
-        bento.add(centrarEnGrilla(graficaBarras(periodo), 980), 0, 0, 3, 1);
+        // La gráfica de barras abarca todo el ancho disponible.
+        bento.add(centrarEnGrilla(graficaBarras(periodo), 1600), 0, 0, 3, 1);
         bento.add(cifraFinanciera("Ingresos", dinero(resumen.ingresosMes()),
                 variacionTexto(resumen.variacionIngresos(), resumen.ingresosMesAnterior()),
                 resumen.variacionIngresos().signum() < 0 ? "negative" : "positive"), 0, 1);
@@ -133,13 +137,14 @@ public class InicioView extends VBox {
         bento.add(graficaClientes(resumen), 1, 2, 2, 1);
         bento.add(tablaOrdenes(resumen), 0, 3, 3, 1);
         bento.add(costos(resumen), 0, 4, 3, 1);
-        // La dispersión de ingresos/egresos crece con el espacio disponible y
-        // la de costos ocupa una columna fija a su derecha.
+        // Las dos dispersiones comparten la fila a partes iguales y crecen
+        // con el espacio disponible.
         HBox dispersores = new HBox(16, graficaDispercion(resumen.serieMensual()),
                 graficaCostos());
         dispersores.setAlignment(Pos.TOP_LEFT);
         dispersores.setFillHeight(false);
         HBox.setHgrow(dispersores.getChildren().get(0), Priority.ALWAYS);
+        HBox.setHgrow(dispersores.getChildren().get(1), Priority.ALWAYS);
         bento.add(dispersores, 0, 5, 3, 1);
         bento.add(tablaEstructuraCostos(), 0, 6, 3, 1);
 
@@ -427,7 +432,14 @@ public class InicioView extends VBox {
                     p.egresos().doubleValue()));
         }
         chart.getData().addAll(ingresos, egresos);
-        contenido.getChildren().add(chart);
+
+        // El diagrama queda a la izquierda y los resultados por mes a la
+        // derecha: el detalle mensual vive en un panel con scroll para que
+        // un rango de varios años no estire la tarjeta.
+        HBox cuerpo = new HBox(16);
+        VBox izquierda = new VBox(8);
+        izquierda.setFillWidth(true);
+        izquierda.getChildren().add(chart);
         VBox.setVgrow(chart, Priority.ALWAYS);
         if (serieVisible.hito() != null) {
             PanelInicioService.PuntoMes hito = serieVisible.hito();
@@ -436,9 +448,17 @@ public class InicioView extends VBox {
                     + ". Se muestra aparte para conservar legible la tendencia.");
             aviso.setWrapText(true);
             aviso.getStyleClass().add("chart-outlier-note");
-            contenido.getChildren().add(aviso);
+            izquierda.getChildren().add(aviso);
         }
-        contenido.getChildren().add(resumenMensual(serie));
+        ScrollPane mensual = new ScrollPane(resumenMensual(serie));
+        mensual.setFitToWidth(true);
+        mensual.setPrefWidth(320);
+        mensual.setPrefHeight(310);
+        mensual.setMinHeight(220);
+        mensual.getStyleClass().add("chart-months-pane");
+        cuerpo.getChildren().addAll(izquierda, mensual);
+        HBox.setHgrow(izquierda, Priority.ALWAYS);
+        contenido.getChildren().add(cuerpo);
     }
 
     /** Ranking de clientes del período más la actividad comercial resumida. */
@@ -498,8 +518,8 @@ public class InicioView extends VBox {
         return fila;
     }
 
-    private FlowPane resumenMensual(List<PanelInicioService.PuntoMes> serie) {
-        FlowPane detalle = new FlowPane(8, 8);
+    private VBox resumenMensual(List<PanelInicioService.PuntoMes> serie) {
+        VBox detalle = new VBox(8);
         detalle.getStyleClass().add("chart-monthly-summary");
         for (PanelInicioService.PuntoMes punto : serie) {
             BigDecimal resultado = punto.ingresos().subtract(punto.egresos());
@@ -726,10 +746,13 @@ public class InicioView extends VBox {
         }
         // Canvas no es redimensionable por el layout: se envuelve en un
         // StackPane que le presta su geometría y liga el búfer al tamaño real.
-        // El alto sigue al ancho para que el área de datos sea cuadrada y la
-        // diagonal de equilibrio salga a 45° con escalas idénticas.
+        // El alto sigue al ancho con tope: el lienzo puede ser más ancho que
+        // alto porque el área de datos interna sigue siendo un cuadrado
+        // centrado, así la diagonal de equilibrio sale a 45° sin desbordar
+        // la tarjeta en pantallas anchas.
         javafx.scene.layout.StackPane area = new javafx.scene.layout.StackPane();
-        area.prefHeightProperty().bind(area.widthProperty());
+        area.prefHeightProperty().bind(Bindings.createDoubleBinding(
+                () -> Math.min(area.getWidth(), 440), area.widthProperty()));
         area.setMinHeight(240);
         Canvas lienzo = new Canvas();
         area.getChildren().add(lienzo);
@@ -739,8 +762,9 @@ public class InicioView extends VBox {
         card.getChildren().add(area);
         card.getChildren().add(leyendaDispercion());
         card.getChildren().add(resumenDispercion(serie));
+        List<PuntoTrazado> trazados = new ArrayList<>();
         Runnable repintar = () -> repintarDispercion(lienzo, aPuntosDispercion(serie),
-                "Ingresos (USD)", "Egresos (USD)");
+                "Ingresos (USD)", "Egresos (USD)", trazados);
         lienzo.widthProperty().addListener((o, a, b) -> repintar.run());
         lienzo.heightProperty().addListener((o, a, b) -> repintar.run());
         // El tema puede cambiar con el lienzo ya montado: se repinta cuando la
@@ -755,6 +779,7 @@ public class InicioView extends VBox {
                         });
             }
         });
+        activarTooltipsDispercion(lienzo, trazados);
         repintar.run();
         return card;
     }
@@ -842,13 +867,12 @@ public class InicioView extends VBox {
         heading.getStyleClass().add("section-heading");
         VBox card = new VBox(8, heading);
         card.getStyleClass().addAll("surface-card", "dashboard-chart-card");
-        card.setPrefWidth(500);
-        card.setMaxWidth(500);
-        card.setMinWidth(340);
+        card.setMinWidth(320);
 
         ComboBox<String> linea = new ComboBox<>(FXCollections.observableArrayList(
                 "Proyectos a la medida", "Licencias digitales", "Acceso SaaS"));
         linea.setValue("Proyectos a la medida");
+        linea.setPrefWidth(230);
         UiCatalogos.ayuda(linea, "Línea de costo a comparar: proyecto a la medida, "
                 + "licencias digitales o acceso SaaS.");
         HBox selector = new HBox(8, new Label("Ver costos de"), linea);
@@ -860,10 +884,12 @@ public class InicioView extends VBox {
         vacio.setVisible(false);
         vacio.setManaged(false);
 
-        // Mismo lienzo cuadrado que la dispersión de ingresos/egresos: la
-        // diagonal presupuesto = costo real sale a 45° con escalas idénticas.
+        // Mismo lienzo acotado que la dispersión de ingresos/egresos: el
+        // área de datos interna es un cuadrado centrado, así la diagonal
+        // presupuesto = costo real sale a 45° sin desbordar la tarjeta.
         javafx.scene.layout.StackPane area = new javafx.scene.layout.StackPane();
-        area.prefHeightProperty().bind(area.widthProperty());
+        area.prefHeightProperty().bind(Bindings.createDoubleBinding(
+                () -> Math.min(area.getWidth(), 440), area.widthProperty()));
         area.setMinHeight(240);
         Canvas lienzo = new Canvas();
         area.getChildren().add(lienzo);
@@ -877,8 +903,9 @@ public class InicioView extends VBox {
 
         AtomicReference<List<InventarioCostoService.PuntoCostoPresupuesto>> puntos =
                 new AtomicReference<>(List.of());
+        List<PuntoTrazado> trazados = new ArrayList<>();
         Runnable repintar = () -> repintarDispercion(lienzo, aPuntosCosto(puntos.get()),
-                "Presupuesto (USD)", "Costo real (USD)");
+                "Presupuesto (USD)", "Costo real (USD)", trazados);
         lienzo.widthProperty().addListener((o, a, b) -> repintar.run());
         lienzo.heightProperty().addListener((o, a, b) -> repintar.run());
         lienzo.sceneProperty().addListener((o, a, s) -> {
@@ -891,6 +918,7 @@ public class InicioView extends VBox {
                         });
             }
         });
+        activarTooltipsDispercion(lienzo, trazados);
 
         Runnable cargar = () -> {
             List<InventarioCostoService.PuntoCostoPresupuesto> datos =
@@ -1039,8 +1067,13 @@ public class InicioView extends VBox {
         tabla.getColumns().add(columna);
     }
 
-    /** Punto genérico de dispersión con coordenadas, zona y rótulo ya resueltos. */
-    private record PuntoDispercion(double x, double y, Zona zona, String rotulo) {
+    /** Punto genérico de dispersión: coordenadas, zona, rótulo y detalle para tooltip. */
+    private record PuntoDispercion(double x, double y, Zona zona, String rotulo,
+            String detalle) {
+    }
+
+    /** Posición en pantalla de un punto trazado, para detectar el hover. */
+    private record PuntoTrazado(PuntoDispercion punto, double px, double py) {
     }
 
     private List<PuntoDispercion> aPuntosDispercion(List<PanelInicioService.PuntoMes> serie) {
@@ -1050,21 +1083,35 @@ public class InicioView extends VBox {
         for (PanelInicioService.PuntoMes punto : serie) {
             String rotulo = mesCorto(punto.mes())
                     + (multiAnio ? " " + (punto.anio() % 100) : "");
+            String detalle = mes(punto.mes()) + " " + punto.anio()
+                    + " · Ingresos " + dinero(punto.ingresos())
+                    + " · Egresos " + dinero(punto.egresos());
             puntos.add(new PuntoDispercion(punto.ingresos().doubleValue(),
-                    punto.egresos().doubleValue(), zonaDispercion(punto), rotulo));
+                    punto.egresos().doubleValue(), zonaDispercion(punto), rotulo, detalle));
         }
         return puntos;
     }
 
     private List<PuntoDispercion> aPuntosCosto(
             List<InventarioCostoService.PuntoCostoPresupuesto> puntos) {
-        return puntos.stream().map(p -> new PuntoDispercion(
-                p.presupuesto().doubleValue(), p.costoReal().doubleValue(),
-                zonaCostos(p), p.etiqueta())).toList();
+        return puntos.stream().map(p -> {
+            String detalle = p.etiqueta() + " · Presupuesto " + dinero(p.presupuesto())
+                    + " · Costo real " + dinero(p.costoReal());
+            if (p.presupuesto().signum() > 0) {
+                BigDecimal variacion = p.costoReal().subtract(p.presupuesto())
+                        .divide(p.presupuesto(), 4, RoundingMode.HALF_UP)
+                        .multiply(BigDecimal.valueOf(100))
+                        .setScale(1, RoundingMode.HALF_UP);
+                detalle += " · Variación " + variacion + "%";
+            }
+            return new PuntoDispercion(p.presupuesto().doubleValue(),
+                    p.costoReal().doubleValue(), zonaCostos(p), p.etiqueta(), detalle);
+        }).toList();
     }
 
     private void repintarDispercion(Canvas lienzo, List<PuntoDispercion> puntos,
-            String rotuloX, String rotuloY) {
+            String rotuloX, String rotuloY, List<PuntoTrazado> trazados) {
+        trazados.clear();
         double w = lienzo.getWidth();
         double h = lienzo.getHeight();
         if (w < 80 || h < 80) {
@@ -1166,6 +1213,7 @@ public class InicioView extends VBox {
         for (PuntoDispercion punto : puntos) {
             double px = aX.applyAsDouble(punto.x());
             double py = aY.applyAsDouble(punto.y());
+            trazados.add(new PuntoTrazado(punto, px, py));
             Color relleno = switch (punto.zona()) {
                 case SUPERAVIT -> p.exito();
                 case TOLERADO -> p.neutro();
@@ -1201,6 +1249,37 @@ public class InicioView extends VBox {
         g.rotate(-90);
         g.fillText(rotuloY, -anchoTexto(g, rotuloY) / 2, 0);
         g.restore();
+    }
+
+    /**
+     * Tooltip al pasar el cursor sobre un punto de la dispersión: muestra el
+     * nombre del mes u objeto junto con sus valores. Las posiciones se leen
+     * de la última pintada, así el hover siempre coincide con lo visible.
+     */
+    private void activarTooltipsDispercion(Canvas lienzo, List<PuntoTrazado> trazados) {
+        Tooltip tip = new Tooltip();
+        lienzo.setOnMouseMoved(e -> {
+            PuntoTrazado cerca = null;
+            double mejor = 14 * 14;
+            for (PuntoTrazado t : trazados) {
+                double dx = e.getX() - t.px();
+                double dy = e.getY() - t.py();
+                double d2 = dx * dx + dy * dy;
+                if (d2 <= mejor) {
+                    mejor = d2;
+                    cerca = t;
+                }
+            }
+            if (cerca == null || lienzo.getScene() == null
+                    || lienzo.getScene().getWindow() == null) {
+                tip.hide();
+                return;
+            }
+            tip.setText(cerca.punto().detalle());
+            tip.show(lienzo.getScene().getWindow(),
+                    e.getScreenX() + 14, e.getScreenY() + 14);
+        });
+        lienzo.setOnMouseExited(e -> tip.hide());
     }
 
     /** Traza una recta y = factor · x en coordenadas de datos dentro del lienzo. */
