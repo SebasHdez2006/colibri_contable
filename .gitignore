@@ -48,3 +48,20 @@ backups/
 # Lock de instancia
 *.lock
 colibri.instance.lock
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Salidas de análisis de dependencias (ver docs/analisis/DESCARTE.md)
+cve-dependencies.txt
+cve-dependency-tree.txt
+cp-desktop.txt
+
+# Assets fuente de iconos: la app usa los recursos empaquetados de colibri-desktop
+/img/
+
+# Configuración local de asistentes y generadores de un solo uso
+/.kiro/
+/.continue/
+/scripts/gen_catalogo.py

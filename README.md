@@ -122,21 +122,25 @@ Los scripts de `scripts\db` preparan referencias, el Anexo L y el ejercicio inte
 
 ## Documentación vigente
 
+La documentación se organiza por tema dentro de `docs/`:
+
 | Documento | Propósito |
 |---|---|
-| `Analisis_Sistema_Colibri.txt` | Análisis del sistema: frontera, entradas, procesos, salidas, actores y límites. |
-| `CasosDeUso.md` | Casos de uso reales del rol Contador, con límites explícitos del prototipo. |
-| `CasosDeUso_SoporteTecnico.md` | Casos de uso reales del rol Soporte Técnico. |
-| `MANUAL_DE_USO_COLIBRI.md` | Manual operativo por pantalla: flujos, alternativas y límites. |
-| `ESCENARIO_EJERCICIO_CONTABLE_COMPLETO.md` | Escenario de demostración y precauciones de carga. |
-| `rubrica_de_evaluacion_del_proyecto.md` | Matriz académica y notas de evidencia. |
-| `sintesis-formulas-contables.md` | Material académico de referencia; no todas las fórmulas son automatismos del software. |
-| `DESCARTE.md` | Elementos descartados y decisiones de alcance. |
-| `PLAN_DE_PRUEBAS.md` | Lista de verificación de aceptación por módulo y sección. |
-| `INFORME_DE_PRUEBAS_PARANOICO_2026-11-18.md` | Evidencia de la ejecución de pruebas automatizadas y pendientes manuales. |
-| `REVISION_UX_2026-11-18.md` | Revisión de usabilidad por módulo y correcciones aplicadas. |
-| `AUDITORIA_CORRECCIONES_RESUMEN.md` | Resumen de las correcciones de la auditoría forense contable. |
-| `INVENTARIO_CLASES_CRITICAS.md` | Inventario de clases con cálculos monetarios previo a la auditoría. |
+| `docs/manual/MANUAL_DE_USO_COLIBRI.md` | Manual operativo por pantalla: flujos, alternativas y límites. |
+| `docs/casos-de-uso/CasosDeUso.md` | Casos de uso reales del rol Contador, con límites explícitos del prototipo. |
+| `docs/casos-de-uso/CasosDeUso_SoporteTecnico.md` | Casos de uso reales del rol Soporte Técnico. |
+| `docs/analisis/Analisis_Sistema_Colibri.txt` | Análisis del sistema: frontera, entradas, procesos, salidas, actores y límites. |
+| `docs/analisis/DESCARTE.md` | Elementos descartados y decisiones de alcance. |
+| `docs/contabilidad/ESCENARIO_EJERCICIO_CONTABLE_COMPLETO.md` | Escenario de demostración y precauciones de carga. |
+| `docs/contabilidad/sintesis-formulas-contables.md` | Material académico de referencia; no todas las fórmulas son automatismos del software. |
+| `docs/evaluacion/rubrica_de_evaluacion_del_proyecto.md` | Matriz académica y notas de evidencia. |
+| `docs/pruebas/PLAN_DE_PRUEBAS.md` | Lista de verificación de aceptación por módulo y sección. |
+| `docs/pruebas/INFORME_DE_PRUEBAS_PARANOICO_2026-11-18.md` | Evidencia de la ejecución de pruebas automatizadas y pendientes manuales. |
+| `docs/pruebas/REVISION_UX_2026-11-18.md` | Revisión de usabilidad por módulo y correcciones aplicadas. |
+| `docs/auditoria/AUDITORIA_CORRECCIONES_RESUMEN.md` | Resumen de las correcciones de la auditoría forense contable. |
+| `docs/auditoria/INVENTARIO_CLASES_CRITICAS.md` | Inventario de clases con cálculos monetarios previo a la auditoría. |
+| `docs/diagramas/` | Diagramas del sistema: arquitectura, ERD (PNG y Mermaid), módulos Maven y metamodelo. |
+| `docs/capturas/` | Capturas de pantalla de la aplicación por rol. |
 
 Los informes con fecha en el nombre (`*_AAAA-MM-DD.md`) son evidencias de una ejecución concreta; describen el estado del sistema en esa fecha y no se reescriben cuando el código avanza. La especificación de la auditoría forense se conserva en `.kiro/specs/auditoria-forense-contable/`.
 
