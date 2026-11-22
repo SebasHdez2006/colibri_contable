@@ -161,8 +161,7 @@ public final class AppContext implements AutoCloseable {
                     %s
 
                     Usuario: %s
-                    Contraseña inicial: %s
-                    """.formatted(codigo, BootstrapService.USUARIO_DEFAULT, BootstrapService.PASSWORD_DEFAULT));
+                    """.formatted(codigo, BootstrapService.USUARIO_DEFAULT));
         } catch (IOException ignored) {
         }
     }

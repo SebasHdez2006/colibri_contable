@@ -6,7 +6,7 @@
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'colibri') THEN
-    CREATE ROLE colibri LOGIN PASSWORD 'colibri' SUPERUSER CREATEDB;
+    CREATE ROLE colibri LOGIN PASSWORD 'colibri' NOSUPERUSER NOCREATEDB;
   END IF;
 END
 $$;

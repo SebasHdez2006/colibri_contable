@@ -1,4 +1,4 @@
-# Prepara el entorno local: crea o actualiza el rol colibri, sus bases y el archivo de configuración.
+﻿# Prepara el entorno local: crea o actualiza el rol colibri, sus bases y el archivo de configuración.
 # Configura rol y bases Colibrí en PostgreSQL 18 (puerto 5434 en esta máquina).
 # Uso:
 #   $env:PGPASSWORD = 'TU_PASSWORD_DE_POSTGRES'
@@ -26,9 +26,9 @@ if ($LASTEXITCODE -ne 0) {
 DO `$`$
 BEGIN
   IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'colibri') THEN
-    CREATE ROLE colibri LOGIN PASSWORD 'colibri' SUPERUSER CREATEDB;
+    CREATE ROLE colibri LOGIN PASSWORD 'colibri' NOSUPERUSER NOCREATEDB;
   ELSE
-    ALTER ROLE colibri WITH LOGIN PASSWORD 'colibri' SUPERUSER CREATEDB;
+    ALTER ROLE colibri WITH LOGIN PASSWORD 'colibri' NOSUPERUSER NOCREATEDB;
   END IF;
 END
 `$`$;

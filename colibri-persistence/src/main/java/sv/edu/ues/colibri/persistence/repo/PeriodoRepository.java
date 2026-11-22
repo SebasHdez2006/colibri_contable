@@ -90,6 +90,28 @@ public class PeriodoRepository {
     }
 
     /**
+     * Busca un ejercicio por año fiscal.
+     *
+     * @param conn conexión activa
+     * @param anio año fiscal
+     * @return ejercicio encontrado o vacío
+     */
+    public Optional<Ejercicio> buscarEjercicioPorAnio(Connection conn, int anio) {
+        String sql = "SELECT * FROM ejercicio WHERE anio = ? LIMIT 1";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, anio);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(mapEjercicio(rs));
+                }
+                return Optional.empty();
+            }
+        } catch (SQLException e) {
+            throw new PersistenceException("Error al buscar ejercicio por año", e);
+        }
+    }
+
+    /**
      * Lista todos los ejercicios.
      *
      * @param conn conexión activa
@@ -192,17 +214,10 @@ public class PeriodoRepository {
                 SELECT p.* FROM periodo p
                 JOIN ejercicio e ON e.id = p.ejercicio_id
                 WHERE e.activo = TRUE AND p.estado = 'ABIERTO'
-                ORDER BY p.anio_mes_sort
-                """;
-        // fallback without generated column:
-        String sql2 = """
-                SELECT p.* FROM periodo p
-                JOIN ejercicio e ON e.id = p.ejercicio_id
-                WHERE e.activo = TRUE AND p.estado = 'ABIERTO'
                 ORDER BY p.fecha_inicio
                 LIMIT 1
                 """;
-        try (PreparedStatement ps = conn.prepareStatement(sql2);
+        try (PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             if (rs.next()) {
                 return Optional.of(mapPeriodo(rs));

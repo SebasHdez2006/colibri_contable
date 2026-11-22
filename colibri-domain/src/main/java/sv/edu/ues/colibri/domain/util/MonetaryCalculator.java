@@ -96,6 +96,9 @@ public final class MonetaryCalculator {
     }
 
     private static BigDecimal require(BigDecimal v) {
-        return v == null ? BigDecimal.ZERO : v;
+        if (v == null) {
+            throw new IllegalArgumentException("El valor monetario no puede ser nulo");
+        }
+        return v;
     }
 }

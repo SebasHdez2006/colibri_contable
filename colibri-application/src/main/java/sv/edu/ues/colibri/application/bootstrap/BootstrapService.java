@@ -86,7 +86,7 @@ public class BootstrapService {
             asegurarUsuarioDemo(conn, USUARIO_SOPORTE, "Soporte Técnico Colibrí", PASSWORD_SOPORTE,
                     RolUsuario.SOPORTE_TECNICO, "soporte@colibri.sv");
 
-            if (periodoRepository.ejercicioActivo(conn).isEmpty()) {
+            if (periodoRepository.buscarEjercicioPorAnio(conn, 2026).isEmpty()) {
                 int anio = 2026;
                 Ejercicio ejercicio = new Ejercicio(
                         UUID.randomUUID(),

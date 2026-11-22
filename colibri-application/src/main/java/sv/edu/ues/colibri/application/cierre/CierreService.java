@@ -66,6 +66,11 @@ public class CierreService {
                                  BigDecimal amortizacionAcumulada, boolean activo) {
     }
 
+    public record ActivoFijoInfo(UUID id, String codigo, String nombre, BigDecimal costo,
+                                 int vidaMeses, LocalDate fechaUso, BigDecimal valorResidual,
+                                 BigDecimal depreciacionAcumulada, boolean activo) {
+    }
+
     private record CuotaActivo(UUID activoId, String cuentaGasto, String cuentaAcumulada,
                                BigDecimal importe) {
     }
@@ -357,6 +362,8 @@ public class CierreService {
                     ? partida.getFolio() : "generada"));
         } catch (DomainException e) {
             resumen.add(nombre + ": omitido — " + e.getMessage());
+        } catch (Exception e) {
+            resumen.add(nombre + ": falló — " + e.getMessage());
         }
     }
 
@@ -454,6 +461,120 @@ public class CierreService {
         });
         return new IntangibleInfo(id, codigoNormalizado, nombreNormalizado, costoNormalizado, vidaMeses,
                 fechaUso, residual, BigDecimal.ZERO.setScale(2), true);
+    }
+
+    /**
+     * Registra un activo fijo tangible para su depreciación periódica posterior.
+     *
+     * @param codigo código del activo fijo
+     * @param nombre nombre del activo fijo
+     * @param costo costo de adquisición
+     * @param vidaMeses vida útil en meses
+     * @param fechaUso fecha de inicio de uso
+     * @param valorResidual valor residual
+     * @param cuentaActivo cuenta de activo
+     * @param cuentaDepreciacion cuenta de depreciación acumulada
+     * @param cuentaGasto cuenta de gasto
+     * @return información del activo fijo registrado
+     */
+    public ActivoFijoInfo registrarActivoFijo(String codigo, String nombre, BigDecimal costo, int vidaMeses,
+                                             LocalDate fechaUso, BigDecimal valorResidual,
+                                             String cuentaActivo, String cuentaDepreciacion,
+                                             String cuentaGasto) {
+        auth.exigirContador();
+        String codigoNormalizado = textoObligatorio(codigo, "El código del activo fijo");
+        String nombreNormalizado = textoObligatorio(nombre, "El nombre del activo fijo");
+        BigDecimal costoNormalizado = importePositivo(costo, "El costo del activo fijo");
+        validarEnteroPositivo(vidaMeses, "La vida útil en meses");
+        if (fechaUso == null) {
+            throw new DomainException("La fecha de disponibilidad de uso es obligatoria.");
+        }
+        BigDecimal residual = valorResidual == null ? BigDecimal.ZERO : monetario(valorResidual);
+        if (residual.signum() < 0 || residual.compareTo(costoNormalizado) >= 0) {
+            throw new DomainException("El valor residual debe ser mayor o igual a cero y menor que el costo.");
+        }
+        var perfil = parametrizacion.exigirPerfilPosting("DEPRECIACION");
+        String activo = parametrizacion.resolverCuenta(cuentaActivo, "120101", "cuenta del activo fijo");
+        String acumulada = parametrizacion.resolverCuenta(cuentaDepreciacion, perfil.cuentaHaber(),
+                "cuenta de depreciación acumulada");
+        String gasto = parametrizacion.resolverCuenta(cuentaGasto, perfil.cuentaDebe(),
+                "cuenta de gasto de depreciación");
+        UUID id = UUID.randomUUID();
+        jdbc.runInTransaction(conn -> {
+            try (PreparedStatement ps = conn.prepareStatement("""
+                    INSERT INTO activo_fijo (id, codigo, nombre, cuenta_activo, cuenta_dep_acum,
+                        cuenta_gasto, costo, vida_meses, fecha_uso, valor_residual)
+                    VALUES (?,?,?,?,?,?,?,?,?,?)
+                    """)) {
+                ps.setObject(1, id);
+                ps.setString(2, codigoNormalizado);
+                ps.setString(3, nombreNormalizado);
+                ps.setString(4, activo);
+                ps.setString(5, acumulada);
+                ps.setString(6, gasto);
+                ps.setBigDecimal(7, costoNormalizado);
+                ps.setInt(8, vidaMeses);
+                ps.setObject(9, fechaUso);
+                ps.setBigDecimal(10, residual);
+                ps.executeUpdate();
+            } catch (SQLException e) {
+                throw new PersistenceException("Error al registrar activo fijo", e);
+            }
+        });
+        return new ActivoFijoInfo(id, codigoNormalizado, nombreNormalizado, costoNormalizado, vidaMeses,
+                fechaUso, residual, BigDecimal.ZERO.setScale(2), true);
+    }
+
+    /**
+     * Da de baja un activo fijo retirándolo del servicio activo.
+     *
+     * @param codigo código del activo
+     * @param motivo motivo de la baja
+     */
+    public void darDeBajaActivoFijo(String codigo, String motivo) {
+        auth.exigirContador();
+        String cod = textoObligatorio(codigo, "El código del activo fijo");
+        jdbc.runInTransaction(conn -> {
+            try (PreparedStatement ps = conn.prepareStatement("""
+                    UPDATE activo_fijo SET activo = FALSE WHERE codigo = ? AND activo = TRUE
+                    """)) {
+                ps.setString(1, cod);
+                if (ps.executeUpdate() == 0) {
+                    throw new DomainException("Activo fijo no encontrado o ya dado de baja: " + cod);
+                }
+            } catch (SQLException e) {
+                throw new PersistenceException("Error al dar de baja el activo fijo", e);
+            }
+        });
+    }
+
+    /**
+     * Lista los activos fijos registrados.
+     *
+     * @return lista de activos fijos
+     */
+    public List<ActivoFijoInfo> listarActivosFijos() {
+        auth.exigirContador();
+        return jdbc.inTransaction(conn -> {
+            try (PreparedStatement ps = conn.prepareStatement("""
+                    SELECT id, codigo, nombre, costo, vida_meses, fecha_uso, valor_residual,
+                           depreciacion_acum, activo
+                    FROM activo_fijo
+                    ORDER BY codigo
+                    """);
+                 ResultSet rs = ps.executeQuery()) {
+                List<ActivoFijoInfo> list = new ArrayList<>();
+                while (rs.next()) {
+                    list.add(new ActivoFijoInfo((UUID) rs.getObject("id"), rs.getString("codigo"),
+                            rs.getString("nombre"), rs.getBigDecimal("costo"), rs.getInt("vida_meses"),
+                            rs.getObject("fecha_uso", LocalDate.class), rs.getBigDecimal("valor_residual"),
+                            rs.getBigDecimal("depreciacion_acum"), rs.getBoolean("activo")));
+                }
+                return list;
+            } catch (SQLException e) {
+                throw new PersistenceException("Error al listar activos fijos", e);
+            }
+        });
     }
 
     /**
@@ -834,10 +955,9 @@ public class CierreService {
         }
         String actualizar = """
                 UPDATE %s
-                SET %s = LEAST(costo - valor_residual, %s + ?),
-                    activo = CASE WHEN %s + ? >= costo - valor_residual THEN FALSE ELSE activo END
+                SET %s = LEAST(costo - valor_residual, %s + ?)
                 WHERE id = ?
-                """.formatted(tablaActivo, columnaAcumulada, columnaAcumulada, columnaAcumulada);
+                """.formatted(tablaActivo, columnaAcumulada, columnaAcumulada);
         jdbc.runInTransaction(conn -> {
             String vincular = "UPDATE %s SET partida_id=? WHERE activo_id=? AND periodo_id=? AND partida_id IS NULL"
                     .formatted(tablaCuota);

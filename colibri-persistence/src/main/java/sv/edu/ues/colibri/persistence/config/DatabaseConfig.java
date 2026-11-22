@@ -53,7 +53,6 @@ public final class DatabaseConfig {
 
         Path homeConfig = Path.of(System.getProperty("user.home"), ".colibri", "application.local.properties");
         loadFile(props, homeConfig);
-        loadFile(props, Path.of("application.local.properties"));
 
         overrideEnv(props, "COLIBRI_DB_URL", "db.url");
         overrideEnv(props, "COLIBRI_DB_USER", "db.user");
