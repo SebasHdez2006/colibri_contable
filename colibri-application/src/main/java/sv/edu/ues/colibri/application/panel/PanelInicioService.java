@@ -179,7 +179,7 @@ public class PanelInicioService {
                     SELECT DISTINCT EXTRACT(YEAR FROM p.fecha_contable)::int AS anio
                     FROM partida_detalle d
                     JOIN partida p ON p.id = d.partida_id
-                    WHERE p.estado = 'CONTABILIZADA'
+                    WHERE p.estado IN ('CONTABILIZADA','REVERTIDA')
                     ORDER BY anio
                     """);
                  ResultSet rs = ps.executeQuery()) {
@@ -205,7 +205,7 @@ public class PanelInicioService {
                             THEN d.debe - d.haber ELSE 0 END), 0) AS egresos
                 FROM partida_detalle d
                 JOIN partida p ON p.id = d.partida_id
-                WHERE p.estado = 'CONTABILIZADA'
+                WHERE p.estado IN ('CONTABILIZADA','REVERTIDA')
                   AND p.fecha_contable BETWEEN ? AND ?
                 GROUP BY 1, 2
                 ORDER BY 1, 2
@@ -230,7 +230,7 @@ public class PanelInicioService {
                 SELECT COALESCE(SUM(d.haber - d.debe), 0) AS ingreso
                 FROM partida_detalle d
                 JOIN partida p ON p.id = d.partida_id
-                WHERE p.estado = 'CONTABILIZADA'
+                WHERE p.estado IN ('CONTABILIZADA','REVERTIDA')
                   AND p.fecha_contable BETWEEN ? AND ?
                   AND d.codigo_cuenta LIKE '4%'
                 """)) {
@@ -251,7 +251,7 @@ public class PanelInicioService {
                          ELSE -(d.debe - d.haber) END), 0) AS utilidad
                 FROM partida_detalle d
                 JOIN partida p ON p.id = d.partida_id
-                WHERE p.estado = 'CONTABILIZADA'
+                WHERE p.estado IN ('CONTABILIZADA','REVERTIDA')
                   AND p.fecha_contable BETWEEN ? AND ?
                   AND (d.codigo_cuenta LIKE '4%' OR d.codigo_cuenta LIKE '5%'
                        OR d.codigo_cuenta LIKE '6%' OR d.codigo_cuenta LIKE '7%')
@@ -271,7 +271,7 @@ public class PanelInicioService {
                 SELECT COALESCE(SUM(d.debe - d.haber), 0) AS saldo
                 FROM partida_detalle d
                 JOIN partida p ON p.id = d.partida_id
-                WHERE p.estado = 'CONTABILIZADA'
+                WHERE p.estado IN ('CONTABILIZADA','REVERTIDA')
                   AND p.fecha_contable <= ?
                   AND d.codigo_cuenta LIKE ?
                 """)) {

@@ -91,7 +91,7 @@ public class LibroContableService {
 
     private record MovimientoEfectivo(String folio, LocalDate fecha, String concepto,
                                       BigDecimal importe, boolean inversion,
-                                      boolean financiacion) {
+                                      boolean financiacion, String tipoFlujo) {
     }
 
     /**
@@ -513,9 +513,20 @@ public class LibroContableService {
                             && !"310401".equals(cuenta.codigo())
                             && !tienePrefijo(cuenta.codigo(), "3101", "3102", "3103")));
 
+            BigDecimal saldo310401 = saldos.stream()
+                    .filter(cuenta -> "310401".equals(cuenta.codigo()))
+                    .map(CuentaMovimiento::saldoAcreedor)
+                    .findFirst()
+                    .orElse(BigDecimal.ZERO);
+
             LocalDate inicioEjercicio = LocalDate.of(fechaCorte.getYear(), 1, 1);
-            BigDecimal resultado = resultadoNeto(
+            BigDecimal resultadoCalculado = resultadoNeto(
                     movimientos(conn, inicioEjercicio, fechaCorte, soloCasoD));
+
+            // Si ya se contabilizó la partida de cierre en 310401, el resultado del ejercicio
+            // reside formalmente en dicha cuenta patrimonial; si aún no hay cierre, se toma el
+            // resultado neto derivado de los ingresos y gastos del ejercicio corriente.
+            BigDecimal resultado = saldo310401.signum() != 0 ? saldo310401 : resultadoCalculado;
             lineas.add(new LineaEstado("", "Resultado del ejercicio", resultado, 1, false));
             patrimonio = patrimonio.add(resultado);
             lineas.add(total("TOTAL PATRIMONIO", patrimonio));
@@ -706,6 +717,9 @@ public class LibroContableService {
     }
 
     private String tipoFlujo(MovimientoEfectivo movimiento) {
+        if (movimiento.tipoFlujo() != null && !movimiento.tipoFlujo().isBlank()) {
+            return movimiento.tipoFlujo();
+        }
         if (movimiento.financiacion()) {
             return "FINANCIACION";
         }
@@ -742,11 +756,14 @@ public class LibroContableService {
                 SELECT p.folio, p.fecha_contable, p.concepto,
                        COALESCE(SUM(CASE WHEN d.codigo_cuenta LIKE '1101%%'
                            THEN d.debe - d.haber ELSE 0 END), 0) AS importe,
-                       BOOL_OR(CASE WHEN d.codigo_cuenta NOT LIKE '1101%%'
-                           AND c.rubro = 'ACTIVO_NO_CORRIENTE' THEN TRUE ELSE FALSE END) AS inversion,
-                       BOOL_OR(CASE WHEN d.codigo_cuenta NOT LIKE '1101%%'
+                       COALESCE(SUM(CASE WHEN d.codigo_cuenta NOT LIKE '1101%%'
+                           AND c.rubro = 'ACTIVO_NO_CORRIENTE' THEN ABS(d.haber - d.debe) ELSE 0 END), 0) AS monto_inv,
+                       COALESCE(SUM(CASE WHEN d.codigo_cuenta NOT LIKE '1101%%'
                            AND (c.rubro = 'PASIVO_NO_CORRIENTE' OR c.rubro = 'PATRIMONIO')
-                           THEN TRUE ELSE FALSE END) AS financiacion
+                           THEN ABS(d.haber - d.debe) ELSE 0 END), 0) AS monto_fin,
+                       COALESCE(SUM(CASE WHEN d.codigo_cuenta NOT LIKE '1101%%'
+                           AND c.rubro NOT IN ('ACTIVO_NO_CORRIENTE', 'PASIVO_NO_CORRIENTE', 'PATRIMONIO')
+                           THEN ABS(d.haber - d.debe) ELSE 0 END), 0) AS monto_op
                 FROM partida p
                 JOIN partida_detalle d ON d.partida_id = p.id
                 JOIN cuenta c ON c.codigo = d.codigo_cuenta
@@ -764,10 +781,21 @@ public class LibroContableService {
             try (ResultSet rs = ps.executeQuery()) {
                 List<MovimientoEfectivo> movimientos = new ArrayList<>();
                 while (rs.next()) {
+                    BigDecimal montoInv = rs.getBigDecimal("monto_inv");
+                    BigDecimal montoFin = rs.getBigDecimal("monto_fin");
+                    BigDecimal montoOp = rs.getBigDecimal("monto_op");
+                    String tipo;
+                    if (montoFin.compareTo(montoInv) > 0 && montoFin.compareTo(montoOp) > 0) {
+                        tipo = "FINANCIACION";
+                    } else if (montoInv.compareTo(montoOp) > 0) {
+                        tipo = "INVERSION";
+                    } else {
+                        tipo = "OPERACION";
+                    }
                     movimientos.add(new MovimientoEfectivo(rs.getString("folio"),
                             rs.getObject("fecha_contable", LocalDate.class), rs.getString("concepto"),
-                            rs.getBigDecimal("importe"), rs.getBoolean("inversion"),
-                            rs.getBoolean("financiacion")));
+                            rs.getBigDecimal("importe"), montoInv.signum() > 0,
+                            montoFin.signum() > 0, tipo));
                 }
                 return movimientos;
             }
@@ -782,7 +810,7 @@ public class LibroContableService {
 
     private List<CuentaMovimiento> movimientos(Connection conn, LocalDate desde, LocalDate hasta,
                                                boolean soloCasoD) {
-        return consultarMovimientos(conn, "p.fecha_contable BETWEEN ? AND ?", desde, hasta, soloCasoD);
+        return consultarMovimientos(conn, "p.fecha_contable BETWEEN ? AND ?", desde, hasta, soloCasoD, false);
     }
 
     private List<CuentaMovimiento> movimientosHasta(Connection conn, LocalDate hasta) {
@@ -790,12 +818,13 @@ public class LibroContableService {
     }
 
     private List<CuentaMovimiento> movimientosHasta(Connection conn, LocalDate hasta, boolean soloCasoD) {
-        return consultarMovimientos(conn, "p.fecha_contable <= ?", hasta, null, soloCasoD);
+        return consultarMovimientos(conn, "p.fecha_contable <= ?", hasta, null, soloCasoD, true);
     }
 
     private List<CuentaMovimiento> consultarMovimientos(Connection conn, String filtroFechas,
                                                         LocalDate desde, LocalDate hasta,
-                                                        boolean soloCasoD) {
+                                                        boolean soloCasoD, boolean incluirCierre) {
+        String filtroCierre = incluirCierre ? "" : "AND p.tipo <> 'CI'";
         String sql = """
                 SELECT c.codigo, c.nombre, c.rubro,
                        COALESCE(SUM(d.debe), 0) AS debe,
@@ -805,11 +834,12 @@ public class LibroContableService {
                 JOIN partida p ON p.id = d.partida_id
                 WHERE length(c.codigo) = 6
                   AND p.estado IN ('CONTABILIZADA','REVERTIDA')
-                                    AND %s
-                                        %s
+                  %s
+                  AND %s
+                      %s
                 GROUP BY c.codigo, c.nombre, c.rubro
                 ORDER BY c.codigo
-                                                                """.formatted(filtroFechas, filtroEvento(soloCasoD));
+                """.formatted(filtroCierre, filtroFechas, filtroEvento(soloCasoD));
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setObject(1, desde);
             if (filtroFechas.contains("BETWEEN")) {
@@ -836,7 +866,8 @@ public class LibroContableService {
         List<LineaEstado> lineas = new ArrayList<>();
         BigDecimal ventasBrutas = cuentas.stream().filter(c -> c.codigo().startsWith("4"))
                 .map(CuentaMovimiento::haber).reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal devolucionesYDescuentos = cuentas.stream().filter(c -> c.codigo().startsWith("4"))
+        BigDecimal devolucionesYDescuentos = cuentas.stream().filter(c -> c.codigo().startsWith("4")
+                && (c.codigo().startsWith("4107") || c.codigo().startsWith("4108") || c.nombre().toLowerCase().contains("devoluc")))
                 .map(CuentaMovimiento::debe).reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal ingresos = ventasBrutas.subtract(devolucionesYDescuentos);
         lineas.add(new LineaEstado("", "VENTAS Y SERVICIOS", BigDecimal.ZERO, 0, false));
@@ -1066,9 +1097,9 @@ public class LibroContableService {
     public List<LineaIva> libroIva(LocalDate desde, LocalDate hasta, String tipoLibro) {
         auth.exigirContador();
         String filtro = switch (tipoLibro) {
-            case "COMPRAS" -> "AND d.tipo IN ('CCF','FACTURA','NC','ND') AND de.tipo_evento = 'COMPRA'";
-            case "VENTAS_CCF" -> "AND d.tipo = 'CCF' AND de.tipo_evento IN ('VENTA','ANTICIPO')";
-            default -> "AND d.tipo IN ('FACTURA','NC','ND') AND de.tipo_evento IN ('VENTA','ANTICIPO')";
+            case "COMPRAS" -> "AND d.tipo IN ('CCF','NC','ND') AND de.tipo_evento = 'COMPRA'";
+            case "VENTAS_CCF" -> "AND d.tipo IN ('CCF','NC','ND') AND de.tipo_evento IN ('VENTA','ANTICIPO')";
+            default -> "AND d.tipo = 'FACTURA' AND de.tipo_evento IN ('VENTA','ANTICIPO')";
         };
         return jdbc.inTransaction(conn -> {
             String sql = """
