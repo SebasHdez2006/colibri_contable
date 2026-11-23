@@ -6,11 +6,16 @@ import sv.edu.ues.colibri.domain.model.Cuenta;
 import sv.edu.ues.colibri.domain.model.EstadoCuenta;
 import sv.edu.ues.colibri.domain.model.NaturalezaCuenta;
 import sv.edu.ues.colibri.persistence.jdbc.JdbcSupport;
+import sv.edu.ues.colibri.persistence.jdbc.PersistenceException;
 import sv.edu.ues.colibri.persistence.repo.BitacoraRepository;
 import sv.edu.ues.colibri.persistence.repo.CatalogoVersionRepository;
 import sv.edu.ues.colibri.persistence.repo.CuentaRepository;
 import sv.edu.ues.colibri.application.auth.AuthService;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
@@ -106,8 +111,15 @@ public class CatalogoService {
             if (padre.getNivel() != 4) {
                 throw new DomainException("El padre de una subcuenta de movimiento debe ser cuenta de 4 dígitos.");
             }
+            // La subcuenta debe extender el código del padre y heredar su naturaleza
+            // y rubro: una cuenta hija no puede contradecir la clasificación del grupo.
+            if (!codigo.startsWith(codigoPadre)) {
+                throw new DomainException("El código " + codigo + " debe iniciar con el prefijo de la "
+                        + "cuenta padre " + codigoPadre + ".");
+            }
             Cuenta nueva = new Cuenta(UUID.randomUUID(), codigo, nombre, codigoPadre, 6,
-                    naturaleza, rubro, EstadoCuenta.ACTIVA, LocalDate.now(), null, true);
+                    padre.getNaturaleza(), padre.getRubro(), EstadoCuenta.ACTIVA,
+                    LocalDate.now(), null, true);
             cuentaRepository.insertar(conn, nueva);
             bitacoraRepository.registrar(conn, BitacoraEntrada.de(
                     contador.getId(), "CREAR_CUENTA", "CUENTA", codigo, null, nombre, null));
@@ -144,9 +156,18 @@ public class CatalogoService {
         jdbc.runInTransaction(conn -> {
             Cuenta cuenta = cuentaRepository.buscarPorCodigo(conn, codigo)
                     .orElseThrow(() -> new DomainException("Cuenta no encontrada"));
-            if (cuentaRepository.tieneMovimientos(conn, codigo)
-                    && (nuevoEstado == EstadoCuenta.DESACTIVADA)) {
-                // permitido: desactivar no borra ni cambia código/naturaleza
+            if (nuevoEstado == EstadoCuenta.DESACTIVADA) {
+                if (cuentaRepository.tieneMovimientos(conn, codigo)) {
+                    // Una cuenta con movimientos conserva su historial y sus saldos:
+                    // para impedir nuevas imputaciones se usa BLOQUEADA, no DESACTIVADA.
+                    throw new DomainException("La cuenta " + codigo + " tiene movimientos "
+                            + "registrados y no puede desactivarse. Si desea impedir nuevos "
+                            + "movimientos, cámbiela a BLOQUEADA.");
+                }
+                if (referenciadaEnPerfilPosting(conn, codigo)) {
+                    throw new DomainException("La cuenta " + codigo + " está asociada a un perfil "
+                            + "de contabilización y no puede desactivarse.");
+                }
             }
             String anterior = cuenta.getEstado().name();
             cuenta.setEstado(nuevoEstado);
@@ -154,6 +175,31 @@ public class CatalogoService {
             bitacoraRepository.registrar(conn, BitacoraEntrada.de(
                     contador.getId(), "ESTADO_CUENTA", "CUENTA", codigo, anterior, nuevoEstado.name(), null));
         });
+    }
+
+    /**
+     * Indica si la cuenta aparece en algún perfil de contabilización activo.
+     *
+     * @param conn conexión activa
+     * @param codigo código de cuenta
+     * @return {@code true} si algún perfil la referencia en Debe, Haber o IVA
+     */
+    private boolean referenciadaEnPerfilPosting(Connection conn, String codigo) {
+        String sql = """
+                SELECT COUNT(*) FROM posting_profile
+                WHERE cuenta_debe = ? OR cuenta_haber = ? OR cuenta_iva = ?
+                """;
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, codigo);
+            ps.setString(2, codigo);
+            ps.setString(3, codigo);
+            try (ResultSet rs = ps.executeQuery()) {
+                rs.next();
+                return rs.getLong(1) > 0;
+            }
+        } catch (SQLException e) {
+            throw new PersistenceException("Error al verificar perfiles de contabilización", e);
+        }
     }
 
     /**

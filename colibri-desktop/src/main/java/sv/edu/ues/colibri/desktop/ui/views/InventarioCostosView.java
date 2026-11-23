@@ -20,6 +20,7 @@ import sv.edu.ues.colibri.application.AppContext;
 import sv.edu.ues.colibri.application.configuracion.ParametrizacionService;
 import sv.edu.ues.colibri.application.inventario.InventarioCostoService;
 import sv.edu.ues.colibri.desktop.ui.ResponsiveLayouts;
+import sv.edu.ues.colibri.desktop.ui.UiCampos;
 import sv.edu.ues.colibri.desktop.ui.UiCatalogos;
 import sv.edu.ues.colibri.desktop.ui.UiDialogs;
 import sv.edu.ues.colibri.desktop.ui.UiTables;
@@ -142,8 +143,8 @@ public class InventarioCostosView extends VBox {
         costoUnitario.textProperty().addListener((o, a, b) -> actualizarTotal.run());
         Button liberar = new Button("Liberar lote");
         liberar.setOnAction(e -> ejecutar(() -> {
-            int cant = Integer.parseInt(unidades.getText().trim());
-            BigDecimal unitario = new BigDecimal(costoUnitario.getText().trim());
+            int cant = UiCampos.entero(unidades.getText(), "número de licencias");
+            BigDecimal unitario = UiCampos.importe(costoUnitario.getText());
             if (cant <= 0) {
                 throw new IllegalArgumentException("La cantidad de licencias debe ser mayor que cero.");
             }
@@ -183,7 +184,7 @@ public class InventarioCostosView extends VBox {
                 throw new IllegalArgumentException("Seleccione el cliente al que se concede la licencia.");
             }
             var p = context.inventario().venderLicenciaPeps(cliente.getValue().getId(),
-                    fecha.getValue(), new BigDecimal(precio.getText().trim()), null);
+                    fecha.getValue(), UiCampos.importe(precio.getText()), null);
             UiDialogs.info("Venta contabilizada", "Folio %s. Se aplicaron ingreso, IVA y costo de ventas por PEPS.".formatted(p.getFolio()));
             precio.clear();
             refrescar();
@@ -269,10 +270,8 @@ public class InventarioCostosView extends VBox {
             if (fechaDeterioro.getValue() == null) {
                 throw new IllegalArgumentException("Seleccione la fecha del ajuste.");
             }
-            BigDecimal recuperable;
-            try {
-                recuperable = new BigDecimal(valorRecuperable.getText().trim());
-            } catch (NumberFormatException ex) {
+            BigDecimal recuperable = UiCampos.importeONull(valorRecuperable.getText());
+            if (recuperable == null) {
                 throw new IllegalArgumentException("Ingrese el valor recuperable en USD.");
             }
             if (recuperable.signum() < 0) {
@@ -747,7 +746,7 @@ public class InventarioCostosView extends VBox {
         guardarPlan.setOnAction(e -> ejecutar(() -> {
             context.parametrizacion().guardarPlan(new ParametrizacionService.PlanServicio(
                     UUID.randomUUID(), pCod.getText(), pNom.getText(), pMod.getValue(),
-                    new BigDecimal(pTar.getText()), pFacturacion.getValue(), UiCatalogos.codigoCuenta(pCta),
+                    UiCampos.importe(pTar.getText()), pFacturacion.getValue(), UiCatalogos.codigoCuenta(pCta),
                     planActivo.isSelected()));
             UiTables.reemplazarFilas(tablaPlanes, context.parametrizacion().listarPlanes());
             recargarPlanes(planCosto, "SERVICIO");
@@ -804,7 +803,7 @@ public class InventarioCostosView extends VBox {
             }
             var costoPlan = context.inventario().registrarConsumoPlan(planCosto.getValue().codigo(),
                     tipoCosto.getValue(), costoDescripcion.getText(),
-                    new BigDecimal(costoCantidad.getText().trim()), new BigDecimal(costoTarifa.getText().trim()),
+                    UiCampos.importe(costoCantidad.getText()), UiCampos.importe(costoTarifa.getText()),
                     fecha.getValue());
             acumulado.setText("Plan %s · MOD $%s · Directos $%s · CIF $%s · Total $%s".formatted(
                     costoPlan.codigoPlan(), costoPlan.manoObra(), costoPlan.serviciosDirectos(),
@@ -850,7 +849,7 @@ public class InventarioCostosView extends VBox {
         Button consumoManual = new Button("Registrar MOD");
         consumoManual.setOnAction(e -> ejecutar(() -> {
             context.inventario().registrarConsumoOrden(codigoOrden.getText().trim(), "MOD", "Horas de desarrollo",
-                    new BigDecimal(horas.getText()), new BigDecimal(tarifa.getText()), fecha.getValue());
+                    UiCampos.importe(horas.getText()), UiCampos.importe(tarifa.getText()), fecha.getValue());
             refrescar();
         }));
         // --- Ciclo de vida de órdenes de servicio ---
@@ -904,10 +903,8 @@ public class InventarioCostosView extends VBox {
         }
         Button crearOrd = new Button("Crear orden");
         crearOrd.setOnAction(e -> ejecutar(() -> {
-            BigDecimal pres = ordPres.getText().isBlank() ? BigDecimal.ZERO
-                    : new BigDecimal(ordPres.getText().trim());
-            BigDecimal venta = ordVenta.getText().isBlank() ? BigDecimal.ZERO
-                    : new BigDecimal(ordVenta.getText().trim());
+            BigDecimal pres = UiCampos.importeOCero(ordPres.getText());
+            BigDecimal venta = UiCampos.importeOCero(ordVenta.getText());
             var creada = context.inventario().crearOrden(ordCod.getText().trim(), ordDesc.getText().trim(),
                     pres, venta, clienteOrd.getValue() == null ? null : clienteOrd.getValue().getId());
             UiDialogs.info("Orden creada", "Se registró " + creada.codigo() + " con estado ABIERTA.");
@@ -965,10 +962,8 @@ public class InventarioCostosView extends VBox {
             if (sel == null) {
                 throw new IllegalArgumentException("Seleccione la orden a modificar en la tabla.");
             }
-            BigDecimal pres = ordPres.getText().isBlank() ? BigDecimal.ZERO
-                    : new BigDecimal(ordPres.getText().trim());
-            BigDecimal venta = ordVenta.getText().isBlank() ? BigDecimal.ZERO
-                    : new BigDecimal(ordVenta.getText().trim());
+            BigDecimal pres = UiCampos.importeOCero(ordPres.getText());
+            BigDecimal venta = UiCampos.importeOCero(ordVenta.getText());
             context.inventario().actualizarOrden(sel.codigo(), ordDesc.getText().trim(),
                     pres, venta, clienteOrd.getValue() == null ? null : clienteOrd.getValue().getId());
             UiDialogs.info("Orden actualizada", "Los cambios de " + sel.codigo()
@@ -1022,7 +1017,7 @@ public class InventarioCostosView extends VBox {
         Button calcularComparativo = new Button("Comparar PEPS / promedio / UEPS");
         calcularComparativo.setOnAction(e -> ejecutar(() -> {
             var analisis = context.inventario().analizarValoracionInventario(
-                    Integer.parseInt(unidadesAnalisis.getText().trim()));
+                    UiCampos.entero(unidadesAnalisis.getText(), "unidades para análisis"));
             pepsCosto.setText(dinero(analisis.costoPeps()));
             pepsSaldo.setText(dinero(analisis.saldoPeps()));
             promedioCosto.setText(dinero(analisis.costoPromedio()));
@@ -1054,7 +1049,7 @@ public class InventarioCostosView extends VBox {
                 throw new IllegalArgumentException("Seleccione un plan SaaS.");
             }
             context.inventario().registrarUsuariosMesSaas(plan.getValue().codigo(), fecha.getValue(),
-                    Integer.parseInt(usuarios.getText().trim()));
+                    UiCampos.entero(usuarios.getText(), "usuarios del mes"));
             saasLbl.setText("Usuarios-mes guardados para %s en %s.".formatted(plan.getValue().codigo(),
                     fecha.getValue().withDayOfMonth(1)));
         }));

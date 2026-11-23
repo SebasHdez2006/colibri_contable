@@ -112,7 +112,110 @@ public class BootstrapService {
                     periodoRepository.insertarPeriodo(conn, periodo);
                 }
             }
+
+            asegurarAsientosAperturaActivos(conn);
         });
+    }
+
+    /**
+     * Garantiza que cada activo fijo registrado tenga su asiento de apertura en
+     * el mayor (Debe cuenta_activo / Haber 310301 Utilidades retenidas). Los
+     * activos semilla como AF-PC-001 se insertaron directamente en la tabla sin
+     * partida, lo que dejaba el auxiliar con saldo y el mayor en cero. El proceso
+     * es idempotente: se omite si ya existe el evento de apertura.
+     *
+     * @param conn conexión activa de la transacción de arranque
+     */
+    private void asegurarAsientosAperturaActivos(java.sql.Connection conn) {
+        String sql = """
+                DO $$
+                DECLARE
+                    af RECORD;
+                    v_periodo UUID;
+                    v_anio INTEGER;
+                    v_evento UUID;
+                    v_partida UUID;
+                    v_folio VARCHAR(20);
+                    v_seq BIGINT;
+                    v_fecha DATE;
+                BEGIN
+                    FOR af IN
+                        SELECT codigo, nombre, cuenta_activo, costo, fecha_uso
+                        FROM activo_fijo
+                        WHERE costo IS NOT NULL AND costo > 0
+                          AND cuenta_activo IS NOT NULL
+                          AND cuenta_activo ~ '^\\d{6}$'
+                          AND EXISTS (SELECT 1 FROM cuenta c WHERE c.codigo = activo_fijo.cuenta_activo)
+                          AND EXISTS (SELECT 1 FROM cuenta c WHERE c.codigo = '310301')
+                          -- Si la cuenta de activo ya tiene saldo mayorizado (p. ej. los
+                          -- seeds capitalizan los activos en el asiento de apertura y en
+                          -- compras del ejercicio), crear la apertura duplicaría el activo.
+                          AND NOT EXISTS (
+                              SELECT 1 FROM (
+                                  SELECT d.codigo_cuenta, SUM(d.debe - d.haber) AS saldo
+                                  FROM partida_detalle d
+                                  JOIN partida p ON p.id = d.partida_id
+                                  WHERE p.estado IN ('CONTABILIZADA','REVERTIDA')
+                                  GROUP BY d.codigo_cuenta
+                              ) s
+                              WHERE s.codigo_cuenta = activo_fijo.cuenta_activo
+                                AND s.saldo <> 0
+                          )
+                    LOOP
+                        IF EXISTS (SELECT 1 FROM evento_contable
+                                   WHERE clave_unica = 'APERTURA-AF-' || af.codigo) THEN
+                            CONTINUE;
+                        END IF;
+                        SELECT p.id, e.anio INTO v_periodo, v_anio
+                        FROM periodo p JOIN ejercicio e ON e.id = p.ejercicio_id
+                        WHERE af.fecha_uso BETWEEN p.fecha_inicio AND p.fecha_fin
+                        ORDER BY p.fecha_inicio LIMIT 1;
+                        IF v_periodo IS NULL THEN
+                            SELECT p.id, e.anio INTO v_periodo, v_anio
+                            FROM periodo p JOIN ejercicio e ON e.id = p.ejercicio_id
+                            ORDER BY p.fecha_inicio LIMIT 1;
+                        END IF;
+                        IF v_periodo IS NULL THEN
+                            CONTINUE;
+                        END IF;
+                        -- La fecha contable debe caer dentro del período elegido; una
+                        -- fecha_uso fuera de todo ejercicio (p. ej. 2024) se traslada al
+                        -- inicio del período para no romper la coherencia diario/mayor.
+                        SELECT CASE WHEN af.fecha_uso BETWEEN p.fecha_inicio AND p.fecha_fin
+                                    THEN af.fecha_uso ELSE p.fecha_inicio END
+                        INTO v_fecha
+                        FROM periodo p WHERE p.id = v_periodo;
+                        v_evento := gen_random_uuid();
+                        v_partida := gen_random_uuid();
+                        INSERT INTO folio_secuencia (anio, tipo, ultimo) VALUES (v_anio, 'AP', 1)
+                        ON CONFLICT (anio, tipo) DO UPDATE SET ultimo = folio_secuencia.ultimo + 1
+                        RETURNING ultimo INTO v_seq;
+                        v_folio := 'AP-' || v_anio || '-' || lpad(v_seq::text, 6, '0');
+                        INSERT INTO evento_contable (id, clave_unica, descripcion)
+                        VALUES (v_evento, 'APERTURA-AF-' || af.codigo,
+                                'Apertura de activo fijo ' || af.codigo || ' ' || af.nombre);
+                        INSERT INTO partida (id, tipo, folio, fecha_contable, periodo_id, concepto,
+                                             estado, origen, documento_soporte, evento_id,
+                                             creado_en, actualizado_en)
+                        VALUES (v_partida, 'AP', v_folio, v_fecha,
+                                v_periodo,
+                                'Apertura activo fijo ' || af.codigo || ' ' || af.nombre,
+                                'CONTABILIZADA', 'SEED', 'Apertura inicial de activo fijo',
+                                v_evento, now(), now());
+                        INSERT INTO partida_detalle (id, partida_id, linea, codigo_cuenta, debe, haber)
+                        VALUES (gen_random_uuid(), v_partida, 1, af.cuenta_activo, af.costo, 0),
+                               (gen_random_uuid(), v_partida, 2, '310301', 0, af.costo);
+                        UPDATE evento_contable SET partida_contabilizada_id = v_partida
+                        WHERE id = v_evento;
+                    END LOOP;
+                END $$;
+                """;
+        try (var st = conn.createStatement()) {
+            st.execute(sql);
+        } catch (java.sql.SQLException e) {
+            throw new sv.edu.ues.colibri.persistence.jdbc.PersistenceException(
+                    "No se pudieron generar los asientos de apertura de activos fijos", e);
+        }
     }
 
     /**

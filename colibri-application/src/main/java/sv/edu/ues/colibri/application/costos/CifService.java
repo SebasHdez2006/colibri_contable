@@ -16,6 +16,7 @@ import sv.edu.ues.colibri.persistence.repo.PartidaRepository;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -222,8 +223,13 @@ public final class CifService {
         CostosCalculator.AnalisisCif analisis = exigirCedula(periodo.getId(), centro).analizar();
         BigDecimal aplicadoContable = totalAplicado(periodo.getId(), centro);
         validarConciliacionAplicaciones(analisis.cifAplicados(), aplicadoContable);
-        BigDecimal real = analisis.cifReales();
-        if (real.signum() <= 0 && aplicadoContable.signum() <= 0) {
+        // El CIF real que se cancela es el saldo mayorizado de la cuenta de control
+        // en el período y centro, no el monto digitado en la cédula: así la cuenta
+        // queda en cero aunque la cédula difiera del mayor o existan asientos
+        // manuales de CIF real.
+        BigDecimal real = jdbc.inTransaction(conn ->
+                saldoCuentaCifReal(conn, cuentaReal, centro, periodo.getId()));
+        if (real.signum() == 0 && aplicadoContable.signum() == 0) {
             throw new DomainException("No hay CIF real ni CIF aplicado que cerrar en este centro.");
         }
         BigDecimal variacion = real.subtract(aplicadoContable).setScale(2, RoundingMode.HALF_UP);
@@ -244,6 +250,10 @@ public final class CifService {
         }
         if (real.signum() > 0) {
             lineas.add(PartidaDetalle.nueva(cuentaReal, null, centro, BigDecimal.ZERO, real));
+        } else if (real.signum() < 0) {
+            // Saldo acreedor en la cuenta de CIF real: se debita su valor absoluto
+            // para dejar la cuenta en cero sin descuadrar el asiento.
+            lineas.add(PartidaDetalle.nueva(cuentaReal, null, centro, real.abs(), BigDecimal.ZERO));
         }
         if (variacion.signum() > 0) {
             lineas.add(PartidaDetalle.nueva(CUENTA_RESULTADO_CIF_PROYECTOS, null, centro,
@@ -550,6 +560,32 @@ public final class CifService {
                 throw new PersistenceException("No se pudo sumar el CIF aplicado del período", e);
             }
         });
+    }
+
+    /**
+     * Saldo deudor mayorizado de la cuenta de CIF real para el período y centro.
+     * Incluye partidas revertidas porque su contrapartida de reversa también está
+     * contabilizada: ambas se anulan y el saldo refleja el mayor real.
+     */
+    private BigDecimal saldoCuentaCifReal(Connection conn, String cuentaReal, String centro,
+                                          UUID periodoId) {
+        try (PreparedStatement ps = conn.prepareStatement("""
+                SELECT COALESCE(SUM(d.debe - d.haber), 0)
+                FROM partida_detalle d
+                JOIN partida p ON p.id = d.partida_id
+                WHERE d.codigo_cuenta = ? AND d.centro_costo = ?
+                  AND p.periodo_id = ? AND p.estado IN ('CONTABILIZADA','REVERTIDA')
+                """)) {
+            ps.setString(1, cuentaReal);
+            ps.setString(2, centro);
+            ps.setObject(3, periodoId);
+            try (ResultSet rs = ps.executeQuery()) {
+                rs.next();
+                return rs.getBigDecimal(1).setScale(2, RoundingMode.HALF_UP);
+            }
+        } catch (SQLException e) {
+            throw new PersistenceException("No se pudo leer el saldo de la cuenta de CIF real", e);
+        }
     }
 
     private void validarCedulaModificable(UUID periodoId, String centro,

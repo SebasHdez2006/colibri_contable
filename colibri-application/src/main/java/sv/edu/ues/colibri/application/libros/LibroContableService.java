@@ -519,14 +519,13 @@ public class LibroContableService {
                     .findFirst()
                     .orElse(BigDecimal.ZERO);
 
-            LocalDate inicioEjercicio = LocalDate.of(fechaCorte.getYear(), 1, 1);
-            BigDecimal resultadoCalculado = resultadoNeto(
-                    movimientos(conn, inicioEjercicio, fechaCorte, soloCasoD));
-
-            // Si ya se contabilizó la partida de cierre en 310401, el resultado del ejercicio
-            // reside formalmente en dicha cuenta patrimonial; si aún no hay cierre, se toma el
-            // resultado neto derivado de los ingresos y gastos del ejercicio corriente.
-            BigDecimal resultado = saldo310401.signum() != 0 ? saldo310401 : resultadoCalculado;
+            // El resultado del ejercicio combina el saldo formal de 310401 (partidas de
+            // determinación ya contabilizadas, incluidas las de ejercicios anteriores que
+            // no fueron trasladadas a resultados acumulados) con el resultado neto vigente
+            // de las cuentas 4 a 7. Si el cierre ya movió el resultado a 310401, las cuentas
+            // de resultado quedaron en cero y sólo aporta el saldo de 310401; si aún no hay
+            // cierre, las cuentas 4 a 7 conservan el resultado del año en curso.
+            BigDecimal resultado = saldo310401.add(resultadoNeto(saldos));
             lineas.add(new LineaEstado("", "Resultado del ejercicio", resultado, 1, false));
             patrimonio = patrimonio.add(resultado);
             lineas.add(total("TOTAL PATRIMONIO", patrimonio));
@@ -570,8 +569,7 @@ public class LibroContableService {
             LocalDate corteInicial = desde.equals(LocalDate.MIN) ? LocalDate.MIN : desde.minusDays(1);
             List<CuentaMovimiento> iniciales = movimientosHasta(conn, corteInicial, soloCasoD);
             List<CuentaMovimiento> finales = movimientosHasta(conn, hasta, soloCasoD);
-            List<CuentaMovimiento> movimientosPeriodo = movimientos(conn, desde, hasta, soloCasoD);
-            return construirEstadoCambiosPatrimonio(iniciales, finales, movimientosPeriodo);
+            return construirEstadoCambiosPatrimonio(iniciales, finales);
         });
     }
 
@@ -633,8 +631,7 @@ public class LibroContableService {
     }
 
     private List<LineaCambioPatrimonio> construirEstadoCambiosPatrimonio(
-            List<CuentaMovimiento> iniciales, List<CuentaMovimiento> finales,
-            List<CuentaMovimiento> movimientosPeriodo) {
+            List<CuentaMovimiento> iniciales, List<CuentaMovimiento> finales) {
         Map<String, CuentaMovimiento> porCuentaInicial = porCodigo(iniciales);
         Map<String, CuentaMovimiento> porCuentaFinal = porCodigo(finales);
         List<String> codigos = new ArrayList<>();
@@ -667,11 +664,15 @@ public class LibroContableService {
             saldoFinalCuentas = saldoFinalCuentas.add(saldoFinal);
         }
 
-        BigDecimal resultadoCalculado = resultadoNeto(movimientosPeriodo);
-        BigDecimal movimientoResultadoContabilizado = saldoAcreedor(porCuentaFinal.get("310401"))
-                .subtract(saldoAcreedor(porCuentaInicial.get("310401")));
-        BigDecimal resultado = resultadoCalculado.signum() != 0
-                ? resultadoCalculado : movimientoResultadoContabilizado;
+        // El resultado del período es la variación del resultado acumulado presentado:
+        // saldo de 310401 más resultado neto vigente de las cuentas 4 a 7, en ambos cortes.
+        // Cubre cierre dentro del período, resultado aún en cuentas de resultado y
+        // arrastre de ejercicios anteriores no trasladados a resultados acumulados.
+        BigDecimal resultadoInicial = saldoAcreedor(porCuentaInicial.get("310401"))
+                .add(resultadoNeto(iniciales));
+        BigDecimal resultadoFinal = saldoAcreedor(porCuentaFinal.get("310401"))
+                .add(resultadoNeto(finales));
+        BigDecimal resultado = resultadoFinal.subtract(resultadoInicial);
         lineas.add(new LineaCambioPatrimonio("", "Resultado del período", BigDecimal.ZERO,
                 BigDecimal.ZERO, resultado, resultado, false));
 
@@ -810,7 +811,8 @@ public class LibroContableService {
 
     private List<CuentaMovimiento> movimientos(Connection conn, LocalDate desde, LocalDate hasta,
                                                boolean soloCasoD) {
-        return consultarMovimientos(conn, "p.fecha_contable BETWEEN ? AND ?", desde, hasta, soloCasoD, false);
+        return consultarMovimientos(conn, "p.fecha_contable BETWEEN ? AND ?", desde, hasta,
+                soloCasoD, false, true);
     }
 
     private List<CuentaMovimiento> movimientosHasta(Connection conn, LocalDate hasta) {
@@ -818,13 +820,22 @@ public class LibroContableService {
     }
 
     private List<CuentaMovimiento> movimientosHasta(Connection conn, LocalDate hasta, boolean soloCasoD) {
-        return consultarMovimientos(conn, "p.fecha_contable <= ?", hasta, null, soloCasoD, true);
+        return consultarMovimientos(conn, "p.fecha_contable <= ?", hasta, null, soloCasoD, true, false);
     }
 
     private List<CuentaMovimiento> consultarMovimientos(Connection conn, String filtroFechas,
                                                         LocalDate desde, LocalDate hasta,
-                                                        boolean soloCasoD, boolean incluirCierre) {
-        String filtroCierre = incluirCierre ? "" : "AND p.tipo <> 'CI'";
+                                                        boolean soloCasoD, boolean incluirCierre,
+                                                        boolean excluirDeterminacion) {
+        // Las partidas de determinación del resultado (las que alimentan 310401) no son
+        // movimientos operativos: se excluyen de los informes de resultado para que el
+        // estado de resultados siga mostrando el desempeño aunque el cierre ya se haya
+        // contabilizado. Los saldos acumulados sí las incluyen para que el balance cuadre.
+        String filtroCierre = (incluirCierre ? "" : "AND p.tipo <> 'CI'")
+                + (excluirDeterminacion
+                        ? " AND NOT EXISTS (SELECT 1 FROM partida_detalle dc"
+                                + " WHERE dc.partida_id = p.id AND dc.codigo_cuenta = '310401')"
+                        : "");
         String sql = """
                 SELECT c.codigo, c.nombre, c.rubro,
                        COALESCE(SUM(d.debe), 0) AS debe,
@@ -1035,10 +1046,6 @@ public class LibroContableService {
             List<CuentaMovimiento> periodo = movimientos(conn, desde, hasta);
             // Saldos acumulados con el mismo criterio de estadoSituacion.
             List<CuentaMovimiento> saldos = movimientosHasta(conn, hasta);
-            // Resultado del ejercicio (año en curso hasta la fecha de corte),
-            // idéntico al que estadoSituacion incorpora al patrimonio.
-            LocalDate inicioEjercicio = LocalDate.of(hasta.getYear(), 1, 1);
-            List<CuentaMovimiento> ejercicio = movimientos(conn, inicioEjercicio, hasta);
 
             BigDecimal ingresos = periodo.stream().filter(c -> c.codigo().startsWith("4"))
                     .map(CuentaMovimiento::saldoAcreedor).reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -1061,7 +1068,14 @@ public class LibroContableService {
             BigDecimal patrimonio = saldos.stream()
                     .filter(c -> "PATRIMONIO".equals(c.rubro()) && !"310401".equals(c.codigo()))
                     .map(CuentaMovimiento::saldoAcreedor).reduce(BigDecimal.ZERO, BigDecimal::add);
-            BigDecimal resultadoEjercicio = resultadoNeto(ejercicio);
+            // Mismo criterio que estadoSituacion: saldo formal de 310401 más el
+            // resultado neto vigente de las cuentas de resultado acumuladas, de modo
+            // que el patrimonio incluida también el resultado de ejercicios anteriores
+            // que aún no fue trasladado a resultados acumulados.
+            BigDecimal saldo310401 = saldos.stream()
+                    .filter(c -> "310401".equals(c.codigo()))
+                    .map(CuentaMovimiento::saldoAcreedor).findFirst().orElse(BigDecimal.ZERO);
+            BigDecimal resultadoEjercicio = saldo310401.add(resultadoNeto(saldos));
             BigDecimal patrimonioTotal = patrimonio.add(resultadoEjercicio);
 
             Map<String, BigDecimal> map = new LinkedHashMap<>();

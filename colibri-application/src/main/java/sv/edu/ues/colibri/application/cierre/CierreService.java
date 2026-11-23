@@ -108,10 +108,11 @@ public class CierreService {
      * @return partida generada
      */
     public Partida ajusteDevengoSaas(BigDecimal importe, LocalDate fecha) {
+        BigDecimal monto = importePositivo(importe, "El importe del devengo SaaS");
         return asiento(fecha, "A1 Devengo SaaS del mes", "AJ-A1-" + fecha,
                 List.of(
-                        PartidaDetalle.nueva("210702", importe, BigDecimal.ZERO),
-                        PartidaDetalle.nueva("410402", BigDecimal.ZERO, importe)
+                        PartidaDetalle.nueva("210702", monto, BigDecimal.ZERO),
+                        PartidaDetalle.nueva("410402", BigDecimal.ZERO, monto)
                 ));
     }
 
@@ -123,10 +124,11 @@ public class CierreService {
      * @return partida generada
      */
     public Partida ajusteConsumoNube(BigDecimal importe, LocalDate fecha) {
+        BigDecimal monto = importePositivo(importe, "El importe del consumo de nube");
         return asiento(fecha, "A2 Consumo nube", "AJ-A2-" + fecha,
                 List.of(
-                        PartidaDetalle.nueva("510201", importe, BigDecimal.ZERO),
-                        PartidaDetalle.nueva("110401", BigDecimal.ZERO, importe)
+                        PartidaDetalle.nueva("510201", monto, BigDecimal.ZERO),
+                        PartidaDetalle.nueva("110401", BigDecimal.ZERO, monto)
                 ));
     }
 
@@ -138,10 +140,11 @@ public class CierreService {
      * @return partida generada
      */
     public Partida ajusteConsumoRenta(BigDecimal importe, LocalDate fecha) {
+        BigDecimal monto = importePositivo(importe, "El importe del consumo de renta");
         return asiento(fecha, "A3 Consumo renta", "AJ-A3-" + fecha,
                 List.of(
-                        PartidaDetalle.nueva("610102", importe, BigDecimal.ZERO),
-                        PartidaDetalle.nueva("110402", BigDecimal.ZERO, importe)
+                        PartidaDetalle.nueva("610102", monto, BigDecimal.ZERO),
+                        PartidaDetalle.nueva("110402", BigDecimal.ZERO, monto)
                 ));
     }
 
@@ -180,10 +183,11 @@ public class CierreService {
      * @return partida generada
      */
     public Partida ajusteGastoDevengado(BigDecimal importe, LocalDate fecha) {
+        BigDecimal monto = importePositivo(importe, "El importe del gasto devengado");
         return asiento(fecha, "A4 Servicios públicos devengados", "AJ-A4-" + fecha,
                 List.of(
-                        PartidaDetalle.nueva("610102", importe, BigDecimal.ZERO),
-                        PartidaDetalle.nueva("210802", BigDecimal.ZERO, importe)
+                        PartidaDetalle.nueva("610102", monto, BigDecimal.ZERO),
+                        PartidaDetalle.nueva("210802", BigDecimal.ZERO, monto)
                 ));
     }
 

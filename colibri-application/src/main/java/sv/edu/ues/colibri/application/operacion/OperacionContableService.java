@@ -12,6 +12,7 @@ import sv.edu.ues.colibri.domain.model.PartidaDetalle;
 import sv.edu.ues.colibri.domain.model.Tercero;
 import sv.edu.ues.colibri.domain.model.TipoPartida;
 import sv.edu.ues.colibri.persistence.jdbc.JdbcSupport;
+import sv.edu.ues.colibri.persistence.jdbc.PersistenceException;
 import sv.edu.ues.colibri.persistence.repo.BitacoraRepository;
 import sv.edu.ues.colibri.persistence.repo.DocumentoRepository;
 import sv.edu.ues.colibri.persistence.repo.EmpresaRepository;
@@ -164,16 +165,51 @@ public class OperacionContableService {
      */
     public Tercero guardarTercero(Tercero t) {
         var contador = auth.exigirContador();
+        if (t == null) {
+            throw new DomainException("El tercero es obligatorio.");
+        }
+        String nit = t.getNit() == null ? "" : t.getNit().trim();
+        String razon = t.getRazonSocial() == null ? "" : t.getRazonSocial().trim();
+        if (nit.isEmpty()) {
+            throw new DomainException("El NIT del tercero es obligatorio.");
+        }
+        if (nit.length() > 30) {
+            throw new DomainException("El NIT no puede superar 30 caracteres.");
+        }
+        if (razon.isEmpty()) {
+            throw new DomainException("La razón social del tercero es obligatoria.");
+        }
+        if (razon.length() > 200) {
+            throw new DomainException("La razón social no puede superar 200 caracteres.");
+        }
+        t.setNit(nit);
+        t.setRazonSocial(razon);
         jdbc.runInTransaction(conn -> {
-            if (terceros.porId(conn, t.getId()).isPresent()) {
-                terceros.actualizar(conn, t);
-            } else {
-                terceros.insertar(conn, t);
+            try {
+                if (terceros.porId(conn, t.getId()).isPresent()) {
+                    terceros.actualizar(conn, t);
+                } else {
+                    terceros.insertar(conn, t);
+                }
+            } catch (PersistenceException e) {
+                if (esViolacionUnicaNIT(e)) {
+                    throw new DomainException("Ya existe un tercero registrado con el NIT " + nit + ".");
+                }
+                throw e;
             }
             bitacora.registrar(conn, BitacoraEntrada.de(contador.getId(), "TERCERO", "TERCERO",
                     t.getId().toString(), null, t.getNit(), t.getRazonSocial()));
         });
         return t;
+    }
+
+    private static boolean esViolacionUnicaNIT(Throwable e) {
+        for (Throwable c = e; c != null; c = c.getCause()) {
+            if (String.valueOf(c.getMessage()).contains("uq_tercero_nit")) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -202,33 +238,37 @@ public class OperacionContableService {
                                   boolean ivaIncluido, String cuentaIngreso, String cuentaCliente,
                                   String concepto) {
         auth.exigirContador();
+        LocalDate fechaOp = fechaObligatoria(fecha);
+        BigDecimal montoOp = importePositivo(baseOTotal, "importe de la venta");
         var fiscal = parametrizacion.exigirParametrosFiscales();
         var perfil = parametrizacion.exigirPerfilPosting("VENTA");
         String cuentaPorCobrar = parametrizacion.resolverCuenta(cuentaCliente, perfil.cuentaDebe(),
                 "cuenta por cobrar de la venta");
         String cuentaDeIngreso = parametrizacion.resolverCuenta(cuentaIngreso, perfil.cuentaHaber(),
                 "cuenta de ingreso de la venta");
-        PlantillaDraft draft = jdbc.inTransaction(conn -> {
+        // Documento, partida y vínculo se confirman en una sola transacción: si la
+        // contabilización falla, el documento no queda huérfano en estado REGISTRADO.
+        return jdbc.inTransaction(conn -> {
             Tercero cliente = terceros.porId(conn, clienteId)
                     .orElseThrow(() -> new DomainException("Cliente no encontrado"));
             if (!cliente.isCliente()) {
                 throw new DomainException("El tercero no está marcado como cliente");
             }
             var empresa = empresas.obtenerUnica(conn).orElseThrow();
-            var ivaR = calc(baseOTotal, ivaIncluido, fiscal.iva());
+            var ivaR = calc(montoOp, ivaIncluido, fiscal.iva());
             Documento doc = nuevoDoc(conn, "CCF",
                     nitEmpresa(empresa), "DTE-" + System.currentTimeMillis(),
-                    "SIM-VTA-" + shortId(), cliente.getNit(), cliente.getId(), fecha, ivaR, ivaIncluido);
-            return new PlantillaDraft(doc, "DOC-VENTA-" + doc.getId(),
+                    "SIM-VTA-" + shortId(), cliente.getNit(), cliente.getId(), fechaOp, ivaR, ivaIncluido);
+            PlantillaDraft draft = new PlantillaDraft(doc, "DOC-VENTA-" + doc.getId(),
                     List.of(
                             PartidaDetalle.nueva(cuentaPorCobrar, ivaR.total(), BigDecimal.ZERO),
                             PartidaDetalle.nueva(cuentaDeIngreso, BigDecimal.ZERO, ivaR.base()),
                             PartidaDetalle.nueva(fiscal.cuentaDebito(), BigDecimal.ZERO, ivaR.iva())
                     ),
                     concepto != null ? concepto : "Venta " + cliente.getRazonSocial(),
-                    TipoPartida.DI, fecha, "VENTA");
+                    TipoPartida.DI, fechaOp, "VENTA");
+            return contabilizarPlantilla(draft);
         });
-        return contabilizarPlantilla(draft);
     }
 
     /**
@@ -245,33 +285,35 @@ public class OperacionContableService {
     public Partida registrarCompra(UUID proveedorId, LocalDate fecha, BigDecimal baseOTotal,
                                    boolean ivaIncluido, String cuentaGastoOActivo, String concepto) {
         auth.exigirContador();
+        LocalDate fechaOp = fechaObligatoria(fecha);
+        BigDecimal montoOp = importePositivo(baseOTotal, "importe de la compra");
         var fiscal = parametrizacion.exigirParametrosFiscales();
         var perfil = parametrizacion.exigirPerfilPosting("COMPRA");
         String cuentaGasto = parametrizacion.resolverCuenta(cuentaGastoOActivo, perfil.cuentaDebe(),
                 "cuenta de gasto o activo de la compra");
         String cuentaPorPagar = parametrizacion.resolverCuenta(null, perfil.cuentaHaber(),
                 "cuenta por pagar de la compra");
-        PlantillaDraft draft = jdbc.inTransaction(conn -> {
+        return jdbc.inTransaction(conn -> {
             Tercero prov = terceros.porId(conn, proveedorId)
                     .orElseThrow(() -> new DomainException("Proveedor no encontrado"));
             if (!prov.isProveedor()) {
                 throw new DomainException("El tercero no está marcado como proveedor");
             }
             var empresa = empresas.obtenerUnica(conn).orElseThrow();
-            var ivaR = calc(baseOTotal, ivaIncluido, fiscal.iva());
+            var ivaR = calc(montoOp, ivaIncluido, fiscal.iva());
             Documento doc = nuevoDoc(conn, "CCF",
                     prov.getNit(), "DTE-P-" + System.currentTimeMillis(),
-                    "SIM-CMP-" + shortId(), nitEmpresa(empresa), prov.getId(), fecha, ivaR, ivaIncluido);
-            return new PlantillaDraft(doc, "DOC-COMPRA-" + doc.getId(),
+                    "SIM-CMP-" + shortId(), nitEmpresa(empresa), prov.getId(), fechaOp, ivaR, ivaIncluido);
+            PlantillaDraft draft = new PlantillaDraft(doc, "DOC-COMPRA-" + doc.getId(),
                     List.of(
                             PartidaDetalle.nueva(cuentaGasto, ivaR.base(), BigDecimal.ZERO),
                             PartidaDetalle.nueva(fiscal.cuentaCredito(), ivaR.iva(), BigDecimal.ZERO),
                             PartidaDetalle.nueva(cuentaPorPagar, BigDecimal.ZERO, ivaR.total())
                     ),
                     concepto != null ? concepto : "Compra " + prov.getRazonSocial(),
-                    TipoPartida.DI, fecha, "COMPRA");
+                    TipoPartida.DI, fechaOp, "COMPRA");
+            return contabilizarPlantilla(draft);
         });
-        return contabilizarPlantilla(draft);
     }
 
     /**
@@ -288,6 +330,8 @@ public class OperacionContableService {
     public Partida registrarCobro(UUID clienteId, LocalDate fecha, BigDecimal importe,
                                   String cuentaCliente, BigDecimal retencionIva, String concepto) {
         auth.exigirContador();
+        LocalDate fechaOp = fechaObligatoria(fecha);
+        BigDecimal importeOp = importePositivo(importe, "importe del cobro");
         var fiscal = parametrizacion.exigirParametrosFiscales();
         var perfil = parametrizacion.exigirPerfilPosting("COBRO");
         String cuentaBanco = parametrizacion.resolverCuenta(null, perfil.cuentaDebe(),
@@ -299,29 +343,29 @@ public class OperacionContableService {
         // el llamador que la aplique debe pasar expresamente el importe
         // calculado con la tasa vigente o el importe del comprobante.
         BigDecimal ret = retencionIva == null ? BigDecimal.ZERO : retencionIva;
-        if (ret.signum() < 0 || ret.compareTo(importe) > 0) {
+        if (ret.signum() < 0 || ret.compareTo(importeOp) > 0) {
             throw new DomainException("La retención de IVA debe estar entre cero y el importe del cobro.");
         }
-        BigDecimal banco = importe.subtract(ret);
-        PlantillaDraft draft = jdbc.inTransaction(conn -> {
+        BigDecimal banco = importeOp.subtract(ret);
+        return jdbc.inTransaction(conn -> {
             Tercero cli = terceros.porId(conn, clienteId)
                     .orElseThrow(() -> new DomainException("Cliente no encontrado"));
             var empresa = empresas.obtenerUnica(conn).orElseThrow();
-            var ivaR = new IvaCalculator.Resultado(importe, BigDecimal.ZERO, importe);
+            var ivaR = new IvaCalculator.Resultado(importeOp, BigDecimal.ZERO, importeOp);
             Documento doc = nuevoDoc(conn, "RECIBO",
                     nitEmpresa(empresa), "REC-" + System.currentTimeMillis(),
-                    "SIM-COB-" + shortId(), cli.getNit(), cli.getId(), fecha, ivaR, false);
+                    "SIM-COB-" + shortId(), cli.getNit(), cli.getId(), fechaOp, ivaR, false);
             List<PartidaDetalle> lineas = new ArrayList<>();
             lineas.add(PartidaDetalle.nueva(cuentaBanco, banco, BigDecimal.ZERO));
             if (ret.signum() > 0) {
                 lineas.add(PartidaDetalle.nueva(fiscal.cuentaRetencionIva(), ret, BigDecimal.ZERO));
             }
-            lineas.add(PartidaDetalle.nueva(cuentaPorCobrar, BigDecimal.ZERO, importe));
-            return new PlantillaDraft(doc, "DOC-COBRO-" + doc.getId(), lineas,
+            lineas.add(PartidaDetalle.nueva(cuentaPorCobrar, BigDecimal.ZERO, importeOp));
+            PlantillaDraft draft = new PlantillaDraft(doc, "DOC-COBRO-" + doc.getId(), lineas,
                     concepto != null ? concepto : "Cobro " + cli.getRazonSocial(),
-                    TipoPartida.IN, fecha, "COBRO");
+                    TipoPartida.IN, fechaOp, "COBRO");
+            return contabilizarPlantilla(draft);
         });
-        return contabilizarPlantilla(draft);
     }
 
     /**
@@ -337,27 +381,29 @@ public class OperacionContableService {
     public Partida registrarPago(UUID proveedorId, LocalDate fecha, BigDecimal importe,
                                  String cuentaProveedor, String concepto) {
         auth.exigirContador();
+        LocalDate fechaOp = fechaObligatoria(fecha);
+        BigDecimal importeOp = importePositivo(importe, "importe del pago");
         var perfil = parametrizacion.exigirPerfilPosting("PAGO");
         String cuentaPorPagar = parametrizacion.resolverCuenta(cuentaProveedor, perfil.cuentaDebe(),
                 "cuenta por pagar del pago");
         String cuentaBanco = parametrizacion.resolverCuenta(null, perfil.cuentaHaber(),
                 "cuenta de banco del pago");
-        PlantillaDraft draft = jdbc.inTransaction(conn -> {
+        return jdbc.inTransaction(conn -> {
             Tercero prov = terceros.porId(conn, proveedorId)
                     .orElseThrow(() -> new DomainException("Proveedor no encontrado"));
-            var ivaR = new IvaCalculator.Resultado(importe, BigDecimal.ZERO, importe);
+            var ivaR = new IvaCalculator.Resultado(importeOp, BigDecimal.ZERO, importeOp);
             Documento doc = nuevoDoc(conn, "COMPROBANTE",
                     "BANCO", "PAG-" + System.currentTimeMillis(),
-                    "SIM-PAG-" + shortId(), prov.getNit(), prov.getId(), fecha, ivaR, false);
-            return new PlantillaDraft(doc, "DOC-PAGO-" + doc.getId(),
+                    "SIM-PAG-" + shortId(), prov.getNit(), prov.getId(), fechaOp, ivaR, false);
+            PlantillaDraft draft = new PlantillaDraft(doc, "DOC-PAGO-" + doc.getId(),
                     List.of(
-                            PartidaDetalle.nueva(cuentaPorPagar, importe, BigDecimal.ZERO),
-                            PartidaDetalle.nueva(cuentaBanco, BigDecimal.ZERO, importe)
+                            PartidaDetalle.nueva(cuentaPorPagar, importeOp, BigDecimal.ZERO),
+                            PartidaDetalle.nueva(cuentaBanco, BigDecimal.ZERO, importeOp)
                     ),
                     concepto != null ? concepto : "Pago " + prov.getRazonSocial(),
-                    TipoPartida.EG, fecha, "PAGO");
+                    TipoPartida.EG, fechaOp, "PAGO");
+            return contabilizarPlantilla(draft);
         });
-        return contabilizarPlantilla(draft);
     }
 
     /**
@@ -371,29 +417,31 @@ public class OperacionContableService {
      */
     public Partida registrarAnticipoSaas(UUID clienteId, LocalDate fecha, BigDecimal base, String concepto) {
         auth.exigirContador();
+        LocalDate fechaOp = fechaObligatoria(fecha);
+        BigDecimal baseOp = importePositivo(base, "base del anticipo");
         var fiscal = parametrizacion.exigirParametrosFiscales();
         var perfil = parametrizacion.exigirPerfilPosting("ANTICIPO");
         String cuentaBanco = parametrizacion.resolverCuenta(null, perfil.cuentaDebe(),
                 "cuenta de banco del anticipo");
         String cuentaAnticipo = parametrizacion.resolverCuenta(null, perfil.cuentaHaber(),
                 "cuenta de anticipo del cliente");
-        var ivaR = IvaCalculator.desdeNeto(base, fiscal.iva());
-        PlantillaDraft draft = jdbc.inTransaction(conn -> {
+        var ivaR = IvaCalculator.desdeNeto(baseOp, fiscal.iva());
+        return jdbc.inTransaction(conn -> {
             Tercero cli = terceros.porId(conn, clienteId).orElseThrow();
             var empresa = empresas.obtenerUnica(conn).orElseThrow();
             Documento doc = nuevoDoc(conn, "CCF",
                     nitEmpresa(empresa), "ANT-" + System.currentTimeMillis(),
-                    "SIM-ANT-" + shortId(), cli.getNit(), cli.getId(), fecha, ivaR, false);
-            return new PlantillaDraft(doc, "DOC-ANTICIPO-" + doc.getId(),
+                    "SIM-ANT-" + shortId(), cli.getNit(), cli.getId(), fechaOp, ivaR, false);
+            PlantillaDraft draft = new PlantillaDraft(doc, "DOC-ANTICIPO-" + doc.getId(),
                     List.of(
                             PartidaDetalle.nueva(cuentaBanco, ivaR.total(), BigDecimal.ZERO),
                             PartidaDetalle.nueva(cuentaAnticipo, BigDecimal.ZERO, ivaR.base()),
                             PartidaDetalle.nueva(fiscal.cuentaDebito(), BigDecimal.ZERO, ivaR.iva())
                     ),
                     concepto != null ? concepto : "Anticipo SaaS " + cli.getRazonSocial(),
-                    TipoPartida.IN, fecha, "ANTICIPO");
+                    TipoPartida.IN, fechaOp, "ANTICIPO");
+            return contabilizarPlantilla(draft);
         });
-        return contabilizarPlantilla(draft);
     }
 
     /**
@@ -413,9 +461,12 @@ public class OperacionContableService {
         if (monto.signum() <= 0) {
             throw new DomainException("El importe de aplicación debe ser mayor que cero.");
         }
+        var fiscal = parametrizacion.exigirParametrosFiscales();
         var anticipoPerfil = parametrizacion.exigirPerfilPosting("ANTICIPO");
         var ventaPerfil = parametrizacion.exigirPerfilPosting("VENTA");
-        List<PartidaDetalle> lineas = jdbc.inTransaction(conn -> {
+        // Validación, partida y trazabilidad en aplicacion_pago confirman en una
+        // sola transacción para no dejar aplicaciones sin respaldo contable.
+        return jdbc.inTransaction(conn -> {
             Documento anticipo = documentos.porId(conn, anticipoId)
                     .orElseThrow(() -> new DomainException("Anticipo no encontrado"));
             Documento dte = documentos.porId(conn, dteId)
@@ -434,18 +485,35 @@ public class OperacionContableService {
             if (monto.compareTo(saldoDte) > 0) {
                 throw new DomainException("El importe supera el saldo pendiente del DTE.");
             }
-            return List.of(
-                    PartidaDetalle.nueva(anticipoPerfil.cuentaHaber(), monto, BigDecimal.ZERO),
-                    PartidaDetalle.nueva(ventaPerfil.cuentaDebe(), BigDecimal.ZERO, monto));
+            // El anticipo mantiene separado el pasivo por la base (210702) del IVA
+            // cobrado por anticipado (210201). La aplicación liquida cada componente
+            // en proporción al total aplicado: el pasivo nunca queda deudor y el
+            // débito fiscal no se duplica con el que genera el DTE.
+            BigDecimal totalAnticipo = anticipo.getTotal();
+            BigDecimal baseAplicada = totalAnticipo.signum() > 0
+                    ? monto.multiply(anticipo.getBaseGravada())
+                            .divide(totalAnticipo, 2, RoundingMode.HALF_UP)
+                    : BigDecimal.ZERO;
+            BigDecimal ivaAplicada = monto.subtract(baseAplicada);
+            List<PartidaDetalle> lineas = new ArrayList<>();
+            if (baseAplicada.signum() > 0) {
+                lineas.add(PartidaDetalle.nueva(anticipoPerfil.cuentaHaber(),
+                        baseAplicada, BigDecimal.ZERO));
+            }
+            if (ivaAplicada.signum() > 0) {
+                lineas.add(PartidaDetalle.nueva(fiscal.cuentaDebito(),
+                        ivaAplicada, BigDecimal.ZERO));
+            }
+            lineas.add(PartidaDetalle.nueva(ventaPerfil.cuentaDebe(), BigDecimal.ZERO, monto));
+            Partida borrador = partidas.guardarBorrador(TipoPartida.DI, fecha,
+                    "Aplicación de anticipo a DTE " + dteId,
+                    "APLICACION-" + anticipoId + "-" + dteId,
+                    "APLICACION-ANTICIPO-" + anticipoId + "-" + dteId, lineas, null);
+            Partida contabilizada = partidas.contabilizar(borrador.getId());
+            documentos.registrarAplicacion(conn, anticipoId, dteId,
+                    contabilizada.getId(), monto, fecha, contabilizada.getConcepto());
+            return contabilizada;
         });
-        Partida borrador = partidas.guardarBorrador(TipoPartida.DI, fecha,
-                "Aplicación de anticipo a DTE " + dteId,
-                "APLICACION-" + anticipoId + "-" + dteId,
-                "APLICACION-ANTICIPO-" + anticipoId + "-" + dteId, lineas, null);
-        Partida contabilizada = partidas.contabilizar(borrador.getId());
-        jdbc.runInTransaction(conn -> documentos.registrarAplicacion(conn, anticipoId, dteId,
-                contabilizada.getId(), monto, fecha, contabilizada.getConcepto()));
-        return contabilizada;
     }
 
     /**
@@ -516,6 +584,24 @@ public class OperacionContableService {
                 : IvaCalculator.desdeNeto(baseOTotal, tasaIva);
     }
 
+    private static LocalDate fechaObligatoria(LocalDate fecha) {
+        if (fecha == null) {
+            throw new DomainException("La fecha de la operación es obligatoria.");
+        }
+        return fecha;
+    }
+
+    private static BigDecimal importePositivo(BigDecimal valor, String etiqueta) {
+        if (valor == null) {
+            throw new DomainException("El " + etiqueta + " es obligatorio.");
+        }
+        BigDecimal normalizado = valor.setScale(2, RoundingMode.HALF_UP);
+        if (normalizado.signum() <= 0) {
+            throw new DomainException("El " + etiqueta + " debe ser mayor que cero.");
+        }
+        return normalizado;
+    }
+
     private static String nitEmpresa(sv.edu.ues.colibri.domain.model.Empresa e) {
         return e.getNit() != null ? e.getNit() : "SIMULADO-NIT";
     }
@@ -542,30 +628,30 @@ public class OperacionContableService {
         }
         List<PartidaDetalle> lineas = new ArrayList<>();
         String concepto = "Importación CSV de asientos";
+        int numeroLinea = 0;
         for (String linea : contenido.split("\\R")) {
+            numeroLinea++;
             if (linea.isBlank() || linea.toLowerCase().startsWith("cuenta")) {
                 continue;
             }
             String[] cols = linea.split(",", -1);
             if (cols.length == 3) {
                 lineas.add(PartidaDetalle.nueva(
-                        cols[0].trim(),
-                        new BigDecimal(cols[1].trim().isEmpty() ? "0" : cols[1].trim()),
-                        new BigDecimal(cols[2].trim().isEmpty() ? "0" : cols[2].trim())));
+                        cols[0].trim(), null, null,
+                        importeCsv(cols[1], numeroLinea), importeCsv(cols[2], numeroLinea)));
             } else if (cols.length >= 5) {
                 String auxiliar = cols[1].trim().isEmpty() ? null : cols[1].trim();
                 String centro = cols[2].trim().isEmpty() ? null : cols[2].trim();
                 lineas.add(PartidaDetalle.nueva(
                         cols[0].trim(), auxiliar, centro,
-                        new BigDecimal(cols[3].trim().isEmpty() ? "0" : cols[3].trim()),
-                        new BigDecimal(cols[4].trim().isEmpty() ? "0" : cols[4].trim())));
+                        importeCsv(cols[3], numeroLinea), importeCsv(cols[4], numeroLinea)));
                 if (cols.length >= 6 && !cols[5].trim().isEmpty()) {
                     concepto = cols[5].trim();
                 }
             } else {
                 throw new DomainException(
-                        "Cada línea debe tener cuenta,debe,haber o cuenta,auxiliar,centro,debe,haber[,concepto]: "
-                                + linea);
+                        "Línea " + numeroLinea + ": cada línea debe tener cuenta,debe,haber "
+                                + "o cuenta,auxiliar,centro,debe,haber[,concepto]: " + linea);
             }
         }
         if (lineas.size() < 2) {
@@ -573,6 +659,23 @@ public class OperacionContableService {
         }
         return partidas.guardarBorrador(TipoPartida.DI, fecha, concepto,
                 "CSV", "IMP-" + UUID.randomUUID(), lineas, null);
+    }
+
+    private static BigDecimal importeCsv(String texto, int numeroLinea) {
+        String limpio = texto == null ? "" : texto.trim();
+        if (limpio.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+        BigDecimal valor;
+        try {
+            valor = new BigDecimal(limpio.replace(",", ""));
+        } catch (NumberFormatException e) {
+            throw new DomainException("Línea " + numeroLinea + ": importe no numérico '" + limpio + "'.");
+        }
+        if (valor.signum() < 0) {
+            throw new DomainException("Línea " + numeroLinea + ": el importe no puede ser negativo.");
+        }
+        return valor;
     }
 
     private static String shortId() {

@@ -18,6 +18,7 @@ import javafx.util.StringConverter;
 import sv.edu.ues.colibri.application.AppContext;
 import sv.edu.ues.colibri.application.operacion.OperacionContableService;
 import sv.edu.ues.colibri.desktop.ui.ResponsiveLayouts;
+import sv.edu.ues.colibri.desktop.ui.UiCampos;
 import sv.edu.ues.colibri.desktop.ui.UiDialogs;
 import sv.edu.ues.colibri.desktop.ui.UiTables;
 import sv.edu.ues.colibri.domain.exception.DomainException;
@@ -294,7 +295,7 @@ public class DocumentosView extends VBox {
 
     private Partida registrarPartida() {
         Tercero sel = terceroSeleccionado();
-        BigDecimal mon = new BigDecimal(importe.getText().trim());
+        BigDecimal mon = UiCampos.importe(importe.getText());
         BigDecimal ret = retencionCobro(mon);
         String cuentaOverride = cuenta.getText().trim().isEmpty() ? null : cuenta.getText().trim();
         return switch (plantilla.getValue()) {
@@ -315,7 +316,7 @@ public class DocumentosView extends VBox {
 
     private OperacionContableService.OperacionPreview previewPartida() {
         terceroSeleccionado();
-        BigDecimal mon = new BigDecimal(importe.getText().trim());
+        BigDecimal mon = UiCampos.importe(importe.getText());
         BigDecimal ret = retencionCobro(mon);
         String cuentaOverride = cuenta.getText().trim().isEmpty() ? null : cuenta.getText().trim();
         return switch (plantilla.getValue()) {
@@ -346,7 +347,7 @@ public class DocumentosView extends VBox {
 
     private Partida aplicarAnticipoPartida() {
         OperacionContableService.DocumentoSaldo anticipo = anticipoSel();
-        BigDecimal monto = new BigDecimal(importeAplicacion.getText().trim());
+        BigDecimal monto = UiCampos.importe(importeAplicacion.getText());
         return context.operaciones().aplicarAnticipo(anticipo.documento().getId(),
                 comboDte.getValue().documento().getId(), monto, fecha.getValue());
     }
@@ -354,7 +355,7 @@ public class DocumentosView extends VBox {
     private OperacionContableService.OperacionPreview previewAnticipo() {
         OperacionContableService.DocumentoSaldo anticipo = anticipoSel();
         OperacionContableService.DocumentoSaldo dte = comboDte.getValue();
-        BigDecimal monto = new BigDecimal(importeAplicacion.getText().trim());
+        BigDecimal monto = UiCampos.importe(importeAplicacion.getText());
         var anticipoPerfil = context.parametrizacion().exigirPerfilPosting("ANTICIPO");
         var ventaPerfil = context.parametrizacion().exigirPerfilPosting("VENTA");
         return new OperacionContableService.OperacionPreview(
@@ -372,12 +373,15 @@ public class DocumentosView extends VBox {
         if (texto.isEmpty()) {
             throw new DomainException("Ingrese el importe de retención de IVA o use el valor sugerido.");
         }
-        return new BigDecimal(texto);
+        return UiCampos.importe(texto);
     }
 
     private void sugerirRetencion() {
         try {
-            BigDecimal mon = new BigDecimal(importe.getText().trim());
+            BigDecimal mon = UiCampos.importeONull(importe.getText());
+            if (mon == null) {
+                return;
+            }
             BigDecimal tasa = context.parametrizacion().parametrosFiscales().retencionIva();
             retencion.setText(mon.multiply(tasa).setScale(2, RoundingMode.HALF_UP).toPlainString());
         } catch (Exception ignored) {

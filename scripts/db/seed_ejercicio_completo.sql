@@ -230,7 +230,7 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO licencia_movimiento (id, lote_id, licencia_id, tipo, fecha, unidades,
     costo_unitario, importe, saldo_unidades, saldo_valor, partida_id, detalle, creado_por)
-SELECT '90000000-0000-4000-8000-0000000008' || lpad(v.orden::text, 2, '0'),
+SELECT ('90000000-0000-4000-8000-0000000008' || lpad(v.orden::text, 2, '0'))::uuid,
        lo.id, lic.id, 'ENTREGA', DATE '2026-11-05', -1, v.costo, -v.costo,
        v.saldo_u, v.saldo_v, NULL, NULL,
        (SELECT id FROM contador WHERE usuario = 'contador')

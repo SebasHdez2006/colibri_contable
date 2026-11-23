@@ -33,7 +33,7 @@ DECLARE
         'entorno_tecnico','log_tecnico','activo_intangible','amortizacion_cuota','estimacion_cartera_cuota',
         'deterioro_lote_licencia','cif_presupuesto_periodo','proceso_costo_periodo','planilla_periodo',
         'cif_aplicacion_orden','cif_cierre_periodo','plantilla_partida','plantilla_detalle',
-        'contador','flyway_schema_history'];
+        'licencia_movimiento','contador','flyway_schema_history'];
     sin_clasificar text;
 BEGIN
     IF current_database() NOT IN ('colibri', 'colibri_test', 'colibri_scratch') THEN
@@ -62,7 +62,8 @@ TRUNCATE TABLE
     parametro_fiscal, posting_profile, centro_costo, plan_servicio, saas_usuario_mes, plan_consumo,
     entorno_tecnico, log_tecnico, activo_intangible, amortizacion_cuota, estimacion_cartera_cuota,
     deterioro_lote_licencia, cif_presupuesto_periodo, proceso_costo_periodo, planilla_periodo,
-    cif_aplicacion_orden, cif_cierre_periodo, plantilla_partida, plantilla_detalle
+    cif_aplicacion_orden, cif_cierre_periodo, plantilla_partida, plantilla_detalle,
+    licencia_movimiento
     RESTART IDENTITY CASCADE;
 
 DO $$

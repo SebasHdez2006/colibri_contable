@@ -43,7 +43,10 @@ public class RespaldoService {
      * @return ruta del archivo generado
      */
     public Path respaldar() {
-        var contador = auth.exigirSoporteTecnico();
+        // pg_dump extrae toda la base, incluidos saldos contables y hashes de
+        // contraseñas: la copia de respaldo corresponde al dueño de la información
+        // (contador), no al soporte técnico externo.
+        var contador = auth.exigirContador();
         try {
             Path dir = Path.of(System.getProperty("user.home"), ".colibri", "backups");
             Files.createDirectories(dir);

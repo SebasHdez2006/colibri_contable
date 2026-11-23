@@ -6,9 +6,14 @@ import sv.edu.ues.colibri.domain.model.Contador;
 import sv.edu.ues.colibri.domain.model.RolUsuario;
 import sv.edu.ues.colibri.domain.security.PasswordHasher;
 import sv.edu.ues.colibri.persistence.jdbc.JdbcSupport;
+import sv.edu.ues.colibri.persistence.jdbc.PersistenceException;
 import sv.edu.ues.colibri.persistence.repo.BitacoraRepository;
 import sv.edu.ues.colibri.persistence.repo.ContadorRepository;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -24,6 +29,13 @@ public class AuthService {
     public static final int MINUTOS_BLOQUEO = 15;
     public static final int MINUTOS_INACTIVIDAD = 15;
     public static final int MINUTOS_VIGENCIA_CLAVE_TEMPORAL = 24 * 60;
+    private static final int MAX_MULTIPLICADOR_BLOQUEO = 4;
+
+    // Hash ficticio para igualar el costo de PBKDF2 cuando el usuario no existe o
+    // está inactivo; de otro modo el tiempo de respuesta revelaría su existencia.
+    private static final byte[] SAL_FICTICIA = PasswordHasher.generarSal();
+    private static final byte[] HASH_FICTICIO =
+            PasswordHasher.hash("colibri-login-ficticio".toCharArray(), SAL_FICTICIA);
 
     private final JdbcSupport jdbc;
     private final ContadorRepository contadorRepository = new ContadorRepository();
@@ -40,10 +52,12 @@ public class AuthService {
         String usuarioNormalizado = usuario == null ? "" : usuario.trim().toLowerCase(Locale.ROOT);
         DomainException fallo = jdbc.inTransaction(conn -> {
             Contador contador = contadorRepository.buscarPorUsuario(conn, usuarioNormalizado).orElse(null);
-            if (contador == null) {
-                return new DomainException("Credenciales inválidas.");
-            }
-            if (!contador.isActivo()) {
+            char[] intento = password == null ? new char[0]
+                    : Arrays.copyOf(password, password.length);
+            if (contador == null || !contador.isActivo()) {
+                // Se ejecuta la misma verificación PBKDF2 para no revelar por
+                // diferencia de tiempo si el nombre de usuario existe.
+                PasswordHasher.verificar(intento, SAL_FICTICIA, HASH_FICTICIO);
                 return new DomainException("Credenciales inválidas.");
             }
 
@@ -54,15 +68,25 @@ public class AuthService {
             }
 
             boolean ok = PasswordHasher.verificar(
-                    Arrays.copyOf(password, password.length),
+                    intento,
                     contador.getPasswordSalt(),
                     contador.getPasswordHash());
 
             if (!ok) {
                 contador.setIntentosFallidos(contador.getIntentosFallidos() + 1);
                 if (contador.getIntentosFallidos() >= MAX_INTENTOS) {
-                    contador.setBloqueadoHasta(ahora.plusMinutes(MINUTOS_BLOQUEO));
+                    // Bloqueo progresivo: cada bloqueo reciente duplica la espera
+                    // (15, 30, 60, 120, 240 min) para mitigar el DoS por intentos
+                    // fallidos repetidos contra una cuenta legítima.
+                    long bloqueosRecientes = contarBloqueosRecientes(conn, contador.getId());
+                    long minutos = MINUTOS_BLOQUEO
+                            * (1L << Math.min(bloqueosRecientes, MAX_MULTIPLICADOR_BLOQUEO));
+                    contador.setBloqueadoHasta(ahora.plusMinutes(minutos));
                     contador.setIntentosFallidos(0);
+                    bitacoraRepository.registrar(conn, BitacoraEntrada.de(
+                            contador.getId(), "CUENTA_BLOQUEADA", "CONTADOR",
+                            contador.getId().toString(), null, null,
+                            "Bloqueo tras " + MAX_INTENTOS + " intentos fallidos"));
                 }
                 contadorRepository.actualizarSeguridad(conn, contador);
                 bitacoraRepository.registrar(conn, BitacoraEntrada.de(
@@ -199,14 +223,32 @@ public class AuthService {
     }
 
     public void actualizarUsuario(UUID usuarioId, String nombre, String email, boolean activo) {
-        exigirSoporteTecnico();
+        Contador responsable = exigirSoporteTecnico();
         jdbc.runInTransaction(conn -> {
             Contador usuario = contadorRepository.buscarPorId(conn, usuarioId)
                     .orElseThrow(() -> new DomainException("Usuario no encontrado."));
+            boolean activoAnterior = usuario.isActivo();
+            if (activoAnterior != activo && !activo) {
+                // Las mismas reglas que cambiarEstadoUsuario: no auto-desactivarse
+                // ni dejar el sistema sin ningún usuario activo.
+                if (usuarioId.equals(responsable.getId())) {
+                    throw new DomainException("No puede desactivar la cuenta que está utilizando.");
+                }
+                if (contadorRepository.contarActivos(conn) <= 1) {
+                    throw new DomainException("Debe mantenerse al menos un usuario activo.");
+                }
+            }
             usuario.setNombre(nombre == null ? "" : nombre.trim());
             usuario.setEmail(email == null ? null : email.trim());
             usuario.setActivo(activo);
             contadorRepository.actualizarPerfil(conn, usuario);
+            bitacoraRepository.registrar(conn, BitacoraEntrada.de(
+                    responsable.getId(),
+                    activoAnterior == activo ? "EDITAR_USUARIO"
+                            : (activo ? "ACTIVAR_USUARIO" : "DESACTIVAR_USUARIO"),
+                    "CONTADOR", usuarioId.toString(),
+                    Boolean.toString(activoAnterior), Boolean.toString(activo),
+                    "Actualización de usuario desde soporte técnico"));
         });
     }
 
@@ -264,12 +306,14 @@ public class AuthService {
     /**
      * Establece una clave propia para el usuario de la sesión activa. Se usa
      * para reemplazar la clave temporal emitida por soporte técnico; también
-     * sirve como cambio de clave voluntario. Limpia la marca temporal para
-     * que la clave temporal deje de ser válida.
+     * sirve como cambio de clave voluntario. Exige la contraseña actual para
+     * impedir que una sesión abandonada cambie la clave sin conocerla. Limpia
+     * la marca temporal para que la clave temporal deje de ser válida.
      *
+     * @param claveActual contraseña vigente (la temporal si aún está vigente)
      * @param nuevaPassword nueva contraseña (12 a 128 caracteres)
      */
-    public void cambiarClavePropia(char[] nuevaPassword) {
+    public void cambiarClavePropia(char[] claveActual, char[] nuevaPassword) {
         Contador actual = sesionActual;
         if (actual == null) {
             throw new DomainException("No hay una sesión activa.");
@@ -280,6 +324,11 @@ public class AuthService {
         jdbc.runInTransaction(conn -> {
             Contador usuario = contadorRepository.buscarPorId(conn, actual.getId())
                     .orElseThrow(() -> new DomainException("Usuario no encontrado."));
+            if (!PasswordHasher.verificar(
+                    claveActual == null ? new char[0] : Arrays.copyOf(claveActual, claveActual.length),
+                    usuario.getPasswordSalt(), usuario.getPasswordHash())) {
+                throw new DomainException("La contraseña actual no es correcta.");
+            }
             if (PasswordHasher.verificar(nuevaPassword, usuario.getPasswordSalt(),
                     usuario.getPasswordHash())) {
                 throw new DomainException("La nueva contraseña debe ser distinta de la actual.");
@@ -296,6 +345,28 @@ public class AuthService {
                     null, null, "Clave propia establecida; clave temporal invalidada"));
             sesionActual = usuario;
         });
+    }
+
+    /**
+     * Cuenta los bloqueos por intentos fallidos registrados en las últimas 24 h
+     * para calcular la espera progresiva del bloqueo de cuenta.
+     */
+    private long contarBloqueosRecientes(Connection conn, UUID usuarioId) {
+        String sql = """
+                SELECT COUNT(*) FROM bitacora
+                WHERE accion = 'CUENTA_BLOQUEADA' AND entidad = 'CONTADOR'
+                  AND entidad_id = ? AND fecha_hora > ?
+                """;
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, usuarioId.toString());
+            ps.setObject(2, LocalDateTime.now().minusHours(24));
+            try (ResultSet rs = ps.executeQuery()) {
+                rs.next();
+                return rs.getLong(1);
+            }
+        } catch (SQLException e) {
+            throw new PersistenceException("Error al contar bloqueos recientes", e);
+        }
     }
 
     /**

@@ -147,13 +147,15 @@ public class LoginView extends StackPane {
         dialog.setTitle("Clave temporal");
         dialog.setHeaderText("Su contraseña actual es una clave temporal emitida por soporte. "
                 + "Defina una clave propia de 12 a 128 caracteres para continuar.");
+        PasswordField actual = new PasswordField();
+        actual.setPromptText("Clave temporal actual");
         PasswordField nueva = new PasswordField();
         nueva.setPromptText("Nueva contraseña");
         PasswordField confirma = new PasswordField();
         confirma.setPromptText("Confirmar contraseña");
         Label errorClave = new Label();
         errorClave.getStyleClass().add("error-label");
-        VBox contenido = new VBox(8, nueva, confirma, errorClave);
+        VBox contenido = new VBox(8, actual, nueva, confirma, errorClave);
         contenido.setPadding(new Insets(12));
         dialog.getDialogPane().setContent(contenido);
         ButtonType aceptar = new ButtonType("Guardar clave", ButtonBar.ButtonData.OK_DONE);
@@ -171,7 +173,7 @@ public class LoginView extends StackPane {
                 return;
             }
             try {
-                context.auth().cambiarClavePropia(clave.toCharArray());
+                context.auth().cambiarClavePropia(actual.getText().toCharArray(), clave.toCharArray());
             } catch (Exception ex) {
                 errorClave.setText(ex.getMessage());
                 ev.consume();

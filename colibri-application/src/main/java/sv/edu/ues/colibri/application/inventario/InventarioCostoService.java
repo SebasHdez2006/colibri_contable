@@ -5,12 +5,16 @@ import sv.edu.ues.colibri.application.configuracion.ParametrizacionService;
 import sv.edu.ues.colibri.application.partida.PartidaService;
 import sv.edu.ues.colibri.domain.exception.DomainException;
 import sv.edu.ues.colibri.domain.model.BitacoraEntrada;
+import sv.edu.ues.colibri.domain.model.Documento;
 import sv.edu.ues.colibri.domain.model.Partida;
 import sv.edu.ues.colibri.domain.model.PartidaDetalle;
+import sv.edu.ues.colibri.domain.model.Tercero;
 import sv.edu.ues.colibri.domain.model.TipoPartida;
 import sv.edu.ues.colibri.persistence.jdbc.JdbcSupport;
 import sv.edu.ues.colibri.persistence.jdbc.PersistenceException;
 import sv.edu.ues.colibri.persistence.repo.BitacoraRepository;
+import sv.edu.ues.colibri.persistence.repo.DocumentoRepository;
+import sv.edu.ues.colibri.persistence.repo.EmpresaRepository;
 import sv.edu.ues.colibri.persistence.repo.PartidaRepository;
 import sv.edu.ues.colibri.persistence.repo.TerceroRepository;
 
@@ -23,8 +27,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -39,6 +46,8 @@ public class InventarioCostoService {
     private final PartidaRepository partidaRepository = new PartidaRepository();
     private final TerceroRepository terceros = new TerceroRepository();
     private final BitacoraRepository bitacoraRepository = new BitacoraRepository();
+    private final DocumentoRepository documentos = new DocumentoRepository();
+    private final EmpresaRepository empresas = new EmpresaRepository();
 
     /**
      * Crea el servicio de inventario y costeo.
@@ -765,52 +774,48 @@ public class InventarioCostoService {
         if (precioNeto == null || precioNeto.signum() <= 0) {
             throw new DomainException("El precio neto debe ser mayor que cero");
         }
-        ReservaLicencia reserva = reservarLicenciaPeps();
+        // Reserva PEPS, entrega, documento tributario, partida, vínculo de kárdex y
+        // bitácora confirman en una sola transacción: cualquier fallo revierte todo
+        // y no quedan licencias entregadas sin asiento ni documentos huérfanos.
+        return jdbc.inTransaction(conn -> {
+            ReservaLicencia reserva = reservarLicenciaPeps();
+            var iva = sv.edu.ues.colibri.domain.iva.IvaCalculator.desdeNeto(
+                    precioNeto, fiscal.iva());
 
-        var iva = sv.edu.ues.colibri.domain.iva.IvaCalculator.desdeNeto(
-                precioNeto, fiscal.iva());
+            Tercero cliente = terceros.porId(conn, clienteId)
+                    .orElseThrow(() -> new DomainException("Cliente no encontrado"));
+            var empresa = empresas.obtenerUnica(conn).orElseThrow();
+            String nitEmpresa = empresa.getNit() != null ? empresa.getNit() : "SIMULADO-NIT";
+            String corto = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+            Documento doc = new Documento(UUID.randomUUID(), "FACTURA", nitEmpresa,
+                    "SIM-LIC-" + corto, "DTE-LIC-" + System.currentTimeMillis() + "-" + corto,
+                    cliente.getNit(), cliente.getId(), null, fecha,
+                    iva.base(), iva.iva(), BigDecimal.ZERO, iva.total(), false,
+                    "REGISTRADO", true);
+            documentos.insertar(conn, doc);
 
-        List<PartidaDetalle> lineas = List.of(
-                PartidaDetalle.nueva(cuentaPorCobrar, iva.total(), BigDecimal.ZERO),
-                PartidaDetalle.nueva(cuentaDeIngreso, BigDecimal.ZERO, iva.base()),
-                PartidaDetalle.nueva(fiscal.cuentaDebito(), BigDecimal.ZERO, iva.iva()),
-                PartidaDetalle.nueva(cuentaCostoVenta, reserva.costoContable(), BigDecimal.ZERO),
-                PartidaDetalle.nueva(cuentaInventario, BigDecimal.ZERO, reserva.costoContable()));
-        Partida borrador = null;
-        Partida contabilizada = null;
-        boolean entregaConfirmada = false;
-        try {
-            // La entrega se confirma antes de la contabilización. Si esta falla, el
-            // bloque catch revierte la entrega y devuelve la unidad al lote, por lo
-            // que no queda una partida de venta contabilizada sin licencia entregada.
+            List<PartidaDetalle> lineas = List.of(
+                    PartidaDetalle.nueva(cuentaPorCobrar, iva.total(), BigDecimal.ZERO),
+                    PartidaDetalle.nueva(cuentaDeIngreso, BigDecimal.ZERO, iva.base()),
+                    PartidaDetalle.nueva(fiscal.cuentaDebito(), BigDecimal.ZERO, iva.iva()),
+                    PartidaDetalle.nueva(cuentaCostoVenta, reserva.costoContable(), BigDecimal.ZERO),
+                    PartidaDetalle.nueva(cuentaInventario, BigDecimal.ZERO, reserva.costoContable()));
             entregarReserva(reserva, clienteId, fecha);
-            entregaConfirmada = true;
-            borrador = partidas.guardarBorrador(TipoPartida.DI, fecha, "Venta licencia lote " + reserva.codigoLote(),
-                    "LIC-" + reserva.codigoLote(), "VTA-LIC-" + UUID.randomUUID(), new ArrayList<>(lineas), null);
-            contabilizada = partidas.contabilizar(borrador.getId());
+            Partida borrador = partidas.guardarBorrador(TipoPartida.DI, fecha,
+                    "Venta licencia lote " + reserva.codigoLote(),
+                    "LIC-" + reserva.codigoLote(), "VTA-LIC-" + UUID.randomUUID(),
+                    new ArrayList<>(lineas), null);
+            Partida contabilizada = partidas.contabilizar(borrador.getId());
+            documentos.vincularEvento(conn, doc.getId(), contabilizada.getEventoId(),
+                    "VENTA", contabilizada.getId());
+            documentos.marcarContabilizado(conn, doc.getId());
             vincularPartidaKardex(reserva.licenciaId(), contabilizada.getId());
-            jdbc.runInTransaction(conn -> bitacoraRepository.registrar(conn, BitacoraEntrada.de(
+            bitacoraRepository.registrar(conn, BitacoraEntrada.de(
                     auth.exigirContador().getId(), "VENTA_LICENCIA", "LICENCIA",
                     reserva.licenciaId().toString(), null,
-                    "Lote " + reserva.codigoLote() + " · neto " + precioNeto + " · " + fecha, null)));
+                    "Lote " + reserva.codigoLote() + " · neto " + precioNeto + " · " + fecha, null));
             return contabilizada;
-        } catch (RuntimeException ex) {
-            if (contabilizada != null) {
-                UUID partidaId = contabilizada.getId();
-                compensar(ex, () -> partidas.revertir(partidaId, fecha,
-                        "Venta de licencia no completada; partida revertida."));
-            } else if (borrador != null) {
-                UUID borradorId = borrador.getId();
-                compensar(ex, () -> partidas.anular(borradorId,
-                        "Venta de licencia no completada; inventario restituido."));
-            }
-            if (entregaConfirmada) {
-                compensar(ex, () -> cancelarEntrega(reserva.loteId(), reserva.licenciaId()));
-            } else {
-                compensar(ex, () -> liberarReserva(reserva.loteId(), reserva.licenciaId()));
-            }
-            throw ex;
-        }
+        });
     }
 
     private void exigirClienteActivo(UUID clienteId) {
@@ -1149,8 +1154,14 @@ public class InventarioCostoService {
         if (fecha == null) {
             throw new DomainException("La fecha de devolución es obligatoria");
         }
-        DatosDevolucion datos = jdbc.inTransaction(conn -> {
+        // Reversa de la venta, cambio de estado, reingreso al lote, kárdex y bitácora
+        // confirman en una sola transacción. partidas.revertir() marca la partida de
+        // venta original como REVERTIDA, por lo que no puede revertirse dos veces.
+        return jdbc.inTransaction(conn -> {
             LicenciaCicloVida licencia = cargarLicenciaCicloVida(conn, licenciaId);
+            if (!"ENTREGADA".equals(licencia.estado())) {
+                throw new DomainException("Sólo una licencia entregada puede devolverse al inventario.");
+            }
             UUID partidaVenta = null;
             try (PreparedStatement ps = conn.prepareStatement("""
                     SELECT partida_id FROM licencia_movimiento
@@ -1166,67 +1177,41 @@ public class InventarioCostoService {
             } catch (SQLException e) {
                 throw new PersistenceException("Error al leer el kárdex de la licencia", e);
             }
-            return new DatosDevolucion(licencia, partidaVenta);
-        });
-        if (!"ENTREGADA".equals(datos.licencia().estado())) {
-            throw new DomainException("Sólo una licencia entregada puede devolverse al inventario.");
-        }
-        List<PartidaDetalle> lineas = datos.partidaVentaId() == null ? null
-                : jdbc.inTransaction(conn -> lineasDeReversa(conn, datos.partidaVentaId()));
-        Partida reversa = null;
-        Partida borrador = null;
-        try {
-            if (lineas != null && !lineas.isEmpty()) {
-                borrador = partidas.guardarBorrador(TipoPartida.DI, fecha,
-                        "Devolución licencia " + datos.licencia().codigoLote() + " #"
-                                + datos.licencia().numero(),
-                        "DEV-LIC-" + datos.licencia().codigoLote(),
-                        "DEV-" + licenciaId + "-" + UUID.randomUUID(),
-                        new ArrayList<>(lineas), null);
-                reversa = partidas.contabilizar(borrador.getId());
-            }
+            Partida reversa = partidaVenta == null ? null
+                    : partidas.revertir(partidaVenta, fecha,
+                            motivoKardex(motivo, "Devolución de licencia"));
             UUID partidaReversaId = reversa == null ? null : reversa.getId();
-            LicenciaCicloVida licencia = datos.licencia();
-            jdbc.runInTransaction(conn -> {
-                try (PreparedStatement ps = conn.prepareStatement(
-                        "UPDATE licencia SET estado='DEVUELTA' WHERE id=? AND estado='ENTREGADA'")) {
-                    ps.setObject(1, licenciaId);
-                    if (ps.executeUpdate() != 1) {
-                        throw new DomainException(
-                                "La licencia ya no está entregada; no se devolvió al inventario.");
-                    }
-                } catch (SQLException e) {
-                    throw new PersistenceException("Error al devolver la licencia", e);
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "UPDATE licencia SET estado='DEVUELTA' WHERE id=? AND estado='ENTREGADA'")) {
+                ps.setObject(1, licenciaId);
+                if (ps.executeUpdate() != 1) {
+                    throw new DomainException(
+                            "La licencia ya no está entregada; no se devolvió al inventario.");
                 }
-                try (PreparedStatement ps = conn.prepareStatement(
-                        "UPDATE lote_licencia SET unidades_disponibles = unidades_disponibles + 1 WHERE id=?")) {
-                    ps.setObject(1, licencia.loteId());
-                    ps.executeUpdate();
-                } catch (SQLException e) {
-                    throw new PersistenceException("Error al reingresar la licencia al lote", e);
-                }
+            } catch (SQLException e) {
+                throw new PersistenceException("Error al devolver la licencia", e);
+            }
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "UPDATE lote_licencia SET unidades_disponibles = unidades_disponibles + 1 WHERE id=?")) {
+                ps.setObject(1, licencia.loteId());
+                ps.executeUpdate();
+            } catch (SQLException e) {
+                throw new PersistenceException("Error al reingresar la licencia al lote", e);
+            }
+            try {
                 registrarKardex(conn, licencia.loteId(), licenciaId, "DEVOLUCION", fecha, 1,
                         licencia.costoUnitario(), licencia.costoUnitario(), partidaReversaId,
                         motivoKardex(motivo, "Devolución de licencia"),
                         auth.exigirContador().getId());
-                bitacoraRepository.registrar(conn, BitacoraEntrada.de(
-                        auth.exigirContador().getId(), "DEVOLVER_LICENCIA", "LICENCIA",
-                        licenciaId.toString(), "ENTREGADA", "DEVUELTA",
-                        motivoKardex(motivo, "Devolución de licencia")));
-            });
-            return reversa;
-        } catch (RuntimeException ex) {
-            if (reversa != null) {
-                UUID id = reversa.getId();
-                compensar(ex, () -> partidas.revertir(id, fecha,
-                        "Devolución de licencia no completada; reversa descartada."));
-            } else if (borrador != null) {
-                UUID id = borrador.getId();
-                compensar(ex, () -> partidas.anular(id,
-                        "Devolución de licencia no completada."));
+            } catch (SQLException e) {
+                throw new PersistenceException("Error al registrar la devolución en el kárdex", e);
             }
-            throw ex;
-        }
+            bitacoraRepository.registrar(conn, BitacoraEntrada.de(
+                    auth.exigirContador().getId(), "DEVOLVER_LICENCIA", "LICENCIA",
+                    licenciaId.toString(), "ENTREGADA", "DEVUELTA",
+                    motivoKardex(motivo, "Devolución de licencia")));
+            return reversa;
+        });
     }
 
     /**
@@ -1997,8 +1982,15 @@ public class InventarioCostoService {
             case "CIF" -> "110503";
             default -> throw new DomainException("Tipo de costo no admitido");
         };
-        // Acumula en servicios en proceso contra banco/indirectos aplicados
-        String haber = "CIF".equals(clase) ? "520201" : "110102";
+        // Acumula en servicios en proceso. La mano de obra directa no sale de
+        // bancos: la planilla ya llevó el 100 % de los sueldos a gasto operativo
+        // (610101), por lo que el consumo la reclasifica hacia el costo de la
+        // orden. Los servicios sí se cancelan directamente contra bancos.
+        String haber = switch (clase) {
+            case "MOD" -> "610101";
+            case "CIF" -> "520201";
+            default -> "110102";
+        };
         Partida contabilizada = null;
         try {
             Partida p = partidas.guardarBorrador(TipoPartida.DI, fecha,
@@ -2047,34 +2039,16 @@ public class InventarioCostoService {
         }
     }
 
-    /** Reconoce costo de orden a resultados (5101) desde 1105. */
+    /** Reconoce costo de orden a resultados (5101) desde 1105 de forma incremental. */
     public Partida reconocerCostoOrden(String codigoOrden, LocalDate fecha) {
         auth.exigirContador();
-        Partida reconocido = jdbc.inTransaction(conn -> {
-            try (PreparedStatement ps = conn.prepareStatement("""
-                    SELECT id FROM partida
-                    WHERE concepto = ? AND estado = 'CONTABILIZADA'
-                    ORDER BY fecha_contable DESC LIMIT 1
-                    """)) {
-                ps.setString(1, "Reconocimiento costo " + codigoOrden);
-                try (ResultSet rs = ps.executeQuery()) {
-                    return rs.next() ? partidaRepository.buscarPorId(conn, (UUID) rs.getObject(1)).orElse(null)
-                            : null;
-                }
-            } catch (SQLException e) {
-                throw new PersistenceException("Error al comprobar costo reconocido", e);
-            }
-        });
-        if (reconocido != null) {
-            return reconocido;
-        }
-        OrdenInfo info = jdbc.inTransaction(conn -> cargarOrden(conn, codigoOrden));
-        if (info.costoAcumulado().signum() <= 0) {
-            throw new DomainException("La orden no tiene costo acumulado");
-        }
-        List<PartidaDetalle> lineas = new ArrayList<>();
-        // Cada elemento conserva su cuenta de resultados y su cuenta en proceso.
-        jdbc.inTransaction(conn -> {
+        String orden = exigirTexto(codigoOrden, "El código de la orden");
+        // El reconocimiento es incremental: sólo se traslada a resultados el costo
+        // consumido que aún no haya sido reconocido. Así, los consumos registrados
+        // después del primer cierre de la orden sí entran al costo de ventas.
+        return jdbc.inTransaction(conn -> {
+            OrdenInfo info = cargarOrden(conn, orden);
+            Map<String, BigDecimal> consumos = new LinkedHashMap<>();
             try (PreparedStatement ps = conn.prepareStatement("""
                     SELECT c.tipo, COALESCE(SUM(c.importe), 0) AS importe
                     FROM orden_consumo c
@@ -2085,38 +2059,86 @@ public class InventarioCostoService {
                 ps.setObject(1, info.id());
                 try (ResultSet rs = ps.executeQuery()) {
                     while (rs.next()) {
-                        BigDecimal importe = rs.getBigDecimal("importe");
-                        if (importe.signum() > 0) {
-                            String tipo = rs.getString("tipo");
-                            String cuentaProceso = switch (tipo) {
-                                case "MOD" -> "110501";
-                                case "CIF" -> "110503";
-                                default -> "110502";
-                            };
-                            String cuentaResultado = switch (tipo) {
-                                case "MOD" -> "510101";
-                                case "CIF" -> "510103";
-                                default -> "510102";
-                            };
-                            lineas.add(PartidaDetalle.nueva(cuentaResultado, importe, BigDecimal.ZERO));
-                            lineas.add(PartidaDetalle.nueva(cuentaProceso, BigDecimal.ZERO, importe));
-                        }
+                        consumos.put(rs.getString("tipo"), rs.getBigDecimal("importe"));
                     }
                 }
-                return null;
             } catch (SQLException e) {
                 throw new PersistenceException("Error al desglosar costos de la orden", e);
             }
+            Map<String, BigDecimal> reconocidos = new HashMap<>();
+            try (PreparedStatement ps = conn.prepareStatement("""
+                    SELECT d.codigo_cuenta, COALESCE(SUM(d.haber), 0) AS importe
+                    FROM partida_detalle d
+                    JOIN partida p ON p.id=d.partida_id
+                    WHERE p.concepto = ? AND p.estado='CONTABILIZADA'
+                      AND d.codigo_cuenta IN ('110501','110502','110503')
+                    GROUP BY d.codigo_cuenta
+                    """)) {
+                ps.setString(1, "Reconocimiento costo " + orden);
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        reconocidos.put(rs.getString(1), rs.getBigDecimal(2));
+                    }
+                }
+            } catch (SQLException e) {
+                throw new PersistenceException("Error al comprobar costo reconocido", e);
+            }
+            Partida ultima = null;
+            try (PreparedStatement ps = conn.prepareStatement("""
+                    SELECT id FROM partida
+                    WHERE concepto = ? AND estado = 'CONTABILIZADA'
+                    ORDER BY fecha_contable DESC LIMIT 1
+                    """)) {
+                ps.setString(1, "Reconocimiento costo " + orden);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        ultima = partidaRepository.buscarPorId(conn, (UUID) rs.getObject(1))
+                                .orElse(null);
+                    }
+                }
+            } catch (SQLException e) {
+                throw new PersistenceException("Error al comprobar costo reconocido", e);
+            }
+            List<PartidaDetalle> lineas = new ArrayList<>();
+            for (Map.Entry<String, BigDecimal> consumo : consumos.entrySet()) {
+                String tipo = consumo.getKey();
+                String cuentaProceso = switch (tipo) {
+                    case "MOD" -> "110501";
+                    case "CIF" -> "110503";
+                    default -> "110502";
+                };
+                String cuentaResultado = switch (tipo) {
+                    case "MOD" -> "510101";
+                    case "CIF" -> "510103";
+                    default -> "510102";
+                };
+                BigDecimal pendiente = consumo.getValue()
+                        .subtract(reconocidos.getOrDefault(cuentaProceso, BigDecimal.ZERO))
+                        .setScale(2, RoundingMode.HALF_UP);
+                if (pendiente.signum() > 0) {
+                    lineas.add(PartidaDetalle.nueva(cuentaResultado, pendiente, BigDecimal.ZERO));
+                    lineas.add(PartidaDetalle.nueva(cuentaProceso, BigDecimal.ZERO, pendiente));
+                }
+            }
+            if (lineas.isEmpty()) {
+                if (ultima != null) {
+                    return ultima;
+                }
+                if (info.costoAcumulado().signum() <= 0) {
+                    throw new DomainException("La orden no tiene costo acumulado");
+                }
+                throw new DomainException("La orden no tiene costo pendiente por reconocer");
+            }
+            Partida p = partidas.guardarBorrador(TipoPartida.DI, fecha,
+                    "Reconocimiento costo " + orden, orden,
+                    "REC-" + orden + "-" + UUID.randomUUID(),
+                    lineas, null);
+            Partida reconocida = partidas.contabilizar(p.getId());
+            bitacoraRepository.registrar(conn, BitacoraEntrada.de(
+                    auth.exigirContador().getId(), "RECONOCER_COSTO_ORDEN", "ORDEN_SERVICIO",
+                    orden, null, "Costo acumulado reconocido a resultados · " + fecha, null));
+            return reconocida;
         });
-        Partida p = partidas.guardarBorrador(TipoPartida.DI, fecha,
-                "Reconocimiento costo " + codigoOrden, codigoOrden,
-                "REC-" + codigoOrden + "-" + UUID.randomUUID(),
-                lineas, null);
-        Partida reconocida = partidas.contabilizar(p.getId());
-        jdbc.runInTransaction(conn -> bitacoraRepository.registrar(conn, BitacoraEntrada.de(
-                auth.exigirContador().getId(), "RECONOCER_COSTO_ORDEN", "ORDEN_SERVICIO",
-                codigoOrden, null, "Costo acumulado reconocido a resultados · " + fecha, null)));
-        return reconocida;
     }
 
     private OrdenInfo cargarOrden(Connection conn, String codigo) {
@@ -2197,7 +2219,13 @@ public class InventarioCostoService {
             case "CIF" -> "510103";
             default -> throw new DomainException("Tipo de costo no admitido");
         };
-        String cuentaOrigen = "CIF".equals(clase) ? "520201" : "110102";
+        // Igual que en órdenes: la MOD se financia con la reclasificación del gasto
+        // de planilla (610101) y no con una salida de bancos ya registrada.
+        String cuentaOrigen = switch (clase) {
+            case "MOD" -> "610101";
+            case "CIF" -> "520201";
+            default -> "110102";
+        };
         Partida contabilizada = null;
         try {
             Partida borrador = partidas.guardarBorrador(TipoPartida.DI, fecha,

@@ -17,6 +17,7 @@ import sv.edu.ues.colibri.application.AppContext;
 import sv.edu.ues.colibri.application.costos.CosteoGerencialService;
 import sv.edu.ues.colibri.application.costos.EstimacionCostosService;
 import sv.edu.ues.colibri.desktop.ui.ResponsiveLayouts;
+import sv.edu.ues.colibri.desktop.ui.UiCampos;
 import sv.edu.ues.colibri.desktop.ui.UiCatalogos;
 import sv.edu.ues.colibri.desktop.ui.UiDialogs;
 
@@ -90,8 +91,10 @@ public final class EstimacionCostosView extends VBox {
                     case TRES_PUNTOS -> motor.tresPuntos(p1, p2, p3);
                     case SLIM_PUTNAM -> motor.slimPutnam(p1, p2, p3);
                 };
-                var r = motor.costearEsfuerzo(metodo.getValue(), horas, new BigDecimal(tarifa.getText()),
-                        new BigDecimal(cif.getText()), new BigDecimal(margen.getText()));
+                var r = motor.costearEsfuerzo(metodo.getValue(), horas,
+                        UiCampos.decimal(tarifa.getText(), "tarifa"),
+                        UiCampos.decimal(cif.getText(), "tasa de CIF"),
+                        UiCampos.decimal(margen.getText(), "margen"));
                 resultado.setText("Método: %s · Esfuerzo: %s h · Directo: $%s · CIF: $%s · "
                         .formatted(r.metodo(), r.esfuerzoHoras(), r.costoDirecto(), r.cif())
                         + "Costo total: $%s · Precio unitario: $%s · Margen: $%s%n%s"
@@ -362,7 +365,14 @@ public final class EstimacionCostosView extends VBox {
 
     private static BigDecimal valor(TextField campo) {
         String texto = campo.getText() == null ? "" : campo.getText().trim();
-        return texto.isEmpty() ? BigDecimal.ZERO : new BigDecimal(texto);
+        if (texto.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+        try {
+            return new BigDecimal(texto);
+        } catch (NumberFormatException ex) {
+            throw new IllegalArgumentException("El valor debe ser numérico: «" + texto + "».");
+        }
     }
 
     private static List<BigDecimal> pesos(String texto) {
@@ -370,7 +380,12 @@ public final class EstimacionCostosView extends VBox {
         if (texto != null) {
             for (String parte : texto.split("[,;\\s]+")) {
                 if (!parte.isBlank()) {
-                    lista.add(new BigDecimal(parte.trim()));
+                    try {
+                        lista.add(new BigDecimal(parte.trim()));
+                    } catch (NumberFormatException ex) {
+                        throw new IllegalArgumentException(
+                                "Los pesos deben ser numéricos: «" + parte.trim() + "».");
+                    }
                 }
             }
         }
@@ -440,15 +455,18 @@ public final class EstimacionCostosView extends VBox {
         Button calcular = new Button("Comparar métodos de costeo");
         calcular.setOnAction(evento -> {
             try {
-                BigDecimal mat = new BigDecimal(materiales.getText());
-                BigDecimal manoObra = new BigDecimal(mod.getText());
-                int cantidad = Integer.parseInt(unidades.getText());
+                BigDecimal mat = UiCampos.decimal(materiales.getText(), "materiales");
+                BigDecimal manoObra = UiCampos.decimal(mod.getText(), "MOD");
+                int cantidad = UiCampos.entero(unidades.getText(), "unidades");
                 var directo = motor.calcularDirecto(mat, manoObra, cantidad);
-                var estandar = motor.analizarEstandar(mat, manoObra, new BigDecimal(cifEstandar.getText()),
-                        new BigDecimal(real.getText()), cantidad);
+                var estandar = motor.analizarEstandar(mat, manoObra,
+                        UiCampos.decimal(cifEstandar.getText(), "CIF estándar"),
+                        UiCampos.decimal(real.getText(), "costo real"), cantidad);
                 var abc = motor.calcularAbc(mat, manoObra, java.util.List.of(
-                        new CosteoGerencialService.ActividadAbc("Calidad", new BigDecimal(calidad.getText())),
-                        new CosteoGerencialService.ActividadAbc("Infraestructura", new BigDecimal(infraestructura.getText()))),
+                        new CosteoGerencialService.ActividadAbc("Calidad",
+                                UiCampos.decimal(calidad.getText(), "actividad Calidad")),
+                        new CosteoGerencialService.ActividadAbc("Infraestructura",
+                                UiCampos.decimal(infraestructura.getText(), "actividad Infraestructura"))),
                         cantidad);
                 salida.setText("Directo: $%s total / $%s por unidad · Estándar: $%s total / variación $%s · "
                         .formatted(directo.total(), directo.unitario(), estandar.totalEstandar(), estandar.variacion())
@@ -567,10 +585,10 @@ public final class EstimacionCostosView extends VBox {
         Button comparar = new Button("Comparar estimación promedio con históricos");
         comparar.setOnAction(evento -> {
             try {
-                BigDecimal b = new BigDecimal(base.getText().trim());
-                BigDecimal t = new BigDecimal(tarifa.getText().trim());
-                BigDecimal c = new BigDecimal(cifPct.getText().trim());
-                BigDecimal m = new BigDecimal(margenPct.getText().trim());
+                BigDecimal b = UiCampos.decimal(base.getText(), "base");
+                BigDecimal t = UiCampos.decimal(tarifa.getText(), "tarifa");
+                BigDecimal c = UiCampos.decimal(cifPct.getText(), "porcentaje de CIF");
+                BigDecimal m = UiCampos.decimal(margenPct.getText(), "margen");
                 List<EstimacionCostosService.Resultado> resultados = new ArrayList<>();
                 StringBuilder porMetodoTexto = new StringBuilder();
                 for (EstimacionCostosService.Metodo met : EstimacionCostosService.Metodo.values()) {

@@ -14,6 +14,7 @@ import javafx.util.StringConverter;
 import sv.edu.ues.colibri.application.AppContext;
 import sv.edu.ues.colibri.application.configuracion.ParametrizacionService;
 import sv.edu.ues.colibri.desktop.ui.ResponsiveLayouts;
+import sv.edu.ues.colibri.desktop.ui.UiCampos;
 import sv.edu.ues.colibri.desktop.ui.UiCatalogos;
 import sv.edu.ues.colibri.desktop.ui.UiDialogs;
 import sv.edu.ues.colibri.desktop.ui.UiTables;
@@ -162,7 +163,7 @@ public class ParametrizacionView extends VBox {
         crearEjercicio.setAccessibleHelp("Crea el ejercicio anual con sus 12 períodos mensuales; "
                 + "solo el mes elegido queda abierto.");
         crearEjercicio.setOnAction(e -> run(() -> {
-            int an = Integer.parseInt(anio.getText().trim());
+            int an = UiCampos.entero(anio.getText(), "año del ejercicio");
             context.periodos().crearEjercicio(an, mesInicial.getValue());
             refrescar.run();
             UiDialogs.info("Períodos", "Ejercicio " + an + " creado con 12 meses; "
@@ -416,9 +417,12 @@ public class ParametrizacionView extends VBox {
         Button guardar = new Button("Guardar parámetros fiscales");
         guardar.setOnAction(e -> run(() -> {
             context.parametrizacion().guardarFiscal(new ParametrizacionService.ParametroFiscal(
-                    new BigDecimal(iva.getText()), new BigDecimal(retIva.getText()),
-                    new BigDecimal(pago.getText()), new BigDecimal(isrServ.getText()),
-                    new BigDecimal(isrInt.getText()), codigo(cCred, "IVA crédito"), codigo(cDeb, "IVA débito"),
+                    UiCampos.decimal(iva.getText(), "tasa de IVA"),
+                    UiCampos.decimal(retIva.getText(), "retención de IVA"),
+                    UiCampos.decimal(pago.getText(), "pago a cuenta ISR"),
+                    UiCampos.decimal(isrServ.getText(), "retención ISR servicios"),
+                    UiCampos.decimal(isrInt.getText(), "retención ISR intangibles"),
+                    codigo(cCred, "IVA crédito"), codigo(cDeb, "IVA débito"),
                     codigo(cPagar, "IVA por pagar"), codigo(cRet, "retención IVA"), codigo(cPago, "pago a cuenta"),
                     mh.getText()));
             UiDialogs.info("Fiscal", "Alícuotas y cuentas tributarias actualizadas.");

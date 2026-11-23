@@ -9,10 +9,10 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.VBox;
 import sv.edu.ues.colibri.application.AppContext;
 import sv.edu.ues.colibri.desktop.ui.ResponsiveLayouts;
+import sv.edu.ues.colibri.desktop.ui.UiCampos;
 import sv.edu.ues.colibri.desktop.ui.UiCatalogos;
 import sv.edu.ues.colibri.desktop.ui.UiDialogs;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 
 /**
@@ -46,16 +46,16 @@ public class AjustesCierreView extends VBox {
 
         Button btnA1 = botonAjuste("Devengo de suscripciones",
                 "Gasto del mes por suscripciones SaaS devengadas.",
-                () -> context.cierre().ajusteDevengoSaas(new BigDecimal(a1.getText()), fecha.getValue()));
+                () -> context.cierre().ajusteDevengoSaas(UiCampos.importe(a1.getText()), fecha.getValue()));
         Button btnA2 = botonAjuste("Consumo de nube",
                 "Consumo de servicios en la nube del mes.",
-                () -> context.cierre().ajusteConsumoNube(new BigDecimal(a2.getText()), fecha.getValue()));
+                () -> context.cierre().ajusteConsumoNube(UiCampos.importe(a2.getText()), fecha.getValue()));
         Button btnA3 = botonAjuste("Consumo de alquiler",
                 "Alquiler devengado del mes.",
-                () -> context.cierre().ajusteConsumoRenta(new BigDecimal(a3.getText()), fecha.getValue()));
+                () -> context.cierre().ajusteConsumoRenta(UiCampos.importe(a3.getText()), fecha.getValue()));
         Button btnA4 = botonAjuste("Gasto devengado",
                 "Gasto devengado pendiente de factura.",
-                () -> context.cierre().ajusteGastoDevengado(new BigDecimal(a4.getText()), fecha.getValue()));
+                () -> context.cierre().ajusteGastoDevengado(UiCampos.importe(a4.getText()), fecha.getValue()));
 
         Button btnDep = botonAjuste("Depreciar activos fijos",
                 "Genera la cuota de depreciación del mes; no duplica.",
