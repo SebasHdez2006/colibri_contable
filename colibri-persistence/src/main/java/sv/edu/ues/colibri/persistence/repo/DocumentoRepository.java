@@ -98,6 +98,61 @@ public class DocumentoRepository {
     }
 
     /**
+     * Enlace contable de un documento: la partida asociada y el tipo de
+     * evento con que fue registrado (VENTA, COMPRA, COBRO, etc.).
+     */
+    public record EnlaceDocumento(UUID partidaId, String tipoEvento) {
+    }
+
+    /**
+     * Recupera el enlace contable principal de un documento, prefiriendo los
+     * tipos que alimentan el Libro de IVA.
+     *
+     * @param conn conexión activa
+     * @param documentoId identificador del documento
+     * @return enlace encontrado o vacío
+     */
+    public Optional<EnlaceDocumento> enlaceContable(Connection conn, UUID documentoId) {
+        String sql = """
+                SELECT partida_id, tipo_evento FROM documento_evento
+                WHERE documento_id = ? AND partida_id IS NOT NULL
+                ORDER BY CASE tipo_evento
+                    WHEN 'VENTA' THEN 0 WHEN 'COMPRA' THEN 1
+                    WHEN 'ANTICIPO' THEN 2 ELSE 3 END
+                LIMIT 1
+                """;
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setObject(1, documentoId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next()
+                        ? Optional.of(new EnlaceDocumento((UUID) rs.getObject(1), rs.getString(2)))
+                        : Optional.empty();
+            }
+        } catch (SQLException e) {
+            throw new PersistenceException("Error al consultar el enlace del documento", e);
+        }
+    }
+
+    /**
+     * Registra en el documento de ajuste el identificador del documento que
+     * origina la nota de crédito o débito.
+     *
+     * @param conn conexión activa
+     * @param docId identificador de la nota emitida
+     * @param origenId identificador del documento ajustado
+     */
+    public void vincularOrigen(Connection conn, UUID docId, UUID origenId) {
+        try (PreparedStatement ps = conn.prepareStatement(
+                "UPDATE documento SET documento_origen_id=? WHERE id=?")) {
+            ps.setObject(1, origenId);
+            ps.setObject(2, docId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new PersistenceException("Error al vincular la nota con su documento origen", e);
+        }
+    }
+
+    /**
      * Lista documentos ordenados por fecha de emisión y creación.
      *
      * @param conn conexión activa

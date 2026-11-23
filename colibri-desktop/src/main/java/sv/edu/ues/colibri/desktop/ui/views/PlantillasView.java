@@ -87,7 +87,7 @@ public class PlantillasView extends VBox {
                     refrescar();
                     UiDialogs.info("Plantilla", "Plantilla «" + creada.nombre() + "» guardada.");
                 } catch (Exception ex) {
-                    UiDialogs.error(ex.getMessage());
+                    UiDialogs.errorDe(ex);
                 }
             }
         });
@@ -119,7 +119,7 @@ public class PlantillasView extends VBox {
                 UiDialogs.info("Borrador generado",
                         "Partida en estado " + borrador.getEstado() + ". Revísela en «Libro diario».");
             } catch (Exception ex) {
-                UiDialogs.error(ex.getMessage());
+                UiDialogs.errorDe(ex);
             }
         });
 
@@ -135,7 +135,7 @@ public class PlantillasView extends VBox {
             tabla.setItems(FXCollections.observableArrayList(context.plantillas().listar()));
         } catch (Exception ex) {
             tabla.setItems(FXCollections.observableArrayList());
-            UiDialogs.error(ex.getMessage());
+            UiDialogs.errorDe(ex);
         }
     }
 

@@ -143,7 +143,7 @@ public class EmpresaPeriodosView extends VBox {
                         contador.getText().trim(), cvpcpa.getText().trim());
                 UiDialogs.info("Empresa", "Perfil corporativo actualizado para encabezados y firmas.");
             } catch (DomainException ex) {
-                UiDialogs.error(ex.getMessage());
+                UiDialogs.errorDe(ex);
             }
         });
 

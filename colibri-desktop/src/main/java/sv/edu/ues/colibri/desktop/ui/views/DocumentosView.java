@@ -185,6 +185,19 @@ public class DocumentosView extends VBox {
                         ResponsiveLayouts.field("DTE destino", comboDte),
                         ResponsiveLayouts.field("Importe aplicación", importeAplicacion)));
 
+        TextField motivoNota = new TextField();
+        motivoNota.setPromptText("Motivo de la nota (obligatorio)");
+        Button notaCredito = new Button("Emitir nota de crédito");
+        Button notaDebito = new Button("Emitir nota de débito");
+        notaCredito.setOnAction(e -> emitirNota(false, motivoNota));
+        notaDebito.setOnAction(e -> emitirNota(true, motivoNota));
+        VBox cardNotas = ResponsiveLayouts.sectionCard("Notas de crédito y débito",
+                "Seleccione un documento CONTABILIZADO en la tabla «Documentos» y emita la "
+                        + "nota por el total del documento. La NC revierte el asiento; la ND "
+                        + "lo duplica. La fecha de la nota es la del campo «Fecha».",
+                ResponsiveLayouts.row(ResponsiveLayouts.field("Motivo", motivoNota),
+                        notaCredito, notaDebito));
+
         configurarTablaTerceros();
         configurarTablaDocumentos();
 
@@ -206,7 +219,7 @@ public class DocumentosView extends VBox {
 
         // Cada listado ocupa una fila completa del ancho de la ventana.
         getChildren().addAll(titulo, ayuda, cardTercero, cardOperacion,
-                cardAnticipo, panelTerceros, panelDocumentos);
+                cardAnticipo, cardNotas, panelTerceros, panelDocumentos);
         configurarTercero();
         refrescar();
     }
@@ -229,7 +242,7 @@ public class DocumentosView extends VBox {
                 refrescar();
                 UiDialogs.info("Tercero", "Guardado: " + t.getRazonSocial());
             } catch (Exception ex) {
-                UiDialogs.error(ex.getMessage());
+                UiDialogs.errorDe(ex);
             }
         });
         editarT.setOnAction(e -> {
@@ -261,13 +274,32 @@ public class DocumentosView extends VBox {
         modoTercero.setText("Modo: nuevo tercero");
     }
 
+    private void emitirNota(boolean debito, TextField motivoNota) {
+        try {
+            Documento sel = tablaDocumentos.getSelectionModel().getSelectedItem();
+            if (sel == null) {
+                throw new DomainException(
+                        "Seleccione el documento a ajustar en la tabla «Documentos».");
+            }
+            Documento nota = context.operaciones().emitirNotaAjuste(
+                    sel.getId(), fecha.getValue(), motivoNota.getText(), debito);
+            UiDialogs.info("Nota emitida", (debito ? "Nota de débito " : "Nota de crédito ")
+                    + nota.getCodigoGeneracion() + " · Total "
+                    + nota.getTotal().toPlainString());
+            motivoNota.clear();
+            refrescar();
+        } catch (Exception ex) {
+            UiDialogs.errorDe(ex);
+        }
+    }
+
     private void ejecutarOperacion() {
         try {
             Partida p = aplicarAnticipo() ? aplicarAnticipoPartida() : registrarPartida();
             UiDialogs.info("Contabilizado", "Folio " + p.getFolio());
             refrescar();
         } catch (Exception ex) {
-            UiDialogs.error(ex.getMessage());
+            UiDialogs.errorDe(ex);
         }
     }
 
@@ -277,7 +309,7 @@ public class DocumentosView extends VBox {
                     ? previewAnticipo() : previewPartida();
             UiDialogs.mostrar("Vista previa del asiento — " + preview.concepto(), tablaPreview(preview));
         } catch (Exception ex) {
-            UiDialogs.error(ex.getMessage());
+            UiDialogs.errorDe(ex);
         }
     }
 
@@ -403,7 +435,7 @@ public class DocumentosView extends VBox {
         } catch (Exception ex) {
             comboAnticipo.getItems().clear();
             comboDte.getItems().clear();
-            UiDialogs.error(ex.getMessage());
+            UiDialogs.errorDe(ex);
         }
     }
 

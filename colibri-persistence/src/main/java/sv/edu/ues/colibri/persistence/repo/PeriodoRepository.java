@@ -270,13 +270,17 @@ public class PeriodoRepository {
         }
     }
 
-    public void actualizarEstado(Connection conn, Periodo periodo) {
-        String sql = "UPDATE periodo SET estado = ?, version = ? WHERE id = ?";
+    public void actualizarEstado(Connection conn, Periodo periodo, int versionEsperada) {
+        String sql = "UPDATE periodo SET estado = ?, version = ? WHERE id = ? AND version = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, periodo.getEstado().name());
             ps.setInt(2, periodo.getVersion());
             ps.setObject(3, periodo.getId());
-            ps.executeUpdate();
+            ps.setInt(4, versionEsperada);
+            if (ps.executeUpdate() == 0) {
+                throw new PersistenceException(
+                        "El período fue modificado por otra sesión. Recargue y reintente.");
+            }
         } catch (SQLException e) {
             throw new PersistenceException("Error al actualizar período", e);
         }

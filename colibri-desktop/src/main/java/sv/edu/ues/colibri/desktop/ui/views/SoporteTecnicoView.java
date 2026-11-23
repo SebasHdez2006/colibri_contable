@@ -300,7 +300,7 @@ public class SoporteTecnicoView extends VBox {
         try {
             action.run();
         } catch (Exception ex) {
-            UiDialogs.error(ex.getMessage());
+            UiDialogs.errorDe(ex);
         }
     }
 

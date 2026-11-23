@@ -84,7 +84,7 @@ public class AjustesCierreView extends VBox {
                 String resumen = context.cierre().cerrarPeriodoConAjustes();
                 UiDialogs.info("Cierre de período", resumen);
             } catch (Exception ex) {
-                UiDialogs.error(ex.getMessage());
+                UiDialogs.errorDe(ex);
             }
         });
 
@@ -98,7 +98,7 @@ public class AjustesCierreView extends VBox {
                 context.cierre().cerrarPeriodoActual();
                 UiDialogs.info("Cierre", "Período cerrado correctamente.");
             } catch (Exception ex) {
-                UiDialogs.error(ex.getMessage());
+                UiDialogs.errorDe(ex);
             }
         });
 
@@ -194,7 +194,7 @@ public class AjustesCierreView extends VBox {
             var p = action.call();
             UiDialogs.info("Ajuste registrado", "Folio " + p.getFolio());
         } catch (Exception ex) {
-            UiDialogs.error(ex.getMessage());
+            UiDialogs.errorDe(ex);
         }
     }
 }

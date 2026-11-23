@@ -166,6 +166,10 @@ public class PeriodoAppService {
      * @return período abierto correspondiente a la fecha
      */
     public Periodo exigirPeriodoAbiertoParaFecha(LocalDate fecha) {
+        if (fecha.isAfter(LocalDate.now())) {
+            throw new DomainException("No se admiten fechas futuras (hoy es "
+                    + LocalDate.now() + ").");
+        }
         Periodo periodo = exigirPeriodoParaFecha(fecha);
         if (!periodo.admiteCaptura()) {
             throw new DomainException(
@@ -182,16 +186,49 @@ public class PeriodoAppService {
      * @param nuevo nuevo estado
      */
     public void cambiarEstadoPeriodo(Periodo periodo, EstadoPeriodo nuevo) {
+        cambiarEstadoPeriodo(periodo, nuevo, null);
+    }
+
+    /**
+     * Cambia el estado de un período con motivo opcional y bloqueo optimista
+     * por versión. Al reabrir ({@code ABIERTO}) exige que ningún período
+     * posterior del mismo ejercicio permanezca cerrado: la reapertura debe
+     * hacerse del más reciente al más antiguo para no alterar saldos
+     * históricos por debajo de un cierre vigente.
+     *
+     * @param periodo período objetivo
+     * @param nuevo nuevo estado
+     * @param motivo justificación documentada del cambio (obligatoria al reabrir)
+     */
+    public void cambiarEstadoPeriodo(Periodo periodo, EstadoPeriodo nuevo, String motivo) {
         var contador = authService.exigirContador();
         jdbc.runInTransaction(conn -> {
+            if (nuevo == EstadoPeriodo.ABIERTO) {
+                exigirSinPeriodosPosterioresCerrados(conn, periodo);
+            }
             String anterior = periodo.getEstado().name();
+            int versionAnterior = periodo.getVersion();
             periodo.setEstado(nuevo);
             periodo.setVersion(periodo.getVersion() + 1);
-            periodoRepository.actualizarEstado(conn, periodo);
+            periodoRepository.actualizarEstado(conn, periodo, versionAnterior);
+            String detalle = motivo == null || motivo.isBlank()
+                    ? "Cambio de estado de período" : motivo.trim();
             bitacoraRepository.registrar(conn, BitacoraEntrada.de(
                     contador.getId(), "ESTADO_PERIODO", "PERIODO", periodo.getId().toString(),
-                    anterior, nuevo.name(), "Cambio de estado de período"));
+                    anterior, nuevo.name(), detalle));
         });
+    }
+
+    private void exigirSinPeriodosPosterioresCerrados(java.sql.Connection conn, Periodo periodo) {
+        boolean bloqueado = periodoRepository.listarPorEjercicio(conn, periodo.getEjercicioId())
+                .stream()
+                .anyMatch(p -> p.getFechaInicio().isAfter(periodo.getFechaInicio())
+                        && p.getEstado() == EstadoPeriodo.CERRADO);
+        if (bloqueado) {
+            throw new DomainException("No se puede reabrir el mes " + periodo.getMes()
+                    + " del ejercicio mientras existan períodos posteriores cerrados. "
+                    + "Reábralos en orden cronológico inverso, del más reciente al más antiguo.");
+        }
     }
 
     /**
@@ -204,12 +241,27 @@ public class PeriodoAppService {
     }
 
     /**
-     * Reabre un período.
+     * Reabre un período cerrado o en revisión. Exige motivo documentado y
+     * re-autenticación del contador, y bloquea la operación si existen
+     * períodos posteriores cerrados en el mismo ejercicio.
      *
      * @param periodo período a reabrir
+     * @param motivo justificación de la reapertura (obligatoria)
+     * @param clave contraseña del usuario en sesión para re-autenticar
      */
-    public void reabrir(Periodo periodo) {
-        cambiarEstadoPeriodo(periodo, EstadoPeriodo.ABIERTO);
+    public void reabrir(Periodo periodo, String motivo, char[] clave) {
+        if (periodo == null) {
+            throw new DomainException("Seleccione el período que desea reabrir.");
+        }
+        if (periodo.getEstado() == EstadoPeriodo.ABIERTO) {
+            throw new DomainException("El período " + periodo.getMes() + " ya está abierto.");
+        }
+        if (motivo == null || motivo.isBlank()) {
+            throw new DomainException(
+                    "La reapertura de un período requiere un motivo documentado.");
+        }
+        authService.exigirClaveActual(clave);
+        cambiarEstadoPeriodo(periodo, EstadoPeriodo.ABIERTO, motivo.trim());
     }
 
     /**

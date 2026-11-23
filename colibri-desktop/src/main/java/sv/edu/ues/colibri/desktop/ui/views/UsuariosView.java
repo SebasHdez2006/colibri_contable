@@ -61,7 +61,7 @@ public class UsuariosView extends VBox {
                 nuevaPassword.clear();
                 refrescar();
             } catch (Exception ex) {
-                UiDialogs.error(ex.getMessage());
+                UiDialogs.errorDe(ex);
             }
         });
 
@@ -75,7 +75,7 @@ public class UsuariosView extends VBox {
                 context.auth().cambiarEstadoUsuario(seleccionado.getId(), !seleccionado.isActivo());
                 refrescar();
             } catch (Exception ex) {
-                UiDialogs.error(ex.getMessage());
+                UiDialogs.errorDe(ex);
             }
         });
         tabla.getSelectionModel().selectedItemProperty().addListener((o, anterior, seleccionado) -> {

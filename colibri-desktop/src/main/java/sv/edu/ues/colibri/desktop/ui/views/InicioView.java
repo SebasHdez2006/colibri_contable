@@ -83,7 +83,7 @@ public class InicioView extends VBox {
                 estadoCatalogo.setText("Aprobado para movimientos");
                 estadoCatalogo.getStyleClass().setAll("status-pill");
             } catch (Exception ex) {
-                sv.edu.ues.colibri.desktop.ui.UiDialogs.error(ex.getMessage());
+                sv.edu.ues.colibri.desktop.ui.UiDialogs.errorDe(ex);
             }
         });
 

@@ -607,6 +607,88 @@ public class OperacionContableService {
     }
 
     /**
+     * Emite una Nota de Crédito (NC) o Nota de Débito (ND) contra un documento
+     * ya contabilizado, por el total del documento. La NC revierte la partida
+     * asociada y registra montos negativos; la ND duplica el asiento original.
+     * La nota queda vinculada al documento origen y a la partida de ajuste
+     * para que el Libro de IVA netee el efecto. Todo ocurre en una sola
+     * transacción: si algo falla, no queda ni la nota ni la reversión.
+     *
+     * @param documentoOrigenId documento que se ajusta
+     * @param fecha fecha de emisión de la nota
+     * @param motivo justificación del ajuste (obligatoria)
+     * @param notaDebito {@code true} para ND, {@code false} para NC
+     * @return documento de ajuste emitido y contabilizado
+     */
+    public Documento emitirNotaAjuste(UUID documentoOrigenId, LocalDate fecha, String motivo,
+                                      boolean notaDebito) {
+        var contador = auth.exigirContador();
+        if (motivo == null || motivo.isBlank()) {
+            throw new DomainException("La nota de ajuste requiere un motivo documentado.");
+        }
+        if (fecha == null) {
+            throw new DomainException("La fecha de la nota de ajuste es obligatoria.");
+        }
+        String tipoNota = notaDebito ? "ND" : "NC";
+        return jdbc.inTransaction(conn -> {
+            Documento origen = documentos.porId(conn, documentoOrigenId)
+                    .orElseThrow(() -> new DomainException("Documento no encontrado."));
+            if (!"CONTABILIZADO".equals(origen.getEstado())) {
+                throw new DomainException(
+                        "Solo se emiten notas de ajuste sobre documentos contabilizados.");
+            }
+            if ("NC".equals(origen.getTipo()) || "ND".equals(origen.getTipo())) {
+                throw new DomainException("No se ajusta una nota de crédito o débito; "
+                        + "emita la nota contra el documento original.");
+            }
+            DocumentoRepository.EnlaceDocumento enlace = documentos
+                    .enlaceContable(conn, documentoOrigenId)
+                    .orElseThrow(() -> new DomainException(
+                            "El documento no tiene partida contable asociada; no puede ajustarse."));
+            String codigoGen = "NOTA-" + tipoNota + "-" + shortId();
+            Partida partidaAjuste;
+            if (notaDebito) {
+                Partida original = partidas.buscar(enlace.partidaId())
+                        .orElseThrow(() -> new DomainException("Partida del documento no encontrada."));
+                List<PartidaDetalle> lineas = new ArrayList<>();
+                for (PartidaDetalle d : original.getDetalles()) {
+                    lineas.add(PartidaDetalle.nueva(d.getCodigoCuenta(), d.getAuxiliar(),
+                            d.getCentroCosto(), d.getDebe(), d.getHaber()));
+                }
+                Partida borrador = partidas.guardarBorrador(TipoPartida.AJ, fecha,
+                        "Nota de débito " + origen.getCodigoGeneracion(),
+                        codigoGen, "ND-" + origen.getId(), lineas, null);
+                partidaAjuste = partidas.contabilizar(borrador.getId());
+            } else {
+                partidaAjuste = partidas.revertir(enlace.partidaId(), fecha, motivo.trim());
+            }
+            Documento nota = new Documento(UUID.randomUUID(), tipoNota, origen.getEmisorNit(),
+                    origen.getNumeroControl(), codigoGen, origen.getReceptorNit(),
+                    origen.getTerceroId(), origen.getContratoId(), fecha,
+                    signoImporte(origen.getBaseGravada(), notaDebito),
+                    signoImporte(origen.getIva(), notaDebito),
+                    signoImporte(origen.getExento(), notaDebito),
+                    signoImporte(origen.getTotal(), notaDebito),
+                    origen.isIvaIncluido(), "REGISTRADO", true);
+            documentos.insertar(conn, nota);
+            documentos.vincularOrigen(conn, nota.getId(), origen.getId());
+            documentos.vincularEvento(conn, nota.getId(), partidaAjuste.getEventoId(),
+                    enlace.tipoEvento(), partidaAjuste.getId());
+            documentos.marcarContabilizado(conn, nota.getId());
+            bitacora.registrar(conn, BitacoraEntrada.de(
+                    contador.getId(), notaDebito ? "NOTA_DEBITO" : "NOTA_CREDITO",
+                    "DOCUMENTO", nota.getId().toString(),
+                    origen.getCodigoGeneracion(), codigoGen, motivo.trim()));
+            return nota;
+        });
+    }
+
+    private static BigDecimal signoImporte(BigDecimal valor, boolean positivo) {
+        BigDecimal v = valor == null ? BigDecimal.ZERO : valor;
+        return positivo ? v : v.negate();
+    }
+
+    /**
      * Importa un borrador de partida desde contenido CSV.
      * <p>
      * Formatos admitidos por línea:
@@ -636,15 +718,19 @@ public class OperacionContableService {
             }
             String[] cols = linea.split(",", -1);
             if (cols.length == 3) {
-                lineas.add(PartidaDetalle.nueva(
+                PartidaDetalle detalle = PartidaDetalle.nueva(
                         cols[0].trim(), null, null,
-                        importeCsv(cols[1], numeroLinea), importeCsv(cols[2], numeroLinea)));
+                        importeCsv(cols[1], numeroLinea), importeCsv(cols[2], numeroLinea));
+                validarUnLado(detalle, numeroLinea);
+                lineas.add(detalle);
             } else if (cols.length >= 5) {
                 String auxiliar = cols[1].trim().isEmpty() ? null : cols[1].trim();
                 String centro = cols[2].trim().isEmpty() ? null : cols[2].trim();
-                lineas.add(PartidaDetalle.nueva(
+                PartidaDetalle detalle = PartidaDetalle.nueva(
                         cols[0].trim(), auxiliar, centro,
-                        importeCsv(cols[3], numeroLinea), importeCsv(cols[4], numeroLinea)));
+                        importeCsv(cols[3], numeroLinea), importeCsv(cols[4], numeroLinea));
+                validarUnLado(detalle, numeroLinea);
+                lineas.add(detalle);
                 if (cols.length >= 6 && !cols[5].trim().isEmpty()) {
                     concepto = cols[5].trim();
                 }
@@ -666,16 +752,35 @@ public class OperacionContableService {
         if (limpio.isEmpty()) {
             return BigDecimal.ZERO;
         }
-        BigDecimal valor;
-        try {
-            valor = new BigDecimal(limpio.replace(",", ""));
-        } catch (NumberFormatException e) {
-            throw new DomainException("Línea " + numeroLinea + ": importe no numérico '" + limpio + "'.");
+        if (!limpio.matches("-?\\d{1,16}(\\.\\d{1,2})?")) {
+            throw new DomainException("Línea " + numeroLinea + ": importe inválido '" + limpio
+                    + "'. Use solo dígitos y punto decimal, formato 1250.75.");
         }
+        BigDecimal valor = new BigDecimal(limpio);
         if (valor.signum() < 0) {
             throw new DomainException("Línea " + numeroLinea + ": el importe no puede ser negativo.");
         }
         return valor;
+    }
+
+    /**
+     * Exige la regla de partida doble por línea: el importe va en Debe o en
+     * Haber, nunca en ambos ni en ninguno, con número de línea para guiar al
+     * contador que corrige el archivo.
+     */
+    private static void validarUnLado(PartidaDetalle detalle, int numeroLinea) {
+        boolean conDebe = detalle.getDebe().signum() > 0;
+        boolean conHaber = detalle.getHaber().signum() > 0;
+        if (conDebe && conHaber) {
+            throw new DomainException("Línea " + numeroLinea + ": la cuenta "
+                    + detalle.getCodigoCuenta()
+                    + " tiene importe en Debe y Haber a la vez; use una sola columna.");
+        }
+        if (!conDebe && !conHaber) {
+            throw new DomainException("Línea " + numeroLinea + ": la cuenta "
+                    + detalle.getCodigoCuenta()
+                    + " no tiene importe en Debe ni en Haber.");
+        }
     }
 
     private static String shortId() {

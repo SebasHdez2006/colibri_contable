@@ -100,7 +100,7 @@ public final class EstimacionCostosView extends VBox {
                         + "Costo total: $%s · Precio unitario: $%s · Margen: $%s%n%s"
                         .formatted(r.costoTotal(), r.precioUnitario(), r.margen(), r.recomendacion()));
             } catch (Exception ex) {
-                UiDialogs.error(ex.getMessage());
+                UiDialogs.errorDe(ex);
             }
         });
         TextFlow politicas = new TextFlow();
@@ -473,7 +473,7 @@ public final class EstimacionCostosView extends VBox {
                         + "ABC: CIF aplicado $%s, total $%s / $%s por unidad."
                         .formatted(abc.cifPorActividades(), abc.total(), abc.unitario()));
             } catch (Exception ex) {
-                UiDialogs.error(ex.getMessage());
+                UiDialogs.errorDe(ex);
             }
         });
         return ResponsiveLayouts.sectionCard("Costos directos, estándar y basado en actividades (ABC)",
@@ -503,7 +503,7 @@ public final class EstimacionCostosView extends VBox {
                         + "Utilidad real $%s · Rentabilidad sobre venta %s%%\n%s"
                         .formatted(r.utilidadReal(), r.rentabilidadSobreVenta(), r.diagnostico()));
             } catch (Exception ex) {
-                UiDialogs.error(ex.getMessage());
+                UiDialogs.errorDe(ex);
             }
         });
         return ResponsiveLayouts.sectionCard("Comparación de costos estimados y reales",
@@ -623,7 +623,7 @@ public final class EstimacionCostosView extends VBox {
                 variabilidadValor.setText(porcentaje(estadistica.coeficienteVariacion()));
                 varianzaValor.setText(dinero(estadistica.varianzaMuestral()));
             } catch (Exception ex) {
-                UiDialogs.error(ex.getMessage());
+                UiDialogs.errorDe(ex);
             }
         });
         return ResponsiveLayouts.sectionCard(

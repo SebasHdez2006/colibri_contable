@@ -174,7 +174,7 @@ public class ReportesView extends VBox {
                 excel.setDisable(false);
                 pdf.setDisable(false);
             } catch (Exception ex) {
-                UiDialogs.error(ex.getMessage());
+                UiDialogs.errorDe(ex);
             }
         });
         excel.setOnAction(e -> exportar(false));

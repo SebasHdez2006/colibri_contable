@@ -968,7 +968,7 @@ public class PartidasView extends VBox {
             refrescarRecientes();
             return true;
         } catch (Exception ex) {
-            UiDialogs.error(ex.getMessage());
+            UiDialogs.errorDe(ex);
             return false;
         }
     }
@@ -992,7 +992,7 @@ public class PartidasView extends VBox {
             UiDialogs.info("Aprobada", "Partida aprobada. Diferencia debe ser 0.");
             refrescarRecientes();
         } catch (Exception ex) {
-            UiDialogs.error(ex.getMessage());
+            UiDialogs.errorDe(ex);
         }
     }
 
@@ -1009,7 +1009,7 @@ public class PartidasView extends VBox {
             UiDialogs.info("Contabilizada", "Folio: " + p.getFolio());
             refrescarRecientes();
         } catch (Exception ex) {
-            UiDialogs.error(ex.getMessage());
+            UiDialogs.errorDe(ex);
         }
     }
 
@@ -1028,7 +1028,7 @@ public class PartidasView extends VBox {
             lineas.clear();
             refrescarRecientes();
         } catch (Exception ex) {
-            UiDialogs.error(ex.getMessage());
+            UiDialogs.errorDe(ex);
         }
     }
 
@@ -1048,7 +1048,7 @@ public class PartidasView extends VBox {
                     + ". El original permanece visible.");
             refrescarRecientes();
         } catch (Exception ex) {
-            UiDialogs.error(ex.getMessage());
+            UiDialogs.errorDe(ex);
         }
     }
 
@@ -1085,7 +1085,7 @@ public class PartidasView extends VBox {
             UiDialogs.info("Duplicada", "Las líneas quedaron como borrador nuevo sin guardar. "
                     + "Revise y use «Guardar borrador».");
         } catch (Exception ex) {
-            UiDialogs.error(ex.getMessage());
+            UiDialogs.errorDe(ex);
         }
     }
 
@@ -1141,7 +1141,7 @@ public class PartidasView extends VBox {
             PartidaService.CadenaEvidencia cadena = context.partidas().cadenaEvidencia(sel.getId());
             UiDialogs.mostrar("Cadena de evidencia — " + sel.getConcepto(), cadenaEvidencia(cadena, sel));
         } catch (Exception ex) {
-            UiDialogs.error(ex.getMessage());
+            UiDialogs.errorDe(ex);
         }
     }
 
@@ -1219,7 +1219,7 @@ public class PartidasView extends VBox {
                         desde, hasta, LIMITE_RECIENTES);
             }
         } catch (Exception ex) {
-            UiDialogs.error(ex.getMessage());
+            UiDialogs.errorDe(ex);
             items = List.of();
         }
         UiTables.reemplazarFilas(recientes, items);
@@ -1379,7 +1379,7 @@ public class PartidasView extends VBox {
         try {
             p = partidaParaComprobante();
         } catch (Exception ex) {
-            UiDialogs.error(ex.getMessage());
+            UiDialogs.errorDe(ex);
             return;
         }
         if (p == null) {
@@ -1474,7 +1474,7 @@ public class PartidasView extends VBox {
             Files.write(destino.toPath(), contenido);
             UiDialogs.info("PDF exportado", "Archivo guardado en " + destino);
         } catch (Exception ex) {
-            UiDialogs.error(ex.getMessage());
+            UiDialogs.errorDe(ex);
         }
     }
 
@@ -1599,8 +1599,13 @@ public class PartidasView extends VBox {
         if (texto == null || texto.isBlank()) {
             return BigDecimal.ZERO;
         }
-        // Eliminar separadores de miles (coma) para tolerar el formato 1,000.00
-        String limpio = texto.trim().replace(",", "");
+        // Mismo formato estricto que UiCampos: solo dígitos, menos inicial y
+        // punto decimal con máximo dos cifras. Se rechazan '$', ',', '%',
+        // letras y notación científica como '1E3'.
+        String limpio = texto.trim();
+        if (!limpio.matches("-?\\d{1,16}(\\.\\d{1,2})?")) {
+            return null;
+        }
         try {
             return new BigDecimal(limpio);
         } catch (Exception e) {
@@ -1686,7 +1691,7 @@ public class PartidasView extends VBox {
             Files.write(destino.toPath(), contenido);
             UiDialogs.info("Diario exportado", "Archivo guardado en " + destino);
         } catch (Exception ex) {
-            UiDialogs.error(ex.getMessage());
+            UiDialogs.errorDe(ex);
         }
     }
 

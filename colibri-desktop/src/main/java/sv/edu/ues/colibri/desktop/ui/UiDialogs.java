@@ -38,6 +38,61 @@ public final class UiDialogs {
     }
 
     /**
+     * Muestra un error traduciendo fallos de persistencia a mensajes
+     * contables accionables. El SQLState nunca se expone crudo: se convierte
+     * en una indicación que el contador puede corregir.
+     *
+     * @param ex excepción capturada por la vista
+     */
+    public static void errorDe(Throwable ex) {
+        error(mensajeAmigable(ex));
+    }
+
+    private static String mensajeAmigable(Throwable ex) {
+        if (ex == null) {
+            return "Error inesperado.";
+        }
+        for (Throwable c = ex; c != null; c = c.getCause()) {
+            if (c instanceof java.sql.SQLException sql) {
+                String traducido = traducirSql(sql);
+                if (traducido != null) {
+                    return traducido;
+                }
+            }
+        }
+        String msg = ex.getMessage();
+        return msg == null || msg.isBlank() ? ex.getClass().getSimpleName() : msg;
+    }
+
+    private static String traducirSql(java.sql.SQLException sql) {
+        String state = sql.getSQLState();
+        String detalle = sql.getMessage() == null ? "" : sql.getMessage();
+        if ("22003".equals(state)) {
+            return "El importe excede el máximo admitido (16 dígitos enteros y 2 decimales).";
+        }
+        if ("23514".equals(state)) {
+            java.util.regex.Matcher m = java.util.regex.Pattern
+                    .compile("constraint \"([^\"]+)\"").matcher(detalle);
+            String regla = m.find() ? m.group(1) : detalle;
+            if (regla.contains("un_lado")) {
+                return "Una línea del asiento tiene importe en Debe y Haber a la vez, "
+                        + "o no tiene importe en ninguna columna.";
+            }
+            return "La operación viola la regla contable «" + regla + "».";
+        }
+        if ("23505".equals(state)) {
+            return "Ya existe un registro con ese identificador único.";
+        }
+        if ("23503".equals(state)) {
+            return "El registro referencia datos que no existen o están inactivos.";
+        }
+        if ("23502".equals(state)) {
+            return "Falta un dato obligatorio en el registro.";
+        }
+        return null;
+    }
+
+    /**
      * Muestra un mensaje informativo modal.
      *
      * @param titulo encabezado visible del cuadro de diálogo

@@ -300,7 +300,7 @@ public class MainShell extends BorderPane implements Navegador {
             context.auth().exigirSesion();
         } catch (Exception ex) {
             AppLog.error("Sesión no válida al abrir " + item.etiqueta(), ex);
-            UiDialogs.error(ex.getMessage());
+            UiDialogs.errorDe(ex);
             onLogout.run();
             return;
         }

@@ -169,6 +169,23 @@ public class AuthService {
         return sesion;
     }
 
+    /**
+     * Re-autentica al usuario de la sesión activa exigiendo su contraseña
+     * vigente. Se usa antes de operaciones sensibles como la reapertura de
+     * períodos contables ya cerrados.
+     *
+     * @param clave contraseña a verificar
+     * @throws DomainException si no hay sesión o la clave no coincide
+     */
+    public void exigirClaveActual(char[] clave) {
+        Contador sesion = exigirSesion();
+        if (!PasswordHasher.verificar(
+                clave == null ? new char[0] : Arrays.copyOf(clave, clave.length),
+                sesion.getPasswordSalt(), sesion.getPasswordHash())) {
+            throw new DomainException("La contraseña no coincide con la del usuario en sesión.");
+        }
+    }
+
     public Contador getSesionActual() {
         return sesionActual;
     }

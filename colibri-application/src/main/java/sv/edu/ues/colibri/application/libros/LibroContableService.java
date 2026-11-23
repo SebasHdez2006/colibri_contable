@@ -1117,7 +1117,7 @@ public class LibroContableService {
         };
         return jdbc.inTransaction(conn -> {
             String sql = """
-                    SELECT d.fecha_emision, d.tipo, COALESCE(t.nit, d.receptor_nit, d.emisor_nit) AS nit,
+                    SELECT DISTINCT d.fecha_emision, d.tipo, COALESCE(t.nit, d.receptor_nit, d.emisor_nit) AS nit,
                            COALESCE(t.razon_social, '') AS tercero, d.codigo_generacion,
                            d.base_gravada, d.iva, d.total
                     FROM documento d

@@ -12,12 +12,24 @@ import java.math.BigDecimal;
  */
 public final class UiCampos {
 
+    /** Decimal genérico: hasta 6 decimales (tasas, factores, porcentajes). */
+    private static final java.util.regex.Pattern DECIMAL_PERMITIDO =
+            java.util.regex.Pattern.compile("-?\\d{1,18}(\\.\\d{1,6})?");
+    /** Importe monetario: máximo 2 decimales, 16 dígitos enteros (NUMERIC(18,2)). */
+    private static final java.util.regex.Pattern IMPORTE_PERMITIDO =
+            java.util.regex.Pattern.compile("-?\\d{1,16}(\\.\\d{1,2})?");
+    /** Entero: hasta 9 dígitos (caben en un int con signo). */
+    private static final java.util.regex.Pattern ENTERO_PERMITIDO =
+            java.util.regex.Pattern.compile("-?\\d{1,9}");
+
     private UiCampos() {
     }
 
     /**
-     * Parsea un importe obligatorio. Tolera espacios, símbolo {@code $} y
-     * separadores de miles con coma ({@code 1,000.00}).
+     * Parsea un importe obligatorio con formato estricto: solo dígitos y un
+     * punto decimal con máximo dos cifras. Se rechazan símbolos ({@code $},
+     * {@code %}), comas, letras, notación científica y signos distintos del
+     * menos inicial.
      *
      * @param texto contenido del campo
      * @return importe en escala 2
@@ -30,35 +42,49 @@ public final class UiCampos {
         BigDecimal valor = importeONull(texto);
         if (valor == null) {
             throw new DomainException(
-                    "El importe no es numérico: «" + texto.trim() + "». Use formato 1250.75.");
+                    "El importe no es válido: «" + texto.trim()
+                            + "». Use solo dígitos y punto decimal, formato 1250.75.");
         }
         return valor;
     }
 
     /**
-     * Parsea un importe opcional; devuelve {@code null} si el campo está vacío
-     * o no es numérico (para que el llamador decida el mensaje).
+     * Parsea un importe opcional con formato estricto; devuelve {@code null}
+     * si el campo está vacío o contiene caracteres no admitidos.
      *
      * @param texto contenido del campo
      * @return importe en escala 2 o {@code null}
      */
     public static BigDecimal importeONull(String texto) {
-        BigDecimal valor = decimalONull(texto);
-        return valor == null ? null : valor.setScale(2, java.math.RoundingMode.HALF_UP);
+        if (texto == null) {
+            return null;
+        }
+        String limpio = texto.trim();
+        if (limpio.isEmpty() || !IMPORTE_PERMITIDO.matcher(limpio).matches()) {
+            return null;
+        }
+        try {
+            return new BigDecimal(limpio).setScale(2, java.math.RoundingMode.HALF_UP);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     /**
-     * Parsea un decimal sin fijar escala (tasas, porcentajes, factores).
-     * Tolera espacios, símbolo {@code $} y comas de miles.
+     * Parsea un decimal sin fijar escala (tasas, porcentajes, factores) con
+     * formato estricto: solo dígitos, signo menos inicial y punto decimal.
      *
      * @param texto contenido del campo
      * @return decimal o {@code null} si vacío/no numérico
      */
     public static BigDecimal decimalONull(String texto) {
-        if (texto == null || texto.isBlank()) {
+        if (texto == null) {
             return null;
         }
-        String limpio = texto.trim().replace(",", "").replace("$", "");
+        String limpio = texto.trim();
+        if (limpio.isEmpty() || !DECIMAL_PERMITIDO.matcher(limpio).matches()) {
+            return null;
+        }
         try {
             return new BigDecimal(limpio);
         } catch (Exception e) {
@@ -98,20 +124,33 @@ public final class UiCampos {
         BigDecimal valor = importeONull(texto);
         if (valor == null) {
             throw new DomainException(
-                    "El importe no es numérico: «" + texto.trim() + "». Use formato 1250.75.");
+                    "El importe no es válido: «" + texto.trim()
+                            + "». Use solo dígitos y punto decimal, formato 1250.75.");
         }
         return valor;
     }
 
     /**
-     * Parsea un entero opcional (unidades, meses, porcentaje entero).
+     * Parsea un entero opcional (unidades, meses, año de ejercicio). Exige
+     * dígitos puros: un decimal como {@code 2026.9} se rechaza en lugar de
+     * truncarse en silencio.
      *
      * @param texto contenido del campo
-     * @return entero o {@code null} si vacío/no numérico
+     * @return entero o {@code null} si vacío/no entero
      */
     public static Integer enteroONull(String texto) {
-        BigDecimal v = importeONull(texto);
-        return v == null ? null : v.intValue();
+        if (texto == null) {
+            return null;
+        }
+        String limpio = texto.trim();
+        if (limpio.isEmpty() || !ENTERO_PERMITIDO.matcher(limpio).matches()) {
+            return null;
+        }
+        try {
+            return Integer.valueOf(limpio);
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     /**

@@ -81,7 +81,7 @@ public class CatalogoView extends VBox {
                     context.catalogo().actualizarDenominacion(sel.getCodigo(), nuevo.trim());
                     refrescar();
                 } catch (DomainException ex) {
-                    UiDialogs.error(ex.getMessage());
+                    UiDialogs.errorDe(ex);
                 }
             }
         });
@@ -100,7 +100,7 @@ public class CatalogoView extends VBox {
                 context.catalogo().cambiarEstado(sel.getCodigo(), estadoBox.getValue());
                 refrescar();
             } catch (DomainException ex) {
-                UiDialogs.error(ex.getMessage());
+                UiDialogs.errorDe(ex);
             }
         });
 

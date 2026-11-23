@@ -3,12 +3,16 @@ package sv.edu.ues.colibri.desktop.ui.views;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
 import sv.edu.ues.colibri.application.AppContext;
@@ -18,9 +22,11 @@ import sv.edu.ues.colibri.desktop.ui.UiCampos;
 import sv.edu.ues.colibri.desktop.ui.UiCatalogos;
 import sv.edu.ues.colibri.desktop.ui.UiDialogs;
 import sv.edu.ues.colibri.desktop.ui.UiTables;
+import sv.edu.ues.colibri.desktop.ui.UiTheme;
 import sv.edu.ues.colibri.domain.model.Cuenta;
 import sv.edu.ues.colibri.domain.model.Ejercicio;
 import sv.edu.ues.colibri.domain.model.EstadoCuenta;
+import sv.edu.ues.colibri.domain.model.EstadoPeriodo;
 import sv.edu.ues.colibri.domain.model.NaturalezaCuenta;
 
 import java.math.BigDecimal;
@@ -141,7 +147,41 @@ public class ParametrizacionView extends VBox {
         Button cerrado = new Button("Cerrar período");
         abierto.setOnAction(e -> {
             var sel = tabla.getSelectionModel().getSelectedItem();
-            if (sel != null) run(() -> { context.periodos().reabrir(sel); refrescar.run(); });
+            if (sel == null) {
+                return;
+            }
+            if (sel.getEstado() == EstadoPeriodo.ABIERTO) {
+                UiDialogs.error("El período del mes " + sel.getMes() + " ya está abierto.");
+                return;
+            }
+            Dialog<ButtonType> dialog = new Dialog<>();
+            dialog.setTitle("Reabrir período");
+            dialog.setHeaderText("Reapertura del mes " + sel.getMes() + " ("
+                    + sel.getFechaInicio() + " a " + sel.getFechaFin() + ")\n"
+                    + "Exige motivo documentado y su contraseña. Si hay períodos "
+                    + "posteriores cerrados, deberá reabrirlos antes, del más "
+                    + "reciente al más antiguo.");
+            dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+            TextField motivo = new TextField();
+            motivo.setPromptText("Motivo de la reapertura (obligatorio)");
+            PasswordField clave = new PasswordField();
+            clave.setPromptText("Su contraseña");
+            GridPane grid = new GridPane();
+            grid.setHgap(8);
+            grid.setVgap(8);
+            grid.addRow(0, new Label("Motivo"), motivo);
+            grid.addRow(1, new Label("Contraseña"), clave);
+            dialog.getDialogPane().setContent(grid);
+            UiTheme.style(dialog);
+            dialog.showAndWait().ifPresent(bt -> {
+                if (bt == ButtonType.OK) {
+                    run(() -> {
+                        context.periodos().reabrir(sel, motivo.getText(),
+                                clave.getText().toCharArray());
+                        refrescar.run();
+                    });
+                }
+            });
         });
         auditoria.setOnAction(e -> {
             var sel = tabla.getSelectionModel().getSelectedItem();
@@ -636,7 +676,7 @@ public class ParametrizacionView extends VBox {
         try {
             action.run();
         } catch (Exception ex) {
-            UiDialogs.error(ex.getMessage());
+            UiDialogs.errorDe(ex);
         }
     }
 

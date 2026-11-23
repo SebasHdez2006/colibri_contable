@@ -125,19 +125,16 @@ public class InventarioCostosView extends VBox {
             // Sin clientes disponibles el campo queda vacío.
         }
         Runnable actualizarTotal = () -> {
-            try {
-                int cant = Integer.parseInt(unidades.getText().trim());
-                BigDecimal unitario = new BigDecimal(costoUnitario.getText().trim());
-                if (cant <= 0 || unitario.signum() < 0) {
-                    throw new NumberFormatException();
-                }
-                BigDecimal total = unitario.multiply(BigDecimal.valueOf(cant))
-                        .setScale(2, RoundingMode.HALF_UP);
-                costoTotal.setText("Costo total: $" + total.toPlainString()
-                        + "  (" + cant + " × $" + unitario.stripTrailingZeros().toPlainString() + ")");
-            } catch (Exception ex) {
+            Integer cant = UiCampos.enteroONull(unidades.getText());
+            BigDecimal unitario = UiCampos.importeONull(costoUnitario.getText());
+            if (cant == null || cant <= 0 || unitario == null || unitario.signum() < 0) {
                 costoTotal.setText("Costo total: —");
+                return;
             }
+            BigDecimal total = unitario.multiply(BigDecimal.valueOf(cant))
+                    .setScale(2, RoundingMode.HALF_UP);
+            costoTotal.setText("Costo total: $" + total.toPlainString()
+                    + "  (" + cant + " × $" + unitario.stripTrailingZeros().toPlainString() + ")");
         };
         unidades.textProperty().addListener((o, a, b) -> actualizarTotal.run());
         costoUnitario.textProperty().addListener((o, a, b) -> actualizarTotal.run());
@@ -1193,7 +1190,7 @@ public class InventarioCostosView extends VBox {
         try {
             action.run();
         } catch (Exception ex) {
-            UiDialogs.error(ex.getMessage());
+            UiDialogs.errorDe(ex);
         }
     }
 
