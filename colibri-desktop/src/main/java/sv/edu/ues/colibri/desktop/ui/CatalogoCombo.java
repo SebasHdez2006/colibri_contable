@@ -50,15 +50,12 @@ public final class CatalogoCombo<T> extends ComboBox<T> {
         setConverter(new StringConverter<>() {
             @Override
             public String toString(T value) {
-                return converter.toString(value);
+                return value == null ? null : converter.toString(value);
             }
 
             @Override
             public T fromString(String text) {
-                String buscado = text == null ? "" : text.trim();
-                return todos.stream()
-                        .filter(t -> clave.apply(t).equalsIgnoreCase(buscado))
-                        .findFirst().orElse(null);
+                return resolverObjeto(text);
             }
         });
         TextField editor = getEditor();
@@ -90,19 +87,50 @@ public final class CatalogoCombo<T> extends ComboBox<T> {
         if (texto.isEmpty()) {
             return;
         }
-        todos.stream()
-                .filter(t -> clave.apply(t).equalsIgnoreCase(texto))
-                .findFirst()
-                .ifPresent(this::setValue);
+        T encontrado = resolverObjeto(texto);
+        if (encontrado != null) {
+            setValue(encontrado);
+        }
+    }
+
+    /**
+     * Resuelve el objeto detrás de un texto del editor: primero por la clave
+     * persistible y luego por la representación visible completa («código —
+     * denominación»). JavaFX invoca {@code fromString} al confirmar la edición
+     * (Enter, {@code commitValue} y pérdida de foco del combo); sin la segunda
+     * vía, el texto que el propio control escribe tras elegir una opción del
+     * popup no lograba reconstruir la selección y el valor se perdía al salir
+     * del campo.
+     */
+    private T resolverObjeto(String text) {
+        String buscado = text == null ? "" : text.trim();
+        if (buscado.isEmpty()) {
+            return null;
+        }
+        T porClave = todos.stream()
+                .filter(t -> {
+                    String k = clave.apply(t);
+                    return k != null && k.equalsIgnoreCase(buscado);
+                })
+                .findFirst().orElse(null);
+        if (porClave != null) {
+            return porClave;
+        }
+        return todos.stream()
+                .filter(t -> {
+                    String texto = converter.toString(t);
+                    return texto != null && texto.equalsIgnoreCase(buscado);
+                })
+                .findFirst().orElse(null);
     }
 
     private void resolverEscrito() {
         String texto = textoEditor();
         if (!texto.isEmpty()) {
-            todos.stream()
-                    .filter(t -> clave.apply(t).equalsIgnoreCase(texto))
-                    .findFirst()
-                    .ifPresent(this::setValue);
+            T encontrado = resolverObjeto(texto);
+            if (encontrado != null) {
+                setValue(encontrado);
+            }
         }
         if (alConfirmar != null) {
             alConfirmar.run();
@@ -145,9 +173,7 @@ public final class CatalogoCombo<T> extends ComboBox<T> {
             return;
         }
         String buscado = codigo.trim();
-        T encontrado = todos.stream()
-                .filter(t -> clave.apply(t).equalsIgnoreCase(buscado))
-                .findFirst().orElse(null);
+        T encontrado = resolverObjeto(buscado);
         if (encontrado != null) {
             setValue(encontrado);
         } else {

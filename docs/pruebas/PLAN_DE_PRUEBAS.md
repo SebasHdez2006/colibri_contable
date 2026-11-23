@@ -402,8 +402,6 @@ Lista de verificación de todas las pruebas ejecutables sobre el prototipo, orga
 | ID | Prueba | Tipo | Resultado esperado |
 |---|---|---|---|
 | MED-01 | Panel de orden principal | F | Muestra costo acumulado, precio, margen % y alerta si margen < 35 % |
-| MED-02 | "Cargar costos de ejemplo ($1,800)" sobre OS2026001 | A | Carga el escenario demo |
-| MED-03 | "Cargar costos de ejemplo" sobre otra orden | E | Rechazado (solo funciona para OS2026001) |
 | MED-04 | "Registrar MOD" con horas y tarifa | F | Acumula MOD en la orden indicada |
 | MED-05 | Horas o tarifa inválidas | E | Validación |
 | MED-06 | "Reconocer costo de la orden" | F | Descarga los componentes acumulados como costo y muestra el folio |

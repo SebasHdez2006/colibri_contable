@@ -19,6 +19,7 @@ import sv.edu.ues.colibri.application.AppContext;
 import sv.edu.ues.colibri.desktop.ui.CatalogoCombo;
 import sv.edu.ues.colibri.desktop.ui.ResponsiveLayouts;
 import sv.edu.ues.colibri.desktop.ui.UiDialogs;
+import sv.edu.ues.colibri.desktop.ui.UiFormatos;
 import sv.edu.ues.colibri.desktop.ui.UiTables;
 import sv.edu.ues.colibri.desktop.ui.UiTheme;
 import sv.edu.ues.colibri.domain.exception.DomainException;
@@ -187,8 +188,8 @@ public class PlantillasView extends VBox {
         ObservableList<PartidaDetalle> lineas = FXCollections.observableArrayList();
         TableView<PartidaDetalle> tablaLineas = new TableView<>(lineas);
         agregarColumna(tablaLineas, "Cuenta", PartidaDetalle::getCodigoCuenta);
-        agregarColumna(tablaLineas, "Debe", d -> d.getDebe().toPlainString());
-        agregarColumna(tablaLineas, "Haber", d -> d.getHaber().toPlainString());
+        agregarColumna(tablaLineas, "Debe", d -> UiFormatos.dinero(d.getDebe()));
+        agregarColumna(tablaLineas, "Haber", d -> UiFormatos.dinero(d.getHaber()));
         tablaLineas.setPrefHeight(180);
         tablaLineas.setMinHeight(140);
 
@@ -380,8 +381,8 @@ public class PlantillasView extends VBox {
         agregarColumna(tabla, "Cuenta", PartidaDetalle::getCodigoCuenta);
         agregarColumna(tabla, "Auxiliar", PartidaDetalle::getAuxiliar);
         agregarColumna(tabla, "Centro", PartidaDetalle::getCentroCosto);
-        agregarColumna(tabla, "Debe", d -> d.getDebe().toPlainString());
-        agregarColumna(tabla, "Haber", d -> d.getHaber().toPlainString());
+        agregarColumna(tabla, "Debe", d -> UiFormatos.dinero(d.getDebe()));
+        agregarColumna(tabla, "Haber", d -> UiFormatos.dinero(d.getHaber()));
         tabla.setPrefSize(560, 320);
         return UiTables.conBusqueda(tabla, "líneas de la plantilla", linea ->
                 linea.getCodigoCuenta() + " " + linea.getAuxiliar() + " " + linea.getCentroCosto()

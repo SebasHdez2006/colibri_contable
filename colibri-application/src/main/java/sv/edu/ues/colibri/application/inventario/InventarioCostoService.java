@@ -25,6 +25,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,6 +39,8 @@ import java.util.UUID;
  * Inventario de licencias y costeo por órdenes, PEPS y procesos SaaS.
  */
 public class InventarioCostoService {
+
+    private static final DecimalFormat FORMATO_USD = new DecimalFormat("$#,##0.00");
 
     private final JdbcSupport jdbc;
     private final AuthService auth;
@@ -1641,9 +1644,9 @@ public class InventarioCostoService {
                 : utilidadReal.divide(precioVenta, 4, RoundingMode.HALF_UP)
                         .multiply(new BigDecimal("100")).setScale(2, RoundingMode.HALF_UP);
         String diagnostico = variacion.signum() > 0
-                ? "Sobrecosto de $%s frente al presupuesto.".formatted(sobrecosto)
+                ? "Sobrecosto de %s frente al presupuesto.".formatted(usd(sobrecosto))
                 : variacion.signum() < 0
-                        ? "Ahorro presupuestario de $%s frente al estimado.".formatted(ahorro)
+                        ? "Ahorro presupuestario de %s frente al estimado.".formatted(usd(ahorro))
                         : "Ejecución exactamente al costo estimado.";
         return new DesviacionOrdenInfo(id, codigo, estimado, real, variacion, variacionPorcentual,
                 indiceEjecucion, ahorro, sobrecosto, utilidadEsperada, utilidadReal, rentabilidad, diagnostico);
@@ -2168,28 +2171,6 @@ public class InventarioCostoService {
     }
 
     /**
-     * Carga los consumos demostrativos de la orden OS2026001 si aún no existen.
-     *
-     * @param fecha fecha contable
-     */
-    public void cargarConsumosOs2026001(LocalDate fecha) {
-        OrdenInfo orden = ordenPrincipal();
-        if (orden.costoAcumulado().compareTo(new BigDecimal("1800.00")) == 0) {
-            return;
-        }
-        if (orden.costoAcumulado().signum() > 0) {
-            throw new DomainException("La orden ya tiene consumos registrados; no se duplicaron.");
-        }
-        // Caso: MOD $1,200 (100h × $12), servicios $300, CIF $300
-        registrarConsumoOrden("OS2026001", "MOD", "Análisis/desarrollo/pruebas",
-                new BigDecimal("100"), new BigDecimal("12"), fecha);
-        registrarConsumoOrden("OS2026001", "SERVICIO", "Recursos exclusivos",
-                BigDecimal.ONE, new BigDecimal("300"), fecha);
-        registrarConsumoOrden("OS2026001", "CIF", "CIF $3 × 100 h",
-                new BigDecimal("100"), new BigDecimal("3"), fecha);
-    }
-
-    /**
      * Registra un costo de implementación, capacitación o soporte contra el plan
      * facturado. Estos servicios se reconocen en el período, pero el auxiliar
      * conserva el objeto de costo (plan) y sus elementos MOD, directos y CIF.
@@ -2591,6 +2572,10 @@ public class InventarioCostoService {
 
     private static BigDecimal redondear(BigDecimal importe) {
         return importe.setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private static String usd(BigDecimal importe) {
+        return FORMATO_USD.format(importe);
     }
 
     /**

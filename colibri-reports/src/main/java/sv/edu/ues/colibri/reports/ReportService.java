@@ -286,7 +286,7 @@ public class ReportService {
 
             CellStyle importeStyle = wb.createCellStyle();
             importeStyle.setDataFormat(wb.createDataFormat()
-                .getFormat("$#,##0.00;[Red]-$#,##0.00"));
+                .getFormat("\"$ \"#,##0.00;[Red]-\"$ \"#,##0.00"));
             importeStyle.setVerticalAlignment(org.apache.poi.ss.usermodel.VerticalAlignment.TOP);
 
             int filaEncabezado = membrete != null ? 5 : 3;
@@ -307,7 +307,7 @@ public class ReportService {
                     var cell = row.createCell(i);
                     if (esColumnaMonetaria(encabezados.get(i)) && !valor.isBlank()) {
                         try {
-                            cell.setCellValue(new BigDecimal(valor).doubleValue());
+                            cell.setCellValue(importeNumerico(valor).doubleValue());
                             cell.setCellStyle(importeStyle);
                             continue;
                         } catch (NumberFormatException ignored) {
@@ -766,6 +766,15 @@ public class ReportService {
         String nombre = valor.trim().replaceAll("[\\\\/:*?\"<>|]", "")
                 .replaceAll("\\s+", "_").replaceAll("_+", "_");
         return nombre.replaceAll("^\\.+|\\.+$", "");
+    }
+
+    /**
+     * Convierte una celda monetaria a número para Excel. Las vistas ya entregan
+     * el formato de pantalla («$ 640,023.92»), así que se retiran el símbolo,
+     * las comas de miles y los espacios antes de construir el {@link BigDecimal}.
+     */
+    private static BigDecimal importeNumerico(String valor) {
+        return new BigDecimal(valor.replace("$", "").replace(",", "").replace(" ", "").trim());
     }
 
     private boolean esColumnaMonetaria(String encabezado) {

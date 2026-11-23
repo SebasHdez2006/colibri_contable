@@ -28,6 +28,7 @@ import sv.edu.ues.colibri.application.AppContext;
 import sv.edu.ues.colibri.application.inventario.InventarioCostoService;
 import sv.edu.ues.colibri.application.panel.PanelInicioService;
 import sv.edu.ues.colibri.desktop.ui.UiCatalogos;
+import sv.edu.ues.colibri.desktop.ui.UiFormatos;
 import sv.edu.ues.colibri.desktop.ui.UiTables;
 import sv.edu.ues.colibri.desktop.ui.UiTheme;
 import sv.edu.ues.colibri.domain.model.Partida;
@@ -373,6 +374,21 @@ public class InicioView extends VBox {
         return combo;
     }
 
+    /**
+     * Ancho del combo según su opción más larga, más el espacio de la flecha
+     * y los paddings del control, para que la selección no se trunque.
+     */
+    private static double anchoCombo(List<String> opciones) {
+        Font letra = Font.font("Segoe UI", 14);
+        double texto = 0;
+        for (String opcion : opciones) {
+            javafx.scene.text.Text medida = new javafx.scene.text.Text(opcion);
+            medida.setFont(letra);
+            texto = Math.max(texto, medida.getBoundsInLocal().getWidth());
+        }
+        return texto + 72;
+    }
+
     /** Reconstruye el contenido de la gráfica de barras para el rango elegido. */
     private void pintarBarras(VBox contenido, int anioDesde, int anioHasta) {
         contenido.getChildren().clear();
@@ -433,10 +449,17 @@ public class InicioView extends VBox {
         }
         chart.getData().addAll(ingresos, egresos);
 
-        // El diagrama queda a la izquierda y los resultados por mes a la
-        // derecha: el detalle mensual vive en un panel con scroll para que
-        // un rango de varios años no estire la tarjeta.
-        HBox cuerpo = new HBox(16);
+        // El diagrama ocupa ~55 % del ancho y el historial mensual ~45 %: las
+        // fichas por mes necesitan ese espacio para no envolver cada cifra en
+        // tres líneas, y el detalle mensual vive en un panel con scroll para
+        // que un rango de varios años no estire la tarjeta.
+        GridPane cuerpo = new GridPane();
+        cuerpo.setHgap(16);
+        ColumnConstraints colGrafica = new ColumnConstraints();
+        colGrafica.setPercentWidth(55);
+        ColumnConstraints colMeses = new ColumnConstraints();
+        colMeses.setPercentWidth(45);
+        cuerpo.getColumnConstraints().addAll(colGrafica, colMeses);
         VBox izquierda = new VBox(8);
         izquierda.setFillWidth(true);
         izquierda.getChildren().add(chart);
@@ -452,12 +475,13 @@ public class InicioView extends VBox {
         }
         ScrollPane mensual = new ScrollPane(resumenMensual(serie));
         mensual.setFitToWidth(true);
-        mensual.setPrefWidth(320);
         mensual.setPrefHeight(310);
         mensual.setMinHeight(220);
         mensual.getStyleClass().add("chart-months-pane");
-        cuerpo.getChildren().addAll(izquierda, mensual);
-        HBox.setHgrow(izquierda, Priority.ALWAYS);
+        cuerpo.add(izquierda, 0, 0);
+        cuerpo.add(mensual, 1, 0);
+        GridPane.setHgrow(izquierda, Priority.ALWAYS);
+        GridPane.setHgrow(mensual, Priority.ALWAYS);
         contenido.getChildren().add(cuerpo);
     }
 
@@ -869,10 +893,16 @@ public class InicioView extends VBox {
         card.getStyleClass().addAll("surface-card", "dashboard-chart-card");
         card.setMinWidth(320);
 
-        ComboBox<String> linea = new ComboBox<>(FXCollections.observableArrayList(
-                "Proyectos a la medida", "Licencias digitales", "Acceso SaaS"));
+        List<String> lineasCosto = List.of("Proyectos a la medida", "Licencias digitales",
+                "Acceso SaaS");
+        ComboBox<String> linea = new ComboBox<>(FXCollections.observableArrayList(lineasCosto));
         linea.setValue("Proyectos a la medida");
-        linea.setPrefWidth(230);
+        double anchoLinea = anchoCombo(lineasCosto);
+        linea.setPrefWidth(anchoLinea);
+        linea.setMinWidth(anchoLinea);
+        // El ComboBox de JavaFX suma la altura de su flecha interna y queda
+        // más alto que un TextField; se fija la altura estándar de control.
+        linea.setPrefHeight(34);
         UiCatalogos.ayuda(linea, "Línea de costo a comparar: proyecto a la medida, "
                 + "licencias digitales o acceso SaaS.");
         HBox selector = new HBox(8, new Label("Ver costos de"), linea);
@@ -1404,7 +1434,7 @@ public class InicioView extends VBox {
     }
 
     private String dinero(BigDecimal monto) {
-        return "$%,.2f".formatted(monto);
+        return UiFormatos.dinero(monto);
     }
 
     private String dineroCompacto(BigDecimal monto) {

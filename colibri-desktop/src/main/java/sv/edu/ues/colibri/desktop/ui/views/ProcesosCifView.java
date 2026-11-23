@@ -15,6 +15,7 @@ import sv.edu.ues.colibri.application.costos.CosteoPorProcesosService;
 import sv.edu.ues.colibri.desktop.ui.ResponsiveLayouts;
 import sv.edu.ues.colibri.desktop.ui.UiCatalogos;
 import sv.edu.ues.colibri.desktop.ui.UiDialogs;
+import sv.edu.ues.colibri.desktop.ui.UiFormatos;
 import sv.edu.ues.colibri.domain.calculation.CostosCalculator;
 import sv.edu.ues.colibri.domain.model.Cuenta;
 
@@ -226,7 +227,7 @@ public final class ProcesosCifView extends VBox {
                     decimal(baseEstimada, "base estimada"), decimal(baseReal, "base real"),
                     decimal(cifReal, "CIF real")));
             resultadoCif.setText("Centro %s · Tasa predeterminada: $%s por unidad de base · "
-                            + "CIF aplicado: $%s · CIF real: $%s · Variación: $%s (%s)."
+                            + "CIF aplicado: %s · CIF real: %s · Variación: %s (%s)."
                     .formatted(centroNormalizado(), numero(analisis.tasaPredeterminada()),
                             dinero(analisis.cifAplicados()), dinero(analisis.cifReales()),
                             dinero(analisis.variacion()), etiquetaCif(analisis.estado())));
@@ -242,12 +243,12 @@ public final class ProcesosCifView extends VBox {
                     new CifService.AplicacionOrdenEntrada(fechaObligatoria(), centroNormalizado(),
                             texto(ordenCif, "código de orden"), decimal(baseAplicada, "base aplicada"),
                             descripcionCif.getText()));
-            resultadoContable.setText("Orden %s · Base aplicada: %s · Tasa: $%s · CIF aplicado: $%s · Folio %s."
+            resultadoContable.setText("Orden %s · Base aplicada: %s · Tasa: $%s · CIF aplicado: %s · Folio %s."
                     .formatted(aplicacion.codigoOrden(), numero(aplicacion.baseAplicada()),
                             numero(aplicacion.tasaPredeterminada()), dinero(aplicacion.importeAplicado()),
                             aplicacion.partida().getFolio()));
             UiDialogs.info("CIF aplicado", "La orden " + aplicacion.codigoOrden()
-                    + " recibió $" + aplicacion.importeAplicado() + " de CIF. Folio "
+                    + " recibió " + dinero(aplicacion.importeAplicado()) + " de CIF. Folio "
                     + aplicacion.partida().getFolio());
         } catch (Exception ex) {
             UiDialogs.error(mensaje(ex, "No se pudo aplicar CIF a la orden."));
@@ -266,11 +267,11 @@ public final class ProcesosCifView extends VBox {
             }
             CifService.CierreVariacion cierre = context.cif().cerrarVariacion(fechaObligatoria(),
                     centroNormalizado(), cuenta);
-            resultadoContable.setText("Cierre CIF · Centro %s · Real: $%s · Aplicado: $%s · Variación: $%s (%s) · Folio %s."
+            resultadoContable.setText("Cierre CIF · Centro %s · Real: %s · Aplicado: %s · Variación: %s (%s) · Folio %s."
                     .formatted(cierre.centroCosto(), dinero(cierre.cifReal()), dinero(cierre.cifAplicadoContable()),
                             dinero(cierre.variacion()), etiquetaCif(cierre.estado()), cierre.partida().getFolio()));
             UiDialogs.info("Variación CIF cerrada", "Folio " + cierre.partida().getFolio()
-                    + ". Variación " + etiquetaCif(cierre.estado()) + ": $" + cierre.variacion());
+                    + ". Variación " + etiquetaCif(cierre.estado()) + ": " + dinero(cierre.variacion()));
         } catch (Exception ex) {
             UiDialogs.error(mensaje(ex, "No se pudo cerrar la variación CIF."));
         }
@@ -297,8 +298,8 @@ public final class ProcesosCifView extends VBox {
         CostosCalculator.BalanceFisico balance = resultado.balanceFisico();
         resultadoProceso.setText("BALANCE FÍSICO\nInicial: %s  +  Iniciadas: %s  −  Final: %s  =  Transferidas: %s%n%n"
                         + "%s%n%n%s%n%n"
-                        + "TOTAL PEPS · Inventario final: $%s · Transferido: $%s%n"
-                        + "TOTAL PROMEDIO · Inventario final: $%s · Transferido: $%s%n"
+                        + "TOTAL PEPS · Inventario final: %s · Transferido: %s%n"
+                        + "TOTAL PROMEDIO · Inventario final: %s · Transferido: %s%n"
                         + "UEPS se muestra sólo como comparación gerencial; no es política financiera de Colibrí."
                 .formatted(numero(balance.inventarioInicial()), numero(balance.unidadesIniciadas()),
                         numero(balance.inventarioFinal()), numero(balance.unidadesTransferidas()),
@@ -311,9 +312,9 @@ public final class ProcesosCifView extends VBox {
     private static String resumenElemento(String nombre, CosteoPorProcesosService.ElementoProceso elemento) {
         CostosCalculator.UnidadesEquivalentes ue = elemento.unidadesEquivalentes();
         return "%s · UE final: %s · UE PEPS: %s · UE promedio: %s%n"
-                        + "PEPS: $%s/u · final $%s · transferido $%s%n"
-                        + "Promedio: $%s/u · final $%s · transferido $%s%n"
-                        + "UEPS (comparativo): $%s/u · final $%s · transferido $%s"
+                        + "PEPS: %s/u · final %s · transferido %s%n"
+                        + "Promedio: %s/u · final %s · transferido %s%n"
+                        + "UEPS (comparativo): %s/u · final %s · transferido %s"
                 .formatted(nombre, numero(ue.simpleFinal()), numero(ue.terminadasPeps()),
                         numero(ue.promedioPonderado()),
                         dinero(elemento.peps().costoUnitario()), dinero(elemento.peps().costoInventarioFinal()),
@@ -389,7 +390,7 @@ public final class ProcesosCifView extends VBox {
     }
 
     private static String dinero(BigDecimal valor) {
-        return "$" + (valor == null ? "0.00" : valor.setScale(2).toPlainString());
+        return UiFormatos.dinero(valor);
     }
 
     private static String etiquetaCif(CostosCalculator.EstadoCif estado) {

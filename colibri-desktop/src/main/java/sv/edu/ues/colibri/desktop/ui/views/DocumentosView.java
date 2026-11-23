@@ -20,6 +20,7 @@ import sv.edu.ues.colibri.application.operacion.OperacionContableService;
 import sv.edu.ues.colibri.desktop.ui.ResponsiveLayouts;
 import sv.edu.ues.colibri.desktop.ui.UiCampos;
 import sv.edu.ues.colibri.desktop.ui.UiDialogs;
+import sv.edu.ues.colibri.desktop.ui.UiFormatos;
 import sv.edu.ues.colibri.desktop.ui.UiTables;
 import sv.edu.ues.colibri.domain.exception.DomainException;
 import sv.edu.ues.colibri.domain.model.Documento;
@@ -285,7 +286,7 @@ public class DocumentosView extends VBox {
                     sel.getId(), fecha.getValue(), motivoNota.getText(), debito);
             UiDialogs.info("Nota emitida", (debito ? "Nota de débito " : "Nota de crédito ")
                     + nota.getCodigoGeneracion() + " · Total "
-                    + nota.getTotal().toPlainString());
+                    + UiFormatos.dinero(nota.getTotal()));
             motivoNota.clear();
             refrescar();
         } catch (Exception ex) {
@@ -448,7 +449,8 @@ public class DocumentosView extends VBox {
                 }
                 Documento d = value.documento();
                 return d.getCodigoGeneracion() + " | " + d.getFechaEmision()
-                        + " | total " + d.getTotal() + " | saldo " + value.saldo();
+                        + " | total " + UiFormatos.dinero(d.getTotal())
+                        + " | saldo " + UiFormatos.dinero(value.saldo());
             }
 
             @Override
@@ -463,8 +465,8 @@ public class DocumentosView extends VBox {
         agregarColumna(tabla, "Cuenta", PartidaDetalle::getCodigoCuenta);
         agregarColumna(tabla, "Auxiliar", PartidaDetalle::getAuxiliar);
         agregarColumna(tabla, "Centro", PartidaDetalle::getCentroCosto);
-        agregarColumna(tabla, "Debe", d -> d.getDebe().toPlainString());
-        agregarColumna(tabla, "Haber", d -> d.getHaber().toPlainString());
+        agregarColumna(tabla, "Debe", d -> UiFormatos.dinero(d.getDebe()));
+        agregarColumna(tabla, "Haber", d -> UiFormatos.dinero(d.getHaber()));
         tabla.setPrefSize(560, 260);
 
         BigDecimal totalDebe = preview.lineas().stream().map(PartidaDetalle::getDebe)
@@ -474,7 +476,8 @@ public class DocumentosView extends VBox {
         VBox contenido = new VBox(8,
                 new Label("Tipo: " + preview.tipo().getEtiqueta()
                         + "  ·  Fecha: " + preview.fecha()
-                        + "  ·  Debe: " + totalDebe + "  ·  Haber: " + totalHaber
+                        + "  ·  Debe: " + UiFormatos.dinero(totalDebe)
+                        + "  ·  Haber: " + UiFormatos.dinero(totalHaber)
                         + (totalDebe.compareTo(totalHaber) == 0 ? "  (cuadra)" : "  (NO cuadra)")),
                 UiTables.conBusqueda(tabla, "líneas del asiento", linea -> linea.getCodigoCuenta()
                         + " " + linea.getAuxiliar() + " " + linea.getCentroCosto()
@@ -517,11 +520,11 @@ public class DocumentosView extends VBox {
         TableColumn<Documento, String> cCodigo = new TableColumn<>("Código / control");
         cCodigo.setCellValueFactory(c -> new SimpleStringProperty(descripcionCodigo(c.getValue())));
         TableColumn<Documento, String> cBase = new TableColumn<>("Base");
-        cBase.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getBaseGravada().toPlainString()));
+        cBase.setCellValueFactory(c -> new SimpleStringProperty(UiFormatos.dinero(c.getValue().getBaseGravada())));
         TableColumn<Documento, String> cIva = new TableColumn<>("IVA");
-        cIva.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getIva().toPlainString()));
+        cIva.setCellValueFactory(c -> new SimpleStringProperty(UiFormatos.dinero(c.getValue().getIva())));
         TableColumn<Documento, String> cTotal = new TableColumn<>("Total");
-        cTotal.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getTotal().toPlainString()));
+        cTotal.setCellValueFactory(c -> new SimpleStringProperty(UiFormatos.dinero(c.getValue().getTotal())));
         TableColumn<Documento, String> cEstado = new TableColumn<>("Estado");
         cEstado.setCellValueFactory(c -> new SimpleStringProperty(nvl(c.getValue().getEstado())));
         tablaDocumentos.getColumns().setAll(cFecha, cTipo, cTercero, cCodigo, cBase, cIva, cTotal, cEstado);

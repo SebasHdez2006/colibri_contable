@@ -23,6 +23,7 @@ import sv.edu.ues.colibri.desktop.ui.ResponsiveLayouts;
 import sv.edu.ues.colibri.desktop.ui.UiCampos;
 import sv.edu.ues.colibri.desktop.ui.UiCatalogos;
 import sv.edu.ues.colibri.desktop.ui.UiDialogs;
+import sv.edu.ues.colibri.desktop.ui.UiFormatos;
 import sv.edu.ues.colibri.desktop.ui.UiTables;
 import sv.edu.ues.colibri.domain.model.Cuenta;
 import sv.edu.ues.colibri.domain.model.Tercero;
@@ -110,6 +111,8 @@ public class InventarioCostosView extends VBox {
         UiCatalogos.ayuda(costoUnitario, "Costo unitario en USD; el sistema calcula el costo total del lote.");
         Label costoTotal = new Label("Costo total: —");
         costoTotal.getStyleClass().add("result-panel");
+        costoTotal.setWrapText(true);
+        costoTotal.setMaxWidth(Double.MAX_VALUE);
         ComboBox<Tercero> clienteLote = new ComboBox<>();
         clienteLote.setConverter(converterTercero());
         clienteLote.setPromptText("Cliente titular (opcional)");
@@ -133,8 +136,8 @@ public class InventarioCostosView extends VBox {
             }
             BigDecimal total = unitario.multiply(BigDecimal.valueOf(cant))
                     .setScale(2, RoundingMode.HALF_UP);
-            costoTotal.setText("Costo total: $" + total.toPlainString()
-                    + "  (" + cant + " × $" + unitario.stripTrailingZeros().toPlainString() + ")");
+            costoTotal.setText("Costo total: " + dinero(total)
+                    + "  (" + cant + " × " + dinero(unitario) + ")");
         };
         unidades.textProperty().addListener((o, a, b) -> actualizarTotal.run());
         costoUnitario.textProperty().addListener((o, a, b) -> actualizarTotal.run());
@@ -154,8 +157,8 @@ public class InventarioCostosView extends VBox {
                     cant, total, fecha.getValue(),
                     clienteLote.getValue() == null ? null : clienteLote.getValue().getId(),
                     versionLote.getValue() == null ? null : versionLote.getValue().id());
-            UiDialogs.info("Lote liberado", "%s: costo unitario $%s · %d licencias disponibles".formatted(
-                    info.codigo(), info.costoUnitario(), info.disponibles()));
+            UiDialogs.info("Lote liberado", "%s: costo unitario %s · %d licencias disponibles".formatted(
+                    info.codigo(), dinero(info.costoUnitario()), info.disponibles()));
             codigoLote.clear();
             unidades.clear();
             costoUnitario.clear();
@@ -278,7 +281,7 @@ public class InventarioCostosView extends VBox {
                     lote.codigo(), recuperable, fechaDeterioro.getValue());
             UiDialogs.info("Deterioro aplicado",
                     "Se generó la partida " + partida.getFolio() + " con folio de ajuste por valor "
-                            + "recuperable $" + recuperable.toPlainString()
+                            + "recuperable " + dinero(recuperable)
                             + ". Revísela en el Libro diario: nace en borrador y debe aprobarse y "
                             + "contabilizarse para afectar el mayor.");
             valorRecuperable.clear();
@@ -642,8 +645,8 @@ public class InventarioCostosView extends VBox {
     private static String etiquetaLote(InventarioCostoService.LoteInfo lote) {
         String version = lote.versionLabel() == null ? ""
                 : " · " + lote.productoCodigo() + " v" + lote.versionLabel();
-        return lote.codigo() + version + " · " + lote.disponibles() + " disp. · $"
-                + lote.costoUnitario().toPlainString() + " c/u";
+        return lote.codigo() + version + " · " + lote.disponibles() + " disp. · "
+                + dinero(lote.costoUnitario()) + " c/u";
     }
 
     private static String etiquetaEstadoVersion(String estado) {
@@ -682,7 +685,7 @@ public class InventarioCostosView extends VBox {
         TableColumn<ParametrizacionService.PlanServicio, String> cMod = new TableColumn<>("Modalidad");
         cMod.setCellValueFactory(c -> new SimpleStringProperty(etiquetaModalidad(c.getValue().modalidad())));
         TableColumn<ParametrizacionService.PlanServicio, String> cTar = new TableColumn<>("Tarifa");
-        cTar.setCellValueFactory(c -> new SimpleStringProperty("$" + c.getValue().tarifa().toPlainString()));
+        cTar.setCellValueFactory(c -> new SimpleStringProperty(dinero(c.getValue().tarifa())));
         TableColumn<ParametrizacionService.PlanServicio, String> cCta = new TableColumn<>("Cuenta ingreso");
         cCta.setCellValueFactory(c -> new SimpleStringProperty(nombreCuenta(c.getValue().cuentaIngreso())));
         TableColumn<ParametrizacionService.PlanServicio, String> cEst = new TableColumn<>("Estado");
@@ -793,6 +796,8 @@ public class InventarioCostosView extends VBox {
         tipoCosto.setValue("MOD");
         UiCatalogos.ayuda(tipoCosto, "Clasificación del costo que se acumula en el plan.");
         Label acumulado = new Label("Registre MOD, recursos directos o CIF en el plan facturado.");
+        acumulado.setWrapText(true);
+        acumulado.setMaxWidth(Double.MAX_VALUE);
         Button registrarCosto = new Button("Acumular costo del plan");
         registrarCosto.setOnAction(e -> ejecutar(() -> {
             if (planCosto.getValue() == null) {
@@ -802,9 +807,9 @@ public class InventarioCostosView extends VBox {
                     tipoCosto.getValue(), costoDescripcion.getText(),
                     UiCampos.importe(costoCantidad.getText()), UiCampos.importe(costoTarifa.getText()),
                     fecha.getValue());
-            acumulado.setText("Plan %s · MOD $%s · Directos $%s · CIF $%s · Total $%s".formatted(
-                    costoPlan.codigoPlan(), costoPlan.manoObra(), costoPlan.serviciosDirectos(),
-                    costoPlan.indirectos(), costoPlan.total()));
+            acumulado.setText("Plan %s · MOD %s · Directos %s · CIF %s · Total %s".formatted(
+                    costoPlan.codigoPlan(), dinero(costoPlan.manoObra()), dinero(costoPlan.serviciosDirectos()),
+                    dinero(costoPlan.indirectos()), dinero(costoPlan.total())));
             costoDescripcion.clear();
             refrescar();
         }));
@@ -822,15 +827,6 @@ public class InventarioCostosView extends VBox {
     private javafx.scene.Node[] panelMedida(DatePicker fecha) {
         TextField codigoOrden = new TextField("OS2026001");
         codigoOrden.setPromptText("Código de orden de servicio");
-        Button cargarOs = new Button("Cargar costos de ejemplo ($1,800)");
-        cargarOs.setOnAction(e -> ejecutar(() -> {
-            if (!"OS2026001".equalsIgnoreCase(codigoOrden.getText().trim())) {
-                throw new IllegalArgumentException("La carga de ejemplo corresponde únicamente a OS2026001.");
-            }
-            context.inventario().cargarConsumosOs2026001(fecha.getValue());
-            UiDialogs.info("Costos acumulados", "Se registraron MOD, recursos técnicos y CIF para OS2026001.");
-            refrescar();
-        }));
         Button reconocer = new Button("Reconocer costo de la orden");
         reconocer.setOnAction(e -> ejecutar(() -> {
             var p = context.inventario().reconocerCostoOrden(codigoOrden.getText().trim(), fecha.getValue());
@@ -980,11 +976,13 @@ public class InventarioCostosView extends VBox {
                         o -> o.codigo() + " " + o.descripcion() + " " + o.estado()),
                 ResponsiveLayouts.row(ResponsiveLayouts.field("Estado destino", estadoDestino),
                         cambiarEstado));
+        ordenLbl.setWrapText(true);
+        ordenLbl.setMaxWidth(Double.MAX_VALUE);
         VBox costos = tarjeta("Costeo por órdenes de servicio",
                 new Label("Acumula mano de obra directa, recursos directos y CIF aplicados sobre la orden."),
                 ordenLbl,
                 ResponsiveLayouts.row(ResponsiveLayouts.field("Fecha", fecha),
-                        ResponsiveLayouts.field("Orden", codigoOrden), cargarOs, reconocer),
+                        ResponsiveLayouts.field("Orden", codigoOrden), reconocer),
                 ResponsiveLayouts.row(ResponsiveLayouts.field("Horas MOD", horas),
                         ResponsiveLayouts.field("Tarifa", tarifa), consumoManual));
         return new javafx.scene.Node[]{ciclo, costos};
@@ -1003,6 +1001,8 @@ public class InventarioCostosView extends VBox {
         UiCatalogos.ayuda(unidadesAnalisis, "Cantidad de unidades de salida para comparar los métodos de valoración.");
         Label estadoComparacion = new Label("Indique las unidades y calcule una salida hipotética.");
         estadoComparacion.getStyleClass().add("section-note");
+        estadoComparacion.setWrapText(true);
+        estadoComparacion.setMaxWidth(Double.MAX_VALUE);
         Label pepsCosto = valorComparacion("—");
         Label pepsSaldo = valorComparacion("—");
         Label promedioCosto = valorComparacion("—");
@@ -1040,6 +1040,8 @@ public class InventarioCostosView extends VBox {
         usuarios.setPromptText("Usuarios");
         UiCatalogos.ayuda(usuarios, "Cantidad de usuarios SaaS facturados en el mes del corte.");
         Label saasLbl = new Label("Registre usuarios-mes y calcule el costo por proceso para cada plan SaaS.");
+        saasLbl.setWrapText(true);
+        saasLbl.setMaxWidth(Double.MAX_VALUE);
         Button registrarUsuarios = new Button("Guardar usuarios-mes");
         registrarUsuarios.setOnAction(e -> ejecutar(() -> {
             if (plan.getValue() == null) {
@@ -1063,11 +1065,12 @@ public class InventarioCostosView extends VBox {
                             + nombreCuenta("510202") + " y " + nombreCuenta("510203")
                             + " del período: registre primero la partida de costos indirectos."
                     : "";
-            saasLbl.setText(("%s: %d de %d usuarios-mes · Alojamiento $%s · Soporte $%s · "
-                    + "Infraestructura $%s · Total asignado $%s · Costo $%s por usuario-mes%s").formatted(
+            saasLbl.setText(("%s: %d de %d usuarios-mes · Alojamiento %s · Soporte %s · "
+                    + "Infraestructura %s · Total asignado %s · Costo %s por usuario-mes%s").formatted(
                     desglose.codigoPlan(), desglose.usuariosMesPlan(), desglose.usuariosMesTotal(),
-                    desglose.alojamiento(), desglose.soporte(), desglose.infraestructuraCompartida(),
-                    desglose.totalAsignado(), desglose.costoUsuarioMes(), avisoCero));
+                    dinero(desglose.alojamiento()), dinero(desglose.soporte()),
+                    dinero(desglose.infraestructuraCompartida()), dinero(desglose.totalAsignado()),
+                    dinero(desglose.costoUsuarioMes()), avisoCero));
         }));
         VBox card = tarjeta("Costeo por procesos / servidor / usuario-mes",
                 ResponsiveLayouts.row(ResponsiveLayouts.field("Corte", fecha),
@@ -1258,7 +1261,7 @@ public class InventarioCostosView extends VBox {
     }
 
     private static String dinero(BigDecimal monto) {
-        return "$" + monto.setScale(2, RoundingMode.HALF_UP).toPlainString();
+        return UiFormatos.dinero(monto);
     }
 
     private void refrescar() {
@@ -1373,8 +1376,9 @@ public class InventarioCostosView extends VBox {
             InventarioCostoService.OrdenInfo o = context.inventario().ordenPrincipal();
             BigDecimal pct = o.precioVenta().signum() == 0 ? BigDecimal.ZERO
                     : o.margen().divide(o.precioVenta(), 4, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100));
-            ordenLbl.setText("%s · Costo acumulado $%s · Precio $%s · Margen $%s (%s%%)%s".formatted(
-                    o.codigo(), o.costoAcumulado(), o.precioVenta(), o.margen(), pct.setScale(2, RoundingMode.HALF_UP),
+            ordenLbl.setText("%s · Costo acumulado %s · Precio %s · Margen %s (%s%%)%s".formatted(
+                    o.codigo(), dinero(o.costoAcumulado()), dinero(o.precioVenta()), dinero(o.margen()),
+                    pct.setScale(2, RoundingMode.HALF_UP),
                     pct.compareTo(new BigDecimal("35")) < 0 ? "  — ALERTA: margen bajo" : ""));
         } catch (Exception ex) {
             ordenLbl.setText("Seleccione una orden de servicio para consultar sus costos.");
@@ -1394,11 +1398,11 @@ public class InventarioCostosView extends VBox {
         try {
             var disponibles = context.inventario().listarLotes();
             lotes.setItems(FXCollections.observableArrayList(disponibles.stream()
-                    .map(l -> "%s%s  ·  Disponibles: %d  ·  Costo promedio por unidad: $%s".formatted(
+                    .map(l -> "%s%s  ·  Disponibles: %d  ·  Costo promedio por unidad: %s".formatted(
                             l.codigo(),
                             l.versionLabel() == null ? ""
                                     : " (" + l.productoCodigo() + " v" + l.versionLabel() + ")",
-                            l.disponibles(), l.costoUnitario())).toList()));
+                            l.disponibles(), dinero(l.costoUnitario()))).toList()));
             UUID sel = loteDeterioro.getValue() == null ? null : loteDeterioro.getValue().id();
             loteDeterioro.setItems(FXCollections.observableArrayList(disponibles));
             disponibles.stream().filter(l -> l.id().equals(sel))

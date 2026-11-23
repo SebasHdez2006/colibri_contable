@@ -29,6 +29,7 @@ import sv.edu.ues.colibri.application.AppContext;
 import sv.edu.ues.colibri.application.libros.LibroContableService;
 import sv.edu.ues.colibri.desktop.ui.ResponsiveLayouts;
 import sv.edu.ues.colibri.desktop.ui.UiDialogs;
+import sv.edu.ues.colibri.desktop.ui.UiFormatos;
 import sv.edu.ues.colibri.desktop.ui.UiTheme;
 import sv.edu.ues.colibri.domain.model.Cuenta;
 import sv.edu.ues.colibri.domain.model.Ejercicio;
@@ -258,21 +259,21 @@ public class ReportesView extends VBox {
             filas = context.libros().diario(desde, hasta, soloCasoD).stream()
             .map(l -> List.of(l.fecha().toString(), nvl(l.folio()), nvl(l.referencia()),
                     l.cuenta() + " · " + l.nombreCuenta(), l.concepto(),
-                            l.debe().toPlainString(), l.haber().toPlainString())).toList();
+                            dinero(l.debe()), dinero(l.haber()))).toList();
                 filas = agregarTotal(filas, encabezados, 5, 6, "TOTALES");
         } else if (MAYOR.equals(tipo)) {
             encabezados = List.of("Código", "Cuenta", "Debe acumulado (USD)",
                 "Haber acumulado (USD)", "Saldo deudor (USD)", "Saldo acreedor (USD)");
         filas = context.libros().libroMayor(hasta, soloCasoD).stream()
-            .map(l -> List.of(l.cuenta(), l.nombre(), l.debeAcumulado().toPlainString(),
-                l.haberAcumulado().toPlainString(), l.saldoDeudor().toPlainString(),
-                l.saldoAcreedor().toPlainString())).toList();
+            .map(l -> List.of(l.cuenta(), l.nombre(), dinero(l.debeAcumulado()),
+                dinero(l.haberAcumulado()), dinero(l.saldoDeudor()),
+                dinero(l.saldoAcreedor()))).toList();
         filas = agregarTotal(filas, encabezados, 2, 5, "TOTALES");
     } else if (BALANZA.equals(tipo)) {
         encabezados = List.of("Código", "Cuenta", "Debe (USD)", "Haber (USD)");
             filas = context.libros().balanza(desde, hasta, soloCasoD).stream()
-            .map(l -> List.of(l.cuenta(), l.nombre(), l.debe().toPlainString(),
-                l.haber().toPlainString())).toList();
+            .map(l -> List.of(l.cuenta(), l.nombre(), dinero(l.debe()),
+                dinero(l.haber()))).toList();
         filas = agregarTotal(filas, encabezados, 2, 3, "TOTALES");
     } else if (CUENTA_T.equals(tipo)) {
         DatosReporte cuentaT = cargarCuentaT(cuenta, desde, hasta, soloCasoD);
@@ -284,13 +285,13 @@ public class ReportesView extends VBox {
             "Estado de resultados haber", "Estado de capital debe", "Estado de capital haber",
             "Balance general debe", "Balance general haber");
         filas = context.libros().hojaTrabajo(desde, hasta, soloCasoD).stream()
-            .map(l -> List.of(l.cuenta(), l.nombre(), l.debe().toPlainString(),
-                l.haber().toPlainString(), l.ajusteDebe().toPlainString(),
-                l.ajusteHaber().toPlainString(), l.ajustadaDebe().toPlainString(),
-                l.ajustadaHaber().toPlainString(), l.resultadosDebe().toPlainString(),
-                l.resultadosHaber().toPlainString(), l.capitalDebe().toPlainString(),
-                l.capitalHaber().toPlainString(), l.situacionDebe().toPlainString(),
-                l.situacionHaber().toPlainString())).toList();
+            .map(l -> List.of(l.cuenta(), l.nombre(), dinero(l.debe()),
+                dinero(l.haber()), dinero(l.ajusteDebe()),
+                dinero(l.ajusteHaber()), dinero(l.ajustadaDebe()),
+                dinero(l.ajustadaHaber()), dinero(l.resultadosDebe()),
+                dinero(l.resultadosHaber()), dinero(l.capitalDebe()),
+                dinero(l.capitalHaber()), dinero(l.situacionDebe()),
+                dinero(l.situacionHaber()))).toList();
         filas = agregarTotal(filas, encabezados, 2, 13, "TOTALES");
     } else if (SITUACION.equals(tipo)) {
         encabezados = encabezadosEstado();
@@ -303,21 +304,21 @@ public class ReportesView extends VBox {
                 "Movimientos patrimoniales (USD)", "Resultado del período (USD)",
                 "Saldo final (USD)");
         filas = context.libros().estadoCambiosPatrimonio(desde, hasta, soloCasoD).stream()
-                .map(l -> List.of(l.codigo(), l.concepto(), l.saldoInicial().toPlainString(),
-                        l.movimientos().toPlainString(), l.resultadoPeriodo().toPlainString(),
-                        l.saldoFinal().toPlainString())).toList();
+                .map(l -> List.of(l.codigo(), l.concepto(), dinero(l.saldoInicial()),
+                        dinero(l.movimientos()), dinero(l.resultadoPeriodo()),
+                        dinero(l.saldoFinal()))).toList();
     } else if (FLUJOS_EFECTIVO.equals(tipo)) {
         encabezados = List.of("Folio", "Concepto", "Flujo neto (USD)");
         filas = context.libros().estadoFlujosEfectivo(desde, hasta, soloCasoD).stream()
-                .map(l -> List.of(nvl(l.codigo()), l.concepto(), l.importe().toPlainString())).toList();
+                .map(l -> List.of(nvl(l.codigo()), l.concepto(), dinero(l.importe()))).toList();
     } else if (LIBRO_IVA_COMPRAS.equals(tipo) || LIBRO_IVA_CCF.equals(tipo) || LIBRO_IVA_FCF.equals(tipo)) {
             String clase = LIBRO_IVA_COMPRAS.equals(tipo) ? "COMPRAS"
                     : LIBRO_IVA_CCF.equals(tipo) ? "VENTAS_CCF" : "VENTAS_FCF";
             encabezados = List.of("Fecha", "Tipo", "NIT", "Tercero", "Código", "Base", "IVA", "Total");
             filas = context.libros().libroIva(desde, hasta, clase).stream()
                     .map(l -> List.of(l.fecha().toString(), l.tipo(), nvl(l.nit()), nvl(l.tercero()),
-                            nvl(l.codigo()), l.base().toPlainString(), l.iva().toPlainString(),
-                            l.total().toPlainString())).toList();
+                            nvl(l.codigo()), dinero(l.base()), dinero(l.iva()),
+                            dinero(l.total()))).toList();
             filas = agregarTotal(filas, encabezados, 5, 7, "TOTALES");
         } else {
             String aux = switch (tipo) {
@@ -331,8 +332,8 @@ public class ReportesView extends VBox {
                     "Debe", "Haber", "Saldo acumulado (USD)");
             filas = context.libros().auxiliar(aux, desde, hasta).stream()
                     .map(l -> List.of(l.fecha().toString(), nvl(l.folio()), l.cuenta(), nvl(l.dimension()),
-                            nvl(l.concepto()), l.debe().toPlainString(), l.haber().toPlainString(),
-                            l.saldo().toPlainString())).toList();
+                            nvl(l.concepto()), dinero(l.debe()), dinero(l.haber()),
+                            dinero(l.saldo()))).toList();
             filas = agregarTotal(filas, encabezados, 5, 6, "TOTALES");
         }
         return new DatosReporte(titulo, periodo, encabezados, filas);
@@ -346,8 +347,8 @@ public class ReportesView extends VBox {
         BigDecimal saldoInicial = desde.equals(LocalDate.MIN) ? BigDecimal.ZERO
                 : context.libros().saldoCuentaHasta(cuenta.getCodigo(), desde.minusDays(1), soloCasoD);
         lineas.add(List.of("Saldo inicial", "", "", "Saldo al " + desde.minusDays(1),
-                saldoInicial.max(BigDecimal.ZERO).toPlainString(),
-                saldoInicial.negate().max(BigDecimal.ZERO).toPlainString()));
+                dinero(saldoInicial.max(BigDecimal.ZERO)),
+                dinero(saldoInicial.negate().max(BigDecimal.ZERO))));
         BigDecimal totalDebe = BigDecimal.ZERO;
         BigDecimal totalHaber = BigDecimal.ZERO;
         for (LibroContableService.LineaCuentaT movimiento
@@ -356,14 +357,14 @@ public class ReportesView extends VBox {
             totalHaber = totalHaber.add(movimiento.haber());
             lineas.add(List.of(movimiento.fecha().toString(), nvl(movimiento.folio()),
                     nvl(movimiento.referencia()), movimiento.concepto(),
-                    movimiento.debe().toPlainString(), movimiento.haber().toPlainString()));
+                    dinero(movimiento.debe()), dinero(movimiento.haber())));
         }
-        lineas.add(List.of("Totales del período", "", "", "", totalDebe.toPlainString(),
-                totalHaber.toPlainString()));
+        lineas.add(List.of("Totales del período", "", "", "", dinero(totalDebe),
+                dinero(totalHaber)));
         BigDecimal saldoFinal = saldoInicial.add(totalDebe).subtract(totalHaber);
         lineas.add(List.of("Saldo final", "", "", "Saldo al " + hasta,
-                saldoFinal.max(BigDecimal.ZERO).toPlainString(),
-                saldoFinal.negate().max(BigDecimal.ZERO).toPlainString()));
+                dinero(saldoFinal.max(BigDecimal.ZERO)),
+                dinero(saldoFinal.negate().max(BigDecimal.ZERO))));
         return new DatosReporte("Cuenta T " + cuenta.getCodigo() + " · " + cuenta.getNombre(),
                 "", encabezados, lineas);
     }
@@ -378,7 +379,7 @@ public class ReportesView extends VBox {
                 if (columna < fila.size()) {
                     try {
                         totales[columna - primeraColumnaImporte] = totales[columna - primeraColumnaImporte]
-                                .add(new BigDecimal(fila.get(columna)));
+                                .add(importeDe(fila.get(columna)));
                     } catch (NumberFormatException ignored) {
                     }
                 }
@@ -387,7 +388,7 @@ public class ReportesView extends VBox {
         List<String> total = new ArrayList<>(java.util.Collections.nCopies(encabezados.size(), ""));
         total.set(0, etiqueta);
         for (int columna = primeraColumnaImporte; columna <= ultimaColumnaImporte; columna++) {
-            total.set(columna, totales[columna - primeraColumnaImporte].toPlainString());
+            total.set(columna, dinero(totales[columna - primeraColumnaImporte]));
         }
         List<List<String>> resultado = new ArrayList<>(origen);
         resultado.add(total);
@@ -401,7 +402,7 @@ public class ReportesView extends VBox {
 
     private List<List<String>> filasEstado(List<LibroContableService.LineaEstado> origen) {
         return origen.stream().map(linea -> {
-            String importe = linea.importe().toPlainString();
+            String importe = dinero(linea.importe());
             if (linea.subtotal()) {
                 return List.of(nvl(linea.codigo()), linea.concepto(), "", "", importe);
             }
@@ -414,6 +415,18 @@ public class ReportesView extends VBox {
 
     private String nvl(String valor) {
         return valor == null ? "" : valor;
+    }
+
+    private static String dinero(BigDecimal monto) {
+        return UiFormatos.dinero(monto);
+    }
+
+    /**
+     * Reconstruye el importe numérico de una celda ya formateada para
+     * pantalla («$ 640,023.92»), para los totales que vuelven a sumarse.
+     */
+    private static BigDecimal importeDe(String texto) {
+        return new BigDecimal(texto.replace("$", "").replace(",", "").replace(" ", "").trim());
     }
 
     private ReportService.Membrete membrete() {

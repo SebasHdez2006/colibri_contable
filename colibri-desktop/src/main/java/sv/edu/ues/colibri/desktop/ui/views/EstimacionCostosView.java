@@ -3,6 +3,8 @@ package sv.edu.ues.colibri.desktop.ui.views;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -20,9 +22,11 @@ import sv.edu.ues.colibri.desktop.ui.ResponsiveLayouts;
 import sv.edu.ues.colibri.desktop.ui.UiCampos;
 import sv.edu.ues.colibri.desktop.ui.UiCatalogos;
 import sv.edu.ues.colibri.desktop.ui.UiDialogs;
+import sv.edu.ues.colibri.desktop.ui.UiFormatos;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +38,8 @@ import java.util.function.Function;
  * presupuestos contra el costo real registrado en las órdenes.
  */
 public final class EstimacionCostosView extends VBox {
+
+    private static final DecimalFormat FORMATO_NUMERO = formatoNumero("#,##0.00");
 
     private final AppContext context;
 
@@ -53,13 +59,12 @@ public final class EstimacionCostosView extends VBox {
         TextField parametro2 = new TextField();
         TextField parametro3 = new TextField();
         TextField parametro4 = new TextField();
-        UiCatalogos.ayuda(parametro1, "Parámetro del método seleccionado; la etiqueta se actualiza al cambiar la técnica. "
-                + "CFP = casos de uso funcionales (COSMIC); KLOC = miles de líneas de código; "
-                + "Σ/Π = suma y producto de factores; Ck = productividad (SLIM/Putnam).");
+        UiCatalogos.ayuda(parametro1, "Parámetro del método; la etiqueta cambia con la técnica. "
+                + "CFP=casos de uso, KLOC=miles de líneas, Ck=productividad.");
         UiCatalogos.ayuda(parametro2, "Parámetro del método seleccionado.");
         UiCatalogos.ayuda(parametro3, "Parámetro del método seleccionado.");
-        UiCatalogos.ayuda(parametro4, "Parámetro del método seleccionado. En Juicio de expertos "
-                + "ingrese los 3 pesos separados por coma (optimista,probable,pesimista).");
+        UiCatalogos.ayuda(parametro4, "Parámetro del método. En Juicio de expertos use 3 pesos "
+                + "separados por coma.");
         VBox parametros = new VBox(8);
         configurarParametros(metodo.getValue(), parametros, parametro1, parametro2, parametro3, parametro4);
         metodo.valueProperty().addListener((observable, anterior, actual) ->
@@ -95,10 +100,11 @@ public final class EstimacionCostosView extends VBox {
                         UiCampos.decimal(tarifa.getText(), "tarifa"),
                         UiCampos.decimal(cif.getText(), "tasa de CIF"),
                         UiCampos.decimal(margen.getText(), "margen"));
-                resultado.setText("Método: %s · Esfuerzo: %s h · Directo: $%s · CIF: $%s · "
-                        .formatted(r.metodo(), r.esfuerzoHoras(), r.costoDirecto(), r.cif())
-                        + "Costo total: $%s · Precio unitario: $%s · Margen: $%s%n%s"
-                        .formatted(r.costoTotal(), r.precioUnitario(), r.margen(), r.recomendacion()));
+                resultado.setText("Método: %s%nEsfuerzo: %s h · Directo: %s · CIF: %s%n"
+                        + "Costo total: %s · Precio unitario: %s · Margen: %s%n%s"
+                        .formatted(r.metodo(), numero(r.esfuerzoHoras()), dinero(r.costoDirecto()),
+                                dinero(r.cif()), dinero(r.costoTotal()), dinero(r.precioUnitario()),
+                                dinero(r.margen()), r.recomendacion()));
             } catch (Exception ex) {
                 UiDialogs.errorDe(ex);
             }
@@ -392,40 +398,69 @@ public final class EstimacionCostosView extends VBox {
         return lista;
     }
 
+    /** Parámetro de entrada de una técnica de estimación. */
+    private record ParametroMetodo(String etiqueta, String valor, boolean esPesos) {
+    }
+
+    /**
+     * Insumos y valores sugeridos de cada método, expresados en la unidad que
+     * su técnica requiere (horas, puntos de función, CFP, KLOC o tamaño). Los
+     * valores describen un proyecto de referencia coherente para que la
+     * comparación promedie estimaciones de magnitudes comparables.
+     */
+    private static List<ParametroMetodo> parametrosMetodo(EstimacionCostosService.Metodo metodo) {
+        return switch (metodo) {
+            case JUICIO_EXPERTOS -> List.of(
+                    new ParametroMetodo("Optimista (h)", "200", false),
+                    new ParametroMetodo("Probable (h)", "250", false),
+                    new ParametroMetodo("Pesimista (h)", "350", false),
+                    new ParametroMetodo("Pesos (o,p,pe)", "1,1,1", true));
+            case ANALOGIA -> List.of(
+                    new ParametroMetodo("Esfuerzo comparable (h)", "250", false),
+                    new ParametroMetodo("Tamaño comparable", "100", false),
+                    new ParametroMetodo("Tamaño objetivo", "100", false),
+                    new ParametroMetodo("Factor de ajuste", "1", false));
+            case PUNTOS_FUNCION -> List.of(
+                    new ParametroMetodo("Puntos ajustados", "150", false),
+                    new ParametroMetodo("Horas por punto", "5", false));
+            case COSMIC -> List.of(
+                    new ParametroMetodo("CFP", "400", false),
+                    new ParametroMetodo("Horas por CFP", "2", false));
+            case COCOMO -> List.of(
+                    new ParametroMetodo("KLOC", "5", false),
+                    new ParametroMetodo("Σ factores de escala", "0", false),
+                    new ParametroMetodo("Π multiplicadores de esfuerzo", "1", false),
+                    new ParametroMetodo("Horas por mes", "160", false));
+            case DESGASTE_TRABAJO -> List.of(
+                    new ParametroMetodo("Horas productivas", "250", false),
+                    new ParametroMetodo("Desgaste %", "15", false));
+            case LINEAS_CODIGO -> List.of(
+                    new ParametroMetodo("KLOC", "5", false),
+                    new ParametroMetodo("KLOC por persona-mes", "0.5", false));
+            case TRES_PUNTOS -> List.of(
+                    new ParametroMetodo("Optimista (h)", "200", false),
+                    new ParametroMetodo("Probable (h)", "250", false),
+                    new ParametroMetodo("Pesimista (h)", "350", false));
+            case SLIM_PUTNAM -> List.of(
+                    new ParametroMetodo("Tamaño (KLOC)", "25", false),
+                    new ParametroMetodo("Productividad Ck", "12", false),
+                    new ParametroMetodo("Duración (años)", "2", false));
+        };
+    }
+
     private static void configurarParametros(EstimacionCostosService.Metodo metodo, VBox contenedor,
                                              TextField p1, TextField p2, TextField p3, TextField p4) {
-        String l1;
-        String l2;
-        String l3 = null;
-        String l4 = null;
-        String v1;
-        String v2;
-        String v3 = "";
-        String v4 = "";
-        switch (metodo) {
-            case JUICIO_EXPERTOS -> { l1 = "Optimista"; l2 = "Probable"; l3 = "Pesimista"; l4 = "Pesos (o,p,pe)"; v1 = "80"; v2 = "100"; v3 = "130"; v4 = "1,1,1"; }
-            case ANALOGIA -> { l1 = "Esfuerzo comparable"; l2 = "Tamaño comparable"; l3 = "Tamaño objetivo"; l4 = "Factor de ajuste"; v1 = "100"; v2 = "100"; v3 = "100"; v4 = "1"; }
-            case PUNTOS_FUNCION -> { l1 = "Puntos ajustados"; l2 = "Horas por punto"; v1 = "100"; v2 = "1.2"; }
-            case COSMIC -> { l1 = "CFP"; l2 = "Horas por CFP"; v1 = "100"; v2 = "1.1"; }
-            case COCOMO -> { l1 = "KLOC"; l2 = "Σ factores de escala"; l3 = "Π multiplicadores de esfuerzo"; l4 = "Horas por mes"; v1 = "10"; v2 = "0"; v3 = "1"; v4 = "160"; }
-            case DESGASTE_TRABAJO -> { l1 = "Horas productivas"; l2 = "Desgaste %"; v1 = "100"; v2 = "15"; }
-            case LINEAS_CODIGO -> { l1 = "KLOC"; l2 = "KLOC por persona-mes"; v1 = "100"; v2 = "1.3333333333"; }
-            case TRES_PUNTOS -> { l1 = "Optimista"; l2 = "Probable"; l3 = "Pesimista"; v1 = "80"; v2 = "100"; v3 = "130"; }
-            case SLIM_PUTNAM -> { l1 = "Tamaño"; l2 = "Productividad Ck"; l3 = "Duración (años)"; v1 = "100"; v2 = "10"; v3 = "1"; }
-            default -> throw new IllegalStateException("Método no soportado: " + metodo);
+        List<ParametroMetodo> spec = parametrosMetodo(metodo);
+        TextField[] campos = {p1, p2, p3, p4};
+        for (int i = 0; i < campos.length; i++) {
+            campos[i].setText(i < spec.size() ? spec.get(i).valor() : "");
         }
-        p1.setText(v1); p2.setText(v2); p3.setText(v3); p4.setText(v4);
         contenedor.getChildren().clear();
-        if (l4 != null) {
-            contenedor.getChildren().add(ResponsiveLayouts.row(ResponsiveLayouts.field(l1, p1),
-                    ResponsiveLayouts.field(l2, p2), ResponsiveLayouts.field(l3, p3), ResponsiveLayouts.field(l4, p4)));
-        } else if (l3 != null) {
-            contenedor.getChildren().add(ResponsiveLayouts.row(ResponsiveLayouts.field(l1, p1),
-                    ResponsiveLayouts.field(l2, p2), ResponsiveLayouts.field(l3, p3)));
-        } else {
-            contenedor.getChildren().add(ResponsiveLayouts.row(ResponsiveLayouts.field(l1, p1),
-                    ResponsiveLayouts.field(l2, p2)));
+        List<Node> fila = new ArrayList<>();
+        for (int i = 0; i < spec.size(); i++) {
+            fila.add(ResponsiveLayouts.field(spec.get(i).etiqueta(), campos[i]));
         }
+        contenedor.getChildren().add(ResponsiveLayouts.row(fila.toArray(new Node[0])));
     }
 
     private VBox calculadoraGerencial() {
@@ -468,10 +503,12 @@ public final class EstimacionCostosView extends VBox {
                         new CosteoGerencialService.ActividadAbc("Infraestructura",
                                 UiCampos.decimal(infraestructura.getText(), "actividad Infraestructura"))),
                         cantidad);
-                salida.setText("Directo: $%s total / $%s por unidad · Estándar: $%s total / variación $%s · "
-                        .formatted(directo.total(), directo.unitario(), estandar.totalEstandar(), estandar.variacion())
-                        + "ABC: CIF aplicado $%s, total $%s / $%s por unidad."
-                        .formatted(abc.cifPorActividades(), abc.total(), abc.unitario()));
+                salida.setText("Directo: %s (%s/unidad) · Estándar: %s (var. %s)%n"
+                        + "ABC: CIF %s · Total %s (%s/unidad)"
+                        .formatted(dinero(directo.total()), dinero(directo.unitario()),
+                                dinero(estandar.totalEstandar()), dinero(estandar.variacion()),
+                                dinero(abc.cifPorActividades()), dinero(abc.total()),
+                                dinero(abc.unitario())));
             } catch (Exception ex) {
                 UiDialogs.errorDe(ex);
             }
@@ -494,14 +531,15 @@ public final class EstimacionCostosView extends VBox {
         comparar.setOnAction(evento -> {
             try {
                 var r = context.inventario().analizarDesviacionOrden(orden.getText().trim());
-                salida.setText("Orden %s · Estimado $%s · Real $%s · Variación $%s (%s%%) · "
-                        .formatted(r.codigo(), r.costoEstimado(), r.costoReal(), r.variacionAbsoluta(),
-                                r.variacionPorcentual())
-                        + "Índice de ejecución %s%% · Ahorro $%s · Sobrecosto $%s · Utilidad esperada $%s · "
-                        .formatted(r.indiceEjecucion(), r.ahorroPresupuestario(), r.sobrecosto(),
-                                r.utilidadEsperada())
-                        + "Utilidad real $%s · Rentabilidad sobre venta %s%%\n%s"
-                        .formatted(r.utilidadReal(), r.rentabilidadSobreVenta(), r.diagnostico()));
+                salida.setText("Orden %s · Estimado %s · Real %s%n"
+                        + "Variación %s (%s%%) · Índice %s%% · Ahorro %s · Sobrecosto %s%n"
+                        + "Utilidad esperada %s · Utilidad real %s · Rentabilidad %s%%%n%s"
+                        .formatted(r.codigo(), dinero(r.costoEstimado()), dinero(r.costoReal()),
+                                dinero(r.variacionAbsoluta()), numero(r.variacionPorcentual()),
+                                numero(r.indiceEjecucion()), dinero(r.ahorroPresupuestario()),
+                                dinero(r.sobrecosto()), dinero(r.utilidadEsperada()),
+                                dinero(r.utilidadReal()), numero(r.rentabilidadSobreVenta()),
+                                r.diagnostico()));
             } catch (Exception ex) {
                 UiDialogs.errorDe(ex);
             }
@@ -512,10 +550,6 @@ public final class EstimacionCostosView extends VBox {
     }
 
     private VBox comparacionPromedioHistoricos(EstimacionCostosService motor) {
-        TextField base = new TextField("100");
-        base.setPromptText("Valor base común");
-        UiCatalogos.ayuda(base, "Valor base que cada método interpreta según su técnica "
-                + "(horas, puntos de función, CFP, KLOC, tamaño, etc.).");
         TextField tarifa = new TextField("12");
         tarifa.setPromptText("USD/hora");
         UiCatalogos.ayuda(tarifa, "Tarifa por hora de la mano de obra directa en USD.");
@@ -525,6 +559,26 @@ public final class EstimacionCostosView extends VBox {
         TextField margenPct = new TextField("30");
         margenPct.setPromptText("%");
         UiCatalogos.ayuda(margenPct, "Margen de utilidad objetivo sobre el costo total, en %.");
+
+        // Un apartado por método: cada técnica recibe sus propios insumos en
+        // la unidad que le corresponde (horas, puntos de función, CFP, KLOC o
+        // tamaño), en lugar de forzar una misma base a métodos distintos.
+        List<PanelMetodo> paneles = new ArrayList<>();
+        FlowPane metodos = new FlowPane(14, 14);
+        metodos.setAlignment(Pos.TOP_LEFT);
+        metodos.setPrefWrapLength(780);
+        metodos.setMaxWidth(Double.MAX_VALUE);
+        metodos.widthProperty().addListener((observable, anterior, actual) -> {
+            if (actual.doubleValue() > 0) {
+                metodos.setPrefWrapLength(Math.max(320, actual.doubleValue() - 4));
+            }
+        });
+        metodos.getStyleClass().add("method-grid");
+        for (EstimacionCostosService.Metodo metodo : EstimacionCostosService.Metodo.values()) {
+            PanelMetodo panel = new PanelMetodo(metodo);
+            paneles.add(panel);
+            metodos.getChildren().add(panel.tarjeta());
+        }
 
         TableView<FilaComparacion> tabla = new TableView<>();
         tabla.setPlaceholder(new Label("Consulte para comparar la estimación promedio con los costos históricos."));
@@ -554,7 +608,7 @@ public final class EstimacionCostosView extends VBox {
 
         javafx.scene.control.TextArea porMetodo = new javafx.scene.control.TextArea();
         porMetodo.setEditable(false);
-        porMetodo.setWrapText(false);
+        porMetodo.setWrapText(true);
         porMetodo.setPrefRowCount(10);
         porMetodo.setPromptText("El costo total estimado por cada método aparecerá aquí.");
         porMetodo.setAccessibleText("Costo total estimado por cada método de estimación");
@@ -575,9 +629,8 @@ public final class EstimacionCostosView extends VBox {
                 estadistica("Varianza", varianzaValor, "Dispersión al cuadrado"));
         estadisticas.setAccessibleText("Estadísticos de las estimaciones de costo total");
 
-        Label detalle = new Label("El promedio se calcula sobre los 9 métodos implementados; "
-                + "los históricos suman los consumos reales de las órdenes contabilizadas. La desviación "
-                + "estándar y el coeficiente de variación muestran cuánto difieren los métodos entre sí.");
+        Label detalle = new Label("Cada método usa sus insumos en su unidad; el promedio "
+                + "se cruza con los costos reales de las órdenes.");
         detalle.setWrapText(true);
         detalle.setMaxWidth(Double.MAX_VALUE);
         detalle.getStyleClass().add("section-note");
@@ -585,16 +638,25 @@ public final class EstimacionCostosView extends VBox {
         Button comparar = new Button("Comparar estimación promedio con históricos");
         comparar.setOnAction(evento -> {
             try {
-                BigDecimal b = UiCampos.decimal(base.getText(), "base");
                 BigDecimal t = UiCampos.decimal(tarifa.getText(), "tarifa");
                 BigDecimal c = UiCampos.decimal(cifPct.getText(), "porcentaje de CIF");
                 BigDecimal m = UiCampos.decimal(margenPct.getText(), "margen");
-                List<EstimacionCostosService.Resultado> resultados = new ArrayList<>();
+                // Primero se validan y capturan las horas de todos los métodos para que
+                // un insumo inválido no deje resultados a medias en las tarjetas.
+                List<BigDecimal> horasPorMetodo = new ArrayList<>(paneles.size());
+                for (PanelMetodo panel : paneles) {
+                    horasPorMetodo.add(panel.horas(motor));
+                }
+                List<EstimacionCostosService.Resultado> resultados = new ArrayList<>(paneles.size());
                 StringBuilder porMetodoTexto = new StringBuilder();
-                for (EstimacionCostosService.Metodo met : EstimacionCostosService.Metodo.values()) {
-                    var r = motor.estimar(met, b, t, c, m);
+                for (int i = 0; i < paneles.size(); i++) {
+                    PanelMetodo panel = paneles.get(i);
+                    var r = motor.costearEsfuerzo(panel.metodo(), horasPorMetodo.get(i), t, c, m);
                     resultados.add(r);
-                    porMetodoTexto.append(String.format("%-22s $%s%n", met.etiqueta(), r.costoTotal()));
+                    panel.mostrarResultado(r);
+                    porMetodoTexto.append(String.format("%-24s %12s h → %s%n",
+                            panel.metodo().etiqueta(), numero(r.esfuerzoHoras()),
+                            dinero(r.costoTotal())));
                 }
                 var estadistica = motor.resumirCostos(resultados);
                 var historicos = context.inventario().costosHistoricos();
@@ -628,12 +690,84 @@ public final class EstimacionCostosView extends VBox {
         });
         return ResponsiveLayouts.sectionCard(
                 "Estimación promedio de los métodos vs. costos históricos",
-                "Promedia el costo estimado por los 9 métodos de estimación y lo cruza con los "
-                        + "consumos reales registrados en las órdenes de servicio.",
-                ResponsiveLayouts.row(ResponsiveLayouts.field("Base de estimación", base),
-                        ResponsiveLayouts.field("Tarifa/hora", tarifa),
+                "Capture los insumos de cada técnica en su unidad; se promedian los costos "
+                        + "y se cruzan con los reales.",
+                ResponsiveLayouts.row(ResponsiveLayouts.field("Tarifa/hora", tarifa),
                         ResponsiveLayouts.field("CIF %", cifPct), ResponsiveLayouts.field("Margen %", margenPct)),
-                comparar, estadisticas, porMetodo, tabla, detalle);
+                metodos, comparar, estadisticas, porMetodo, tabla, detalle);
+    }
+
+    /**
+     * Apartado de un método de estimación: reúne sus insumos propios y el costo
+     * total calculado, de modo que cada técnica use la unidad que le corresponde.
+     */
+    private static final class PanelMetodo {
+        private final EstimacionCostosService.Metodo metodo;
+        private final List<TextField> campos = new ArrayList<>();
+        private final VBox tarjeta = new VBox(8);
+        private final Label resultado = new Label("Costo total: —");
+
+        PanelMetodo(EstimacionCostosService.Metodo metodo) {
+            this.metodo = metodo;
+            tarjeta.getStyleClass().add("method-card");
+            Label titulo = new Label(metodo.etiqueta());
+            titulo.getStyleClass().add("method-title");
+            tarjeta.getChildren().add(titulo);
+            List<ParametroMetodo> spec = parametrosMetodo(metodo);
+            for (ParametroMetodo parametro : spec) {
+                TextField campo = new TextField(parametro.valor());
+                campo.setPromptText(parametro.etiqueta());
+                UiCatalogos.ayuda(campo, parametro.etiqueta());
+                campos.add(campo);
+                Label etiqueta = new Label(parametro.etiqueta());
+                etiqueta.getStyleClass().add("data-label");
+                VBox field = new VBox(3, etiqueta, campo);
+                field.getStyleClass().add("method-field");
+                tarjeta.getChildren().add(field);
+            }
+            resultado.getStyleClass().add("method-result");
+            resultado.setWrapText(true);
+            resultado.setMaxWidth(Double.MAX_VALUE);
+            tarjeta.getChildren().add(resultado);
+        }
+
+        VBox tarjeta() {
+            return tarjeta;
+        }
+
+        EstimacionCostosService.Metodo metodo() {
+            return metodo;
+        }
+
+        /** Esfuerzo en horas que produce el método con los insumos capturados. */
+        BigDecimal horas(EstimacionCostosService motor) {
+            List<ParametroMetodo> spec = parametrosMetodo(metodo);
+            BigDecimal[] valores = new BigDecimal[campos.size()];
+            List<BigDecimal> pesos = null;
+            for (int i = 0; i < spec.size(); i++) {
+                if (spec.get(i).esPesos()) {
+                    pesos = pesos(campos.get(i).getText());
+                } else {
+                    valores[i] = valor(campos.get(i));
+                }
+            }
+            return switch (metodo) {
+                case JUICIO_EXPERTOS -> motor.juicioExpertos(valores[0], valores[1], valores[2], pesos);
+                case ANALOGIA -> motor.analogia(valores[0], valores[1], valores[2], valores[3]);
+                case PUNTOS_FUNCION -> motor.puntosFuncion(valores[0], valores[1]);
+                case COSMIC -> motor.cosmic(valores[0], valores[1]);
+                case COCOMO -> motor.cocomo(valores[0], valores[1], valores[2], valores[3]);
+                case DESGASTE_TRABAJO -> motor.desgasteTrabajo(valores[0], valores[1]);
+                case LINEAS_CODIGO -> motor.lineasCodigo(valores[0], valores[1]);
+                case TRES_PUNTOS -> motor.tresPuntos(valores[0], valores[1], valores[2]);
+                case SLIM_PUTNAM -> motor.slimPutnam(valores[0], valores[1], valores[2]);
+            };
+        }
+
+        void mostrarResultado(EstimacionCostosService.Resultado resultado) {
+            this.resultado.setText("Costo total: %s · %s h".formatted(
+                    dinero(resultado.costoTotal()), numero(resultado.esfuerzoHoras())));
+        }
     }
 
     private record FilaComparacion(String rubro, String estimado, String historico, String brecha,
@@ -646,8 +780,18 @@ public final class EstimacionCostosView extends VBox {
         return suma.divide(BigDecimal.valueOf(resultados.size()), 2, RoundingMode.HALF_UP);
     }
 
+    private static DecimalFormat formatoNumero(String patron) {
+        DecimalFormat formato = new DecimalFormat(patron);
+        formato.setRoundingMode(RoundingMode.HALF_UP);
+        return formato;
+    }
+
     private static String dinero(BigDecimal valor) {
-        return "$" + valor.setScale(2, RoundingMode.HALF_UP);
+        return UiFormatos.dinero(valor);
+    }
+
+    private static String numero(BigDecimal valor) {
+        return FORMATO_NUMERO.format(valor);
     }
 
     private static VBox estadistica(String etiqueta, Label valor, String detalle) {
@@ -689,10 +833,10 @@ public final class EstimacionCostosView extends VBox {
         }
         BigDecimal porcentaje = historico.subtract(estimado).multiply(BigDecimal.valueOf(100))
                 .divide(estimado, 2, RoundingMode.HALF_UP);
-        return (porcentaje.signum() > 0 ? "+" : "") + porcentaje + "%";
+        return (porcentaje.signum() > 0 ? "+" : "") + numero(porcentaje) + "%";
     }
 
     private static String porcentaje(BigDecimal valor) {
-        return valor.setScale(2, RoundingMode.HALF_UP) + "%";
+        return numero(valor) + "%";
     }
 }

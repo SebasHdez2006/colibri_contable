@@ -439,9 +439,8 @@ La pantalla tiene dos tarjetas: **Ciclo de vida** (gestión de la orden) y **Cos
 #### Costeo de la orden
 
 1. El panel superior muestra la orden cargada: costo acumulado, precio, margen y alerta si el margen es menor a 35 %.
-2. Para la orden demostrativa **OS2026001** puede pulsar **Cargar costos de ejemplo ($1,800)**; para cualquier otra orden el sistema lo rechaza.
-3. **Registrar MOD:** escriba **Horas** y **Tarifa** y pulse el botón para acumular mano de obra directa en la orden indicada.
-4. **Reconocer costo de la orden:** con el código cargado y la fecha, pulsa el botón para descargar los componentes acumulados como costo; el aviso muestra el folio.
+2. **Registrar MOD:** escriba **Horas** y **Tarifa** y pulse el botón para acumular mano de obra directa en la orden indicada.
+3. **Reconocer costo de la orden:** con el código cargado y la fecha, pulsa el botón para descargar los componentes acumulados como costo; el aviso muestra el folio.
 
 > El reconocimiento **no verifica una entrega previa**: la transición a Entregada es operativa y no bloquea el costeo.
 
@@ -490,7 +489,7 @@ Requisitos: al menos un plan activo con modalidad **SaaS**.
 
 - **Comparar métodos de costeo:** materiales, MOD, CIF estándar, costo real, unidades y actividades ABC (calidad, infraestructura) → costo directo, estándar con variación y ABC.
 - **Comparar estimado y real:** indique el código de orden → presupuesto vs. costo real, variación, índice de ejecución, ahorro/sobrecosto, utilidades y diagnóstico.
-- **Estimación promedio vs. históricos:** base común, tarifa, CIF % y margen % → estadísticos de las 9 estimaciones (promedio, mediana, rango, desviación, variabilidad, varianza) y tabla estimado vs. costos reales por rubro.
+- **Estimación promedio vs. históricos:** tarifa/hora, CIF % y margen % compartidos, más un apartado por cada uno de los 9 métodos con sus propios insumos en la unidad que su técnica requiere (horas, puntos de función, CFP, KLOC o tamaño) → cada tarjeta muestra su costo total estimado; estadísticos del promedio (mediana, rango, desviación, variabilidad, varianza), detalle por método y tabla estimado vs. costos reales por rubro.
 - **Políticas de costos y ventas:** texto de referencia (inventario/PEPS, MOD/CIF, acumulación por tipo de servicio, documentación y trazabilidad).
 - **Políticas, procesos y procedimientos:** catálogo de 122 instrumentos institucionales con filtro por texto; la columna **Instrumento** muestra el nombre completo (envuelto si es largo) y el botón **Ver** de cada fila despliega la descripción íntegra en un panel bajo la tabla (**Ocultar descripción** lo repliega); es referencia documental, no movimientos.
 
@@ -622,7 +621,7 @@ Colibrí es un **prototipo académico de escritorio**. Estas son sus fronteras r
 - **No espere que la plantilla de asiento contabilice sola:** siempre genera un borrador revisable.
 - **No use UEPS ni promedio como política:** en licencias solo PEPS genera salidas reales; los demás métodos son comparación.
 - **El costo del lote se captura manual:** la liberación sí elige producto y versión LIBERADA del catálogo, pero no consolida automáticamente costos capitalizables de producción.
-- **Órdenes a la medida con límites:** hay creación, edición (solo en Abierta/En proceso), estados y rentabilidad, pero **no hay entrega que bloquee el costeo**; “Cargar costos de ejemplo” solo funciona para OS2026001 y reconocer costo no verifica entrega.
+- **Órdenes a la medida con límites:** hay creación, edición (solo en Abierta/En proceso), estados y rentabilidad, pero **no hay entrega que bloquee el costeo**; reconocer costo no verifica entrega.
 - **Cálculos de costos son gerenciales:** SaaS por usuario-mes, costos por plan, estimaciones y ABC no dejan distribución contable persistida ni asientos de reparto.
 - **Deterioro por lote, no por licencia:** la pantalla ajusta el lote completo contra su valor recuperable y deja la partida en borrador para aprobarla en el Libro diario; la reversa es automática cuando el valor recuperable sube, no hay botón de reversión manual.
 - **Auxiliares por dimensión única:** cada auxiliar usa una sola dimensión (cliente, proveedor, lote, orden o centro de costo); no se puede combinar dimensiones ni filtrar por una dimensión específica.

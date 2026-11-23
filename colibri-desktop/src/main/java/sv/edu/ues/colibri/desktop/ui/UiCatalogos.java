@@ -60,6 +60,7 @@ public final class UiCatalogos {
         ComboBox<Cuenta> combo = new ComboBox<>(javafx.collections.FXCollections.observableArrayList(cuentas));
         combo.setEditable(true);
         combo.setPromptText("Código o busque la cuenta");
+        final List<Cuenta> catalogoCuentas = cuentas;
         combo.setConverter(new StringConverter<>() {
             @Override
             public String toString(Cuenta value) {
@@ -68,7 +69,18 @@ public final class UiCatalogos {
 
             @Override
             public Cuenta fromString(String text) {
-                return null;
+                // JavaFX confirma la edición con fromString(texto visible): debe
+                // reconocer tanto el código como el texto «código · nombre» que
+                // el propio combo escribe, o la selección se pierde al salir.
+                String buscado = text == null ? "" : text.trim();
+                if (buscado.isEmpty()) {
+                    return null;
+                }
+                return catalogoCuentas.stream()
+                        .filter(cuenta -> cuenta.getCodigo().equalsIgnoreCase(buscado)
+                                || (cuenta.getCodigo() + " · " + cuenta.getNombre())
+                                        .equalsIgnoreCase(buscado))
+                        .findFirst().orElse(null);
             }
         });
         if (valorInicial != null && !valorInicial.isBlank()) {
@@ -151,6 +163,7 @@ public final class UiCatalogos {
                 new ComboBox<>(javafx.collections.FXCollections.observableArrayList(centros));
         combo.setEditable(true);
         combo.setPromptText("Seleccione o escriba el centro de costo");
+        final List<ParametrizacionService.CentroCosto> catalogoCentros = centros;
         combo.setConverter(new StringConverter<>() {
             @Override
             public String toString(ParametrizacionService.CentroCosto value) {
@@ -159,7 +172,17 @@ public final class UiCatalogos {
 
             @Override
             public ParametrizacionService.CentroCosto fromString(String text) {
-                return null;
+                // Igual que en cuentas: el texto visible debe reconstruir la
+                // selección al confirmar la edición, no sólo el código suelto.
+                String buscado = text == null ? "" : text.trim();
+                if (buscado.isEmpty()) {
+                    return null;
+                }
+                return catalogoCentros.stream()
+                        .filter(centro -> centro.codigo().equalsIgnoreCase(buscado)
+                                || (centro.codigo() + " · " + centro.nombre())
+                                        .equalsIgnoreCase(buscado))
+                        .findFirst().orElse(null);
             }
         });
         if (!centros.isEmpty()) {

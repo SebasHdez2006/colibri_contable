@@ -44,6 +44,7 @@ import sv.edu.ues.colibri.application.partida.PartidaService;
 import sv.edu.ues.colibri.desktop.ui.CatalogoCombo;
 import sv.edu.ues.colibri.desktop.ui.ResponsiveLayouts;
 import sv.edu.ues.colibri.desktop.ui.UiDialogs;
+import sv.edu.ues.colibri.desktop.ui.UiFormatos;
 import sv.edu.ues.colibri.desktop.ui.UiTables;
 import sv.edu.ues.colibri.desktop.ui.UiTheme;
 import sv.edu.ues.colibri.domain.exception.DomainException;
@@ -60,7 +61,6 @@ import sv.edu.ues.colibri.domain.model.TipoPartida;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.file.Files;
-import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -78,7 +78,6 @@ public class PartidasView extends VBox {
     private static final String[] MESES = {"", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
             "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"};
     private static final int LIMITE_RECIENTES = 200;
-    private static final DecimalFormat MONEDA = new DecimalFormat("#,##0.00");
 
     private final AppContext context;
     private final ObservableList<LineaEditable> lineas = FXCollections.observableArrayList();
@@ -340,8 +339,8 @@ public class PartidasView extends VBox {
                 String version = l.versionLabel() == null ? ""
                         : " · " + l.productoCodigo() + " v" + l.versionLabel();
                 aux.add(new OpcionAuxiliar(l.codigo(), "Lote",
-                        version + " · " + l.disponibles() + " licencia(s) · $"
-                                + l.costoUnitario().toPlainString()));
+                        version + " · " + l.disponibles() + " licencia(s) · "
+                                + UiFormatos.dinero(l.costoUnitario())));
             }
         } catch (Exception ignored) {
         }
@@ -799,7 +798,7 @@ public class PartidasView extends VBox {
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         dialog.setResultConverter(bt -> bt == ButtonType.OK);
 
-        Label aviso = new Label("Falta registrar en " + lado + " por $" + MONEDA.format(monto)
+        Label aviso = new Label("Falta registrar en " + lado + " por " + UiFormatos.dinero(monto)
                 + ". Complete cuenta y auxiliares:");
         CatalogoCombo<Cuenta> cta = new CatalogoCombo<>(cuentasMovimiento, conversorCuenta(),
                 Cuenta::getCodigo, this::buscarCuentas);
@@ -885,10 +884,10 @@ public class PartidasView extends VBox {
     private void actualizarTotales() {
         BigDecimal d = suma(true);
         BigDecimal h = suma(false);
-        totalDebe.setText("Debe: " + MONEDA.format(d));
-        totalHaber.setText("Haber: " + MONEDA.format(h));
+        totalDebe.setText("Debe: " + UiFormatos.dinero(d));
+        totalHaber.setText("Haber: " + UiFormatos.dinero(h));
         BigDecimal dif = d.subtract(h);
-        diferencia.setText("Diferencia: " + MONEDA.format(dif.abs()));
+        diferencia.setText("Diferencia: " + UiFormatos.dinero(dif.abs()));
         diferencia.getStyleClass().removeAll("balance-error", "balance-ok");
         diferencia.getStyleClass().add(dif.signum() != 0 ? "balance-error" : "balance-ok");
         if (balanceBar != null) {
@@ -898,7 +897,7 @@ public class PartidasView extends VBox {
         if (cuadreLbl != null) {
             cuadreLbl.setText(dif.signum() == 0
                     ? "Cuadrado — el asiento puede contabilizarse."
-                    : "Descuadre de $" + MONEDA.format(dif.abs()) + " ("
+                    : "Descuadre de " + UiFormatos.dinero(dif.abs()) + " ("
                             + (dif.signum() > 0 ? "falta Haber" : "falta Debe") + ")");
             cuadreLbl.getStyleClass().removeAll("balance-error", "balance-ok");
             cuadreLbl.getStyleClass().add(dif.signum() != 0 ? "balance-error" : "balance-ok");
@@ -978,7 +977,7 @@ public class PartidasView extends VBox {
             return true;
         }
         UiDialogs.error("El asiento está descuadrado por "
-                + MONEDA.format(suma(true).subtract(suma(false)).abs())
+                + UiFormatos.dinero(suma(true).subtract(suma(false)).abs())
                 + ". Use «Cuadrar con cuenta» para proponer la línea faltante.");
         return false;
     }
@@ -1453,12 +1452,12 @@ public class PartidasView extends VBox {
                         nombrePorCuenta.getOrDefault(d.getCodigoCuenta(), ""),
                         d.getAuxiliar() == null ? "" : d.getAuxiliar(),
                         d.getCentroCosto() == null ? "" : d.getCentroCosto(),
-                        MONEDA.format(d.getDebe()), MONEDA.format(d.getHaber())));
+                        UiFormatos.dinero(d.getDebe()), UiFormatos.dinero(d.getHaber())));
             }
             List<String> total = new ArrayList<>(java.util.Collections.nCopies(encabezados.size(), ""));
             total.set(0, "TOTALES");
-            total.set(4, MONEDA.format(td));
-            total.set(5, MONEDA.format(th));
+            total.set(4, UiFormatos.dinero(td));
+            total.set(5, UiFormatos.dinero(th));
             filas.add(total);
 
             byte[] contenido = context.reports().exportarPdf(
@@ -1530,8 +1529,8 @@ public class PartidasView extends VBox {
             celdaDoc(tablaDoc, 0, fila, cuenta);
             celdaDoc(tablaDoc, 1, fila, nvl(d.getAuxiliar()));
             celdaDoc(tablaDoc, 2, fila, nvl(d.getCentroCosto()));
-            celdaDoc(tablaDoc, 3, fila, MONEDA.format(d.getDebe()));
-            celdaDoc(tablaDoc, 4, fila, MONEDA.format(d.getHaber()));
+            celdaDoc(tablaDoc, 3, fila, UiFormatos.dinero(d.getDebe()));
+            celdaDoc(tablaDoc, 4, fila, UiFormatos.dinero(d.getHaber()));
             td = td.add(d.getDebe());
             th = th.add(d.getHaber());
             fila++;
@@ -1541,9 +1540,9 @@ public class PartidasView extends VBox {
         tablaDoc.add(t1, 0, fila);
         tablaDoc.add(new Label(""), 1, fila);
         tablaDoc.add(new Label(""), 2, fila);
-        Label tdL = new Label(MONEDA.format(td));
+        Label tdL = new Label(UiFormatos.dinero(td));
         tdL.getStyleClass().add("paper-strong");
-        Label thL = new Label(MONEDA.format(th));
+        Label thL = new Label(UiFormatos.dinero(th));
         thL.getStyleClass().add("paper-strong");
         tablaDoc.add(tdL, 3, fila);
         tablaDoc.add(thL, 4, fila);
@@ -1629,9 +1628,9 @@ public class PartidasView extends VBox {
         TableColumn<PartidaDetalle, String> dCuenta = new TableColumn<>("Cuenta");
         dCuenta.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getCodigoCuenta()));
         TableColumn<PartidaDetalle, String> dDebe = new TableColumn<>("Debe");
-        dDebe.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getDebe().toPlainString()));
+        dDebe.setCellValueFactory(c -> new SimpleStringProperty(UiFormatos.dinero(c.getValue().getDebe())));
         TableColumn<PartidaDetalle, String> dHaber = new TableColumn<>("Haber");
-        dHaber.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getHaber().toPlainString()));
+        dHaber.setCellValueFactory(c -> new SimpleStringProperty(UiFormatos.dinero(c.getValue().getHaber())));
         detalles.getColumns().addAll(dCuenta, dDebe, dHaber);
         detalles.setPrefSize(460, 180);
         contenido.getChildren().add(new Label("Líneas del asiento"));
@@ -1667,12 +1666,12 @@ public class PartidasView extends VBox {
                         linea.referencia() == null ? "" : linea.referencia(),
                         linea.cuenta() + " · " + linea.nombreCuenta(),
                         linea.concepto() == null ? "" : linea.concepto(),
-                        linea.debe().toPlainString(), linea.haber().toPlainString()));
+                        UiFormatos.dinero(linea.debe()), UiFormatos.dinero(linea.haber())));
             }
             List<String> total = new ArrayList<>(java.util.Collections.nCopies(encabezados.size(), ""));
             total.set(0, "TOTALES");
-            total.set(5, totalDebe.toPlainString());
-            total.set(6, totalHaber.toPlainString());
+            total.set(5, UiFormatos.dinero(totalDebe));
+            total.set(6, UiFormatos.dinero(totalHaber));
             filas.add(total);
 
             FileChooser chooser = new FileChooser();

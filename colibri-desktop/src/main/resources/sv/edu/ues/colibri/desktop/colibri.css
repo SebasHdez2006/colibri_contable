@@ -870,6 +870,33 @@
     -fx-max-height: 17.86em;
     -fx-font-family: "Cascadia Mono", "Consolas", monospace;
 }
+
+/* Comparación de métodos de estimación: una tarjeta por técnica. */
+.method-grid { -fx-hgap: 0.86em; -fx-vgap: 0.86em; }
+.method-card {
+    -fx-background-color: -colibri-subtle;
+    -fx-background-radius: 0.71em;
+    -fx-border-color: -colibri-line;
+    -fx-border-radius: 0.71em;
+    -fx-padding: 0.86em 1.0em;
+    -fx-spacing: 0.57em;
+    -fx-min-width: 16.0em;
+    -fx-pref-width: 18.0em;
+}
+.method-title {
+    -fx-font-size: 0.93em;
+    -fx-font-weight: 700;
+    -fx-text-fill: -colibri-ink;
+}
+.method-field { -fx-spacing: 0.29em; }
+.method-result {
+    -fx-font-size: 0.86em;
+    -fx-font-weight: 600;
+    -fx-text-fill: -colibri-ink;
+    -fx-background-color: -colibri-cyan-tint-strong;
+    -fx-background-radius: 0.57em;
+    -fx-padding: 0.43em 0.71em;
+}
 .result-message {
     -fx-min-height: 3.86em;
 }

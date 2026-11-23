@@ -14,6 +14,7 @@ import sv.edu.ues.colibri.application.nomina.PlanillaService;
 import sv.edu.ues.colibri.desktop.ui.ResponsiveLayouts;
 import sv.edu.ues.colibri.desktop.ui.UiCatalogos;
 import sv.edu.ues.colibri.desktop.ui.UiDialogs;
+import sv.edu.ues.colibri.desktop.ui.UiFormatos;
 import sv.edu.ues.colibri.domain.model.PartidaDetalle;
 
 import java.math.BigDecimal;
@@ -167,29 +168,36 @@ public final class PlanillaView extends VBox {
     private void mostrarResultado(PlanillaService.Resultado resultado, List<PartidaDetalle> lineas,
                                   String folio) {
         String estado = folio == null ? "Vista previa" : "Contabilizada · Folio " + folio;
-        resumen.setText("%s · Líquido por pagar: $%s · Cargas patronales: $%s · "
-                        + "Prestaciones provisionadas: $%s · Costo total empresa: $%s"
-                .formatted(estado, resultado.liquidoPorPagar(), resultado.cargasPatronales(),
-                        resultado.prestacionesProvisionadas(), resultado.costoTotalEmpresa()));
+        resumen.setText("%s · Líquido por pagar: %s · Cargas patronales: %s · "
+                        + "Prestaciones provisionadas: %s · Costo total empresa: %s"
+                .formatted(estado, UiFormatos.dinero(resultado.liquidoPorPagar()),
+                        UiFormatos.dinero(resultado.cargasPatronales()),
+                        UiFormatos.dinero(resultado.prestacionesProvisionadas()),
+                        UiFormatos.dinero(resultado.costoTotalEmpresa())));
         asiento.setText(formatearLineas(lineas));
     }
 
     private static String formatearLineas(List<PartidaDetalle> lineas) {
-        StringBuilder texto = new StringBuilder("Cuenta                 Debe          Haber\n");
+        StringBuilder texto = new StringBuilder(encabezadoLineas());
         BigDecimal debe = BigDecimal.ZERO;
         BigDecimal haber = BigDecimal.ZERO;
         for (PartidaDetalle linea : lineas) {
             debe = debe.add(linea.getDebe());
             haber = haber.add(linea.getHaber());
-            texto.append("%-18s %12s %12s%n".formatted(linea.getCodigoCuenta(),
+            texto.append("%-18s %14s %14s%n".formatted(linea.getCodigoCuenta(),
                     importe(linea.getDebe()), importe(linea.getHaber())));
         }
-        texto.append("%nTotales            %12s %12s".formatted(importe(debe), importe(haber)));
+        texto.append("%n").append("%-18s %14s %14s".formatted("Totales",
+                importe(debe), importe(haber)));
         return texto.toString();
     }
 
+    private static String encabezadoLineas() {
+        return "%-18s %14s %14s%n".formatted("Cuenta", "Debe", "Haber");
+    }
+
     private static String importe(BigDecimal valor) {
-        return valor.signum() == 0 ? "" : "$" + valor;
+        return valor.signum() == 0 ? "" : UiFormatos.dinero(valor);
     }
 
     private static TextField campo(String valorInicial, String ayuda) {
