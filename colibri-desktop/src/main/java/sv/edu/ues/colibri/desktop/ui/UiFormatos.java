@@ -33,7 +33,9 @@ public final class UiFormatos {
     }
 
     /**
-     * Formatea un importe como moneda visible: {@code $ 640,023.92}.
+     * Formatea un importe como moneda visible: {@code $ 640,023.92}. Los
+     * valores negativos se muestran entre paréntesis — {@code ($ 1,234.56)} —
+     * siguiendo la convención contable usada en los estados financieros.
      *
      * @param monto importe a mostrar; {@code null} se representa como {@code —}
      * @return texto monetario con símbolo, miles y dos decimales
@@ -42,6 +44,7 @@ public final class UiFormatos {
         if (monto == null) {
             return "—";
         }
-        return MONEDA.get().format(monto);
+        String texto = MONEDA.get().format(monto.abs());
+        return monto.signum() < 0 ? "(" + texto + ")" : texto;
     }
 }

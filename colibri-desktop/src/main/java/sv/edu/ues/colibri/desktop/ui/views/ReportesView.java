@@ -423,10 +423,17 @@ public class ReportesView extends VBox {
 
     /**
      * Reconstruye el importe numérico de una celda ya formateada para
-     * pantalla («$ 640,023.92»), para los totales que vuelven a sumarse.
+     * pantalla («$ 640,023.92» o «($ 1,234.56)»), para los totales que
+     * vuelven a sumarse.
      */
     private static BigDecimal importeDe(String texto) {
-        return new BigDecimal(texto.replace("$", "").replace(",", "").replace(" ", "").trim());
+        String limpio = texto.replace("$", "").replace(",", "").replace(" ", "").trim();
+        boolean negativo = limpio.startsWith("(") && limpio.endsWith(")");
+        if (negativo) {
+            limpio = limpio.substring(1, limpio.length() - 1);
+        }
+        BigDecimal valor = new BigDecimal(limpio);
+        return negativo ? valor.negate() : valor;
     }
 
     private ReportService.Membrete membrete() {

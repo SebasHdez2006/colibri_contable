@@ -53,12 +53,14 @@ class ReportServiceTest {
     void exportaImporteFormateadoParaPantallaComoNumero() throws Exception {
         byte[] xlsx = new ReportService().exportarExcel("Balanza", "2026-01",
             List.of("Cuenta", "Debe (USD)"),
-            List.of(List.of("110102", "$ 1,234.50"), List.of("110103", "-$ 2,000.75")));
+            List.of(List.of("110102", "$ 1,234.50"), List.of("110103", "-$ 2,000.75"),
+                    List.of("110104", "($ 500.25)")));
 
         try (var workbook = WorkbookFactory.create(new ByteArrayInputStream(xlsx))) {
             var sheet = workbook.getSheet("Balanza");
             assertThat(sheet.getRow(4).getCell(1).getNumericCellValue()).isEqualTo(1234.5);
             assertThat(sheet.getRow(5).getCell(1).getNumericCellValue()).isEqualTo(-2000.75);
+            assertThat(sheet.getRow(6).getCell(1).getNumericCellValue()).isEqualTo(-500.25);
         }
     }
 
