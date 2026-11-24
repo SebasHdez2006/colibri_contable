@@ -568,8 +568,17 @@ public class ReportesView extends VBox {
                 return;
             }
             Runnable cerrar = () -> {
-                if (dialogo.isShowing()) {
-                    dialogo.close();
+                if (!dialogo.isShowing()) {
+                    return;
+                }
+                // Dialog.close() se niega a cerrar cuando no hay botón de
+                // cancelar ni resultado (requestPermissionToClose), y este
+                // diálogo no tiene ninguno: la ventana quedaba abierta para
+                // siempre. Se oculta la ventana interna directamente.
+                var ventana = dialogo.getDialogPane().getScene() == null ? null
+                        : dialogo.getDialogPane().getScene().getWindow();
+                if (ventana != null) {
+                    ventana.hide();
                 }
             };
             if (Platform.isFxApplicationThread()) {
